@@ -2,12 +2,12 @@ import React, {useEffect, useState} from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import {Container, Box, Paper, Fab} from '@mui/material';
 import { Grid, Card, CardMedia, CardContent, Button, IconButton, Typography } from '@mui/material';
-import {ArrowBackIos, ArrowForwardIos, Chat, Facebook, Phone} from '@mui/icons-material';
+import {ArrowBackIos, ArrowForwardIos, Facebook, Phone} from '@mui/icons-material';
 import Header from "./Header";
 import Footer from "./Footer";
 import ZaloIcon from "../../styles/zalo-icon.png";
-import {getAllFeedbacks} from "../../service/FeedbackService";
 import * as feedbackService from "../../service/FeedbackService";
+import OrderDetailService from "../../service/OrderDetailService";
 
     const featuredDrinks = [
         { name: "Cà phê sữa", price: "50.000đ", image: "https://simexcodl.com.vn/wp-content/uploads/2024/05/ca-phe-sua-hat-1.jpg" },
@@ -21,10 +21,21 @@ import * as feedbackService from "../../service/FeedbackService";
         const [index, setIndex] = useState(0);
         const [feedbacks, setFeedbacks] = useState([]);
         const [feedbackIndex, setFeedbackIndex] = useState(0);
-        const [orderDetails, setOrderDetails] = useState([]);
+        const [topDrinks, setTopDrinks] = useState([]);
         const itemsToShow = 2;
         const feedbackShow = 2;
-
+     useEffect(() => {
+         getAll(); // Lấy feedbacks
+         fetchTopSellingDrinks(); // Lấy danh sách món bán chạy
+     }, []);
+     const fetchTopSellingDrinks = async () => {
+         try {
+             let data = await OrderDetailService();
+             setTopDrinks(data); // Cập nhật danh sách món bán chạy
+         } catch (error) {
+             toast.error("Lỗi khi tải dữ liệu món bán chạy");
+         }
+     };
      const handleNext = () => {
          if (index + itemsToShow < featuredDrinks.length) {
              setIndex(index + itemsToShow);
@@ -113,10 +124,10 @@ const getAll = async () => {
                                 gap: 2, // Tạo khoảng cách giữa các món
                             }}
                         >
-                            {featuredDrinks.slice(index, index + itemsToShow).map((drink, i) => (
+                            {topDrinks.slice(index, index + itemsToShow).map((drink, i) => (
                                 <Card key={i}
                                       sx={{
-                                          width: { xs: "90%", sm: "45%", md: "30%" }, // Tự động thu hẹp trên các màn hình nhỏ
+                                          width: { xs: "90%", sm: "45%", md: "30%" },
                                           flexShrink: 0,
                                           borderRadius: 2,
                                           boxShadow: 3,
@@ -126,8 +137,8 @@ const getAll = async () => {
                                 >
                                     <CardMedia
                                         component="img"
-                                        image={drink.image}
-                                        alt={drink.name}
+                                        image={drink.imgDrinks || "https://via.placeholder.com/150"} // Nếu không có ảnh, dùng ảnh mặc định
+                                        alt={drink.nameDrinks}
                                         sx={{
                                             width: "100%",
                                             aspectRatio: "4/3",
@@ -137,16 +148,16 @@ const getAll = async () => {
                                     />
                                     <CardContent>
                                         <Typography variant="h6" sx={{ fontSize: { xs: "1rem", md: "1.25rem" } }}>
-                                            {drink.name}
+                                            {drink.nameDrinks}
                                         </Typography>
                                         <Typography color="#E7B45A" fontWeight="bold">
-                                            {drink.price}
+                                            {drink.price ? `${drink.price.toLocaleString()}đ` : "Liên hệ"}
                                         </Typography>
                                         <Button
                                             variant="contained"
                                             sx={{
                                                 backgroundColor: "#E7B45A", mt: 1,
-                                                fontSize: { xs: "0.75rem", md: "1rem" } // Responsive text size
+                                                fontSize: { xs: "0.75rem", md: "1rem" }
                                             }}
                                         >
                                             Đặt ngay
