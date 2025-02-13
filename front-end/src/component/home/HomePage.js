@@ -2,45 +2,45 @@ import React, {useEffect, useState} from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import {Container, Box, Paper, Fab} from '@mui/material';
 import { Grid, Card, CardMedia, CardContent, Button, IconButton, Typography } from '@mui/material';
-import {ArrowBackIos, ArrowForwardIos, Facebook, Phone} from '@mui/icons-material';
+import {ArrowBackIos, ArrowForwardIos, Facebook, Phone, ShoppingCart} from '@mui/icons-material';
 import Header from "./Header";
 import Footer from "./Footer";
-import ZaloIcon from "../../styles/zalo-icon.png";
+import ZaloIcon from "../../styles/img/zalo-icon.png";
+import coffee1 from '../../styles/img/images1.jpeg';
+import coffee2 from '../../styles/img/images2.jpeg';
+import coffee3 from '../../styles/img/images3.jpeg';
+import coffee4 from '../../styles/img/images4.jpg';
 import * as feedbackService from "../../service/FeedbackService";
-import OrderDetailService from "../../service/OrderDetailService";
+import  {TopProduct, addOrderDetail} from "../../service/OrderDetailService";
 
-    const featuredDrinks = [
-        { name: "Cà phê sữa", price: "50.000đ", image: "https://simexcodl.com.vn/wp-content/uploads/2024/05/ca-phe-sua-hat-1.jpg" },
-        { name: "Trà sữa truyền thống", price: "45.000đ", image: "https://bizweb.dktcdn.net/100/421/036/files/cach-nau-tra-sua-truyen-thong-de-ban-2.jpg?v=1616644748197" },
-        { name: "Trà Matcha Latte", price: "55.000đ", image: "https://cdn.tgdd.vn/2021/11/CookDish/cach-lam-matcha-latte-nong-thom-beo-cho-ngay-dong-them-am-ap-avt-1200x676-1.jpg" },
-        { name: "Cococcino Recipe", price: "60.000đ", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWSpmhjjHexhF14eRcMYppjSWvpxNyB4_QWA&s" },
-        { name: "Trà Olong Vải", price: "70.000đ", image: "https://kotavn.com/wp-content/uploads/2023/05/175449365_124635953031885_2116112830699819652_n-300x300.jpg" },
-    ];
 
  function CoffeeShop() {
         const [index, setIndex] = useState(0);
         const [feedbacks, setFeedbacks] = useState([]);
         const [feedbackIndex, setFeedbackIndex] = useState(0);
         const [topDrinks, setTopDrinks] = useState([]);
+        const [cart, setCart] = useState([]);
+        const [cartOpen, setCartOpen] = useState(false);
         const itemsToShow = 2;
         const feedbackShow = 2;
      useEffect(() => {
-         getAll(); // Lấy feedbacks
-         fetchTopSellingDrinks(); // Lấy danh sách món bán chạy
+         getAll();
+         fetchTopSellingDrinks();
      }, []);
      const fetchTopSellingDrinks = async () => {
          try {
-             let data = await OrderDetailService();
-             setTopDrinks(data); // Cập nhật danh sách món bán chạy
+             let data = await TopProduct();
+             setTopDrinks(data);
          } catch (error) {
              toast.error("Lỗi khi tải dữ liệu món bán chạy");
          }
      };
      const handleNext = () => {
-         if (index + itemsToShow < featuredDrinks.length) {
+         const maxIndex = Math.max(topDrinks.length - itemsToShow, 0);
+         if (index + itemsToShow < topDrinks.length) {
              setIndex(index + itemsToShow);
          } else {
-             setIndex(featuredDrinks.length - 1); // Nếu còn 1 sản phẩm, chỉ hiển thị 1
+             setIndex(maxIndex);
          }
      };
 
@@ -49,6 +49,20 @@ import OrderDetailService from "../../service/OrderDetailService";
              setIndex(index - itemsToShow);
          } else {
              setIndex(0);
+         }
+     };
+     const handleAddToCart = async (drink) => {
+         try {
+             const orderDetail = {
+                 drinkId: drink.id,
+                 quantity: 1,
+                 price: drink.price,
+             };
+             await addOrderDetail(orderDetail);
+             setCart([...cart, { ...drink, quantity: 1 }]); // Thêm vào giỏ hàng
+             toast.success("Đã thêm vào giỏ hàng!");
+         } catch (error) {
+             toast.error("Lỗi khi thêm vào giỏ hàng");
          }
      };
 
@@ -87,15 +101,9 @@ const getAll = async () => {
                     <Typography component="span" fontWeight="bold"> DANA Coffee </Typography>  là lựa chọn lý tưởng để bạn thư giãn, làm việc hay
                     gặp gỡ bạn bè.
                 </Typography>
-
                 {/* Hình ảnh */}
                 <Grid container spacing={2} justifyContent="center">
-                    {[
-                        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRf_nZi1TPQHppfwDi5HCWShtEn0ymLL7kIpg&s",
-                        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSU3x_pV41nv-cllaWuWoyWwhoFr3yCQrAV_g&s",
-                        "https://highlandstationlouisville.com/wp-content/uploads/sites/93/2023/05/coffee-shop-near-our-apartments.jpeg",
-                        "https://coffeeshopstartups.com/wp-content/uploads/2021/05/How-to-Make-Your-Cafe-Special-683x1024.jpg",
-                    ].map((imgSrc, i) => (
+                    {[coffee1, coffee2, coffee3, coffee4].map((imgSrc, i) => (
                         <Grid item xs={6} sm={3} key={i}>
                             <Card>
                                 <CardMedia component="img" height="140" image={imgSrc} alt={`Coffee ${i}`} />
@@ -107,12 +115,10 @@ const getAll = async () => {
                     <Typography variant="h5" color="#E7B45A" gutterBottom>
                         Món nổi bật
                     </Typography>
-
                     <Box display="flex" alignItems="center" justifyContent="center" gap={3}>
                         <IconButton onClick={handlePrev} disabled={index === 0} sx={{ color: "#E7B45A" }}>
                             <ArrowBackIos />
                         </IconButton>
-
                         {/* Danh sách món */}
                         <Box
                             sx={{
@@ -148,7 +154,7 @@ const getAll = async () => {
                                     />
                                     <CardContent>
                                         <Typography variant="h6" sx={{ fontSize: { xs: "1rem", md: "1.25rem" } }}>
-                                            {drink.nameDrinks}
+                                            {drink.drinkName}
                                         </Typography>
                                         <Typography color="#E7B45A" fontWeight="bold">
                                             {drink.price ? `${drink.price.toLocaleString()}đ` : "Liên hệ"}
@@ -159,6 +165,7 @@ const getAll = async () => {
                                                 backgroundColor: "#E7B45A", mt: 1,
                                                 fontSize: { xs: "0.75rem", md: "1rem" }
                                             }}
+                                            onClick={()=> handleAddToCart(drink)}
                                         >
                                             Đặt ngay
                                         </Button>
@@ -166,8 +173,7 @@ const getAll = async () => {
                                 </Card>
                             ))}
                         </Box>
-
-                        <IconButton onClick={handleNext} disabled={index + itemsToShow >= featuredDrinks.length} sx={{ color: "#E7B45A" }}>
+                        <IconButton onClick={handleNext} disabled={index + itemsToShow >= topDrinks.length} sx={{ color: "#E7B45A" }}>
                             <ArrowForwardIos />
                         </IconButton>
                     </Box>
@@ -188,9 +194,7 @@ const getAll = async () => {
                             ))}
                         </Grid>
                     </Paper>
-
-
-                <Box sx={{ position: 'fixed', bottom: 16, right: 16, display: 'flex', flexDirection: 'column', gap: 1,  zIndex: 1000 }}>
+                <Box sx={{ position: 'fixed', bottom: 16, left: 16, display: 'flex', flexDirection: 'column', gap: 1,  zIndex: 1000 }}>
                     <Fab color="primary" size="small" href="tel:0123456789">
                         <Phone />
                     </Fab>
@@ -208,6 +212,23 @@ const getAll = async () => {
                 </Box>
             </Container>
             <Footer/>
+            {/* Icon giỏ hàng */}
+            {cart.length > 0 && (
+            <Fab
+                size="medium"
+                sx={{
+                    position: 'fixed',
+                    bottom: 16,
+                    right: 16,
+                    bgcolor: "#E7B45A",
+                    color: "white",
+                    "&:hover": { bgcolor: "#D9A144" }
+                }}
+                onClick={() => setCartOpen(true)}
+            >
+                <ShoppingCart />
+            </Fab>
+            )}
         </>
 
     );

@@ -4,7 +4,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import logo from "../../styles/dana_logo.PNG";
+import logo from "../../styles/img/dana_logo.PNG";
 
 function Header() {
     const [mobileOpen, setMobileOpen] = useState(false);
