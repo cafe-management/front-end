@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8080/api/tableCoffee";
+const API_URL = "http://10.10.8.17:8080/api/tableCoffee";
 
 const getTableCoffee = async () => {
     try {
@@ -8,6 +8,14 @@ const getTableCoffee = async () => {
         return response.data;
     } catch (error) {
         console.error("Error fetching getTableCoffee:", error);
+    }
+};
+const getTableCoffeeById = async (id) => {
+    try {
+        const response = await axios.get(`${API_URL}/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error(`Error fetching table coffee with id ${id}:`, error);
     }
 };
 
@@ -22,4 +30,4 @@ const updateTableCoffeeStatus = async (id, newStatus) => {
     }
 };
 
-export { getTableCoffee, updateTableCoffeeStatus };
+export { getTableCoffee, updateTableCoffeeStatus,getTableCoffeeById };
