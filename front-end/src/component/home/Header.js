@@ -1,79 +1,112 @@
-import { useState } from "react";
-import { AppBar, Toolbar, IconButton, Drawer, List, ListItem, ListItemText, Typography, Box, Collapse } from "@mui/material";
+import React, {useEffect, useState} from "react";
+import {AppBar, Toolbar, IconButton, Drawer, List, ListItem, ListItemText, Typography, Box, Collapse, Link, Breadcrumbs} from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import logo from "../../styles/img/dana_logo.PNG";
+import {useLocation, useNavigate} from "react-router-dom";
+import {getCategories} from "../../service/CategoryService";
 
 function Header() {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [submenuOpen, setSubmenuOpen] = useState(false);
+    const [categories, setCategories] = useState([]);
+    const navigate = useNavigate();
+    // const toggleMobileMenu = () => setMobileOpen(!mobileOpen);
+    // const toggleSubmenu = () => setSubmenuOpen(!submenuOpen);
+    const toggleMobileMenu = () => {
+        setMobileOpen((prev) => {
+            console.log("Toggling mobile menu. New state:", !prev);
+            return !prev;
+        });
+    };
+    const handleDrawerOpen = () => {
+        setMobileOpen(true);
+    };
+    const toggleSubmenu = () => {
+        setSubmenuOpen((prev) => {
+            console.log("Toggling submenu. New state:", !prev);
+            return !prev;
+        });
+    };
+    const handleDrawerClose = () => {
+        setMobileOpen(false);
+    };
 
-    const toggleMobileMenu = () => setMobileOpen(!mobileOpen);
-    const toggleSubmenu = () => setSubmenuOpen(!submenuOpen);
-
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try{
+                const data = await getCategories();
+                console.log("Category", data);
+                setCategories(data);
+            }catch (error){
+                console.error("Error fetching categories:", error);
+            }
+        }
+        fetchCategories();
+    }, []);
+    const location = useLocation();
+    const breadcrumbs = [];
+    if(location.pathname !== "/home"){
+        breadcrumbs.push(
+            <Link underline="hover" color="inherit" href="/home">
+                Trang chủ
+            </Link>
+        );
+        if(location.pathname.startsWith("/home/introduction")){
+            breadcrumbs.push(
+                <Typography key="introduction" sx={{color: "text.primary"}}>
+                    Giới thiệu
+                </Typography>
+            );
+        } else if(location.pathname.startsWith("/home/menu")){
+            breadcrumbs.push(
+                <Typography key="menu" sx={{color: "text.primary"}}>
+                    Menu
+                </Typography>
+            );
+        } else if(location.pathname.startsWith("/home/news")){
+            breadcrumbs.push(
+                <Typography key="news" sx={{color: "text.primary"}}>
+                    Tin tức
+                </Typography>
+            )
+        }
+    }
     return (
+        <>
         <AppBar position="fixed" sx={headerStyle}>
             <Toolbar sx={{ display: "flex", justifyContent: "space-between", width: "100%", padding: "0 10px" }}>
-
                 <Box
                     component="img"
                     src={logo}
                     alt="Logo"
                     sx={{ height: 60, width: "auto" }}
                 />
+
                 {/* Menu for Desktop */}
                 <Box sx={{ display: { xs: "none", lg: "flex" }, gap: 3 }}>
-                    <List sx={{ display: "flex", gap: 3 }}>
-                        <ListItem button>
+                    <List sx={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 3, padding: 0 }}>
+                        <ListItem button sx={{ width: "auto", cursor: "pointer" }}>
                             <ListItemText primary="Trang chủ" sx={{ ...menuTextStyle, textTransform: 'uppercase' }} />
                         </ListItem>
-                        <ListItem button>
+                        <ListItem button sx={{ width: "auto", cursor: "pointer" }}>
                             <ListItemText primary="Giới thiệu" sx={{ ...menuTextStyle, textTransform: 'uppercase' }} />
                         </ListItem>
-
-                        {/* Dropdown Menu for Drinks */}
-                        <ListItem button onClick={toggleSubmenu}>
-                            <ListItemText primary="Menu" sx={{ ...menuTextStyle, textTransform: 'uppercase' }} />
+                        <ListItem button onClick={toggleSubmenu} sx={{ width: "auto", cursor: "pointer" }}>
+                            <ListItemText primary="Menu" sx={menuTextStyle} />
                             {submenuOpen ? <ExpandLessIcon sx={{ color: "#E7B45A" }} /> : <ExpandMoreIcon sx={{ color: "#E7B45A" }} />}
                         </ListItem>
-                        <Collapse in={submenuOpen} timeout="auto" unmountOnExit>
-                            <Box sx={{ paddingLeft: 4 }}>
-                                {/* Trà */}
-                                <ListItem sx={{ ...categoryStyle, textTransform: 'uppercase', fontWeight: 'bold' }}>
-                                    <ListItemText primary="Trà" sx={{ color: "#E7B45A" }} />
-                                </ListItem>
-                                <ListItem button>
-                                    <ListItemText primary="Trà Olong Vải" sx={{ ...menuTextStyle, textTransform: 'uppercase' }} />
-                                </ListItem>
-
-                                {/* Trà Sữa */}
-                                <ListItem sx={{ ...categoryStyle, textTransform: 'uppercase', fontWeight: 'bold' }}>
-                                    <ListItemText primary="Trà Sữa" sx={{ color: "#E7B45A" }} />
-                                </ListItem>
-                                <ListItem button>
-                                    <ListItemText primary="Trà sữa truyền thống" sx={{ ...menuTextStyle, textTransform: 'uppercase' }} />
-                                </ListItem>
-
-                                {/* Cà Phê */}
-                                <ListItem sx={{ ...categoryStyle, textTransform: 'uppercase', fontWeight: 'bold' }}>
-                                    <ListItemText primary="Cà Phê" sx={{ color: "#E7B45A" }} />
-                                </ListItem>
-                                <ListItem button>
-                                    <ListItemText primary="Cococcino Recipe" sx={{ ...menuTextStyle, textTransform: 'uppercase' }} />
-                                </ListItem>
-                                <ListItem button>
-                                    <ListItemText primary="Cocoapresso" sx={{ ...menuTextStyle, textTransform: 'uppercase' }} />
-                                </ListItem>
-                            </Box>
-                        </Collapse>
-
-                        {/* Direct Menu Items for Mobile */}
-                        <ListItem button>
+                        <ListItem button sx={{ width: "auto", cursor: "pointer" }}>
                             <ListItemText primary="Tin tức" sx={{ ...menuTextStyle, textTransform: 'uppercase' }} />
                         </ListItem>
-                        <ListItem button>
+                        <ListItem button onClick={() => {
+                            const footer = document.getElementById("footer");
+                            if (footer) {
+                                footer.scrollIntoView({ behavior: "smooth" });
+                            }
+                        }} sx={{ width: "auto", cursor: "pointer" }}>
                             <ListItemText primary="Liên hệ" sx={{ ...menuTextStyle, textTransform: 'uppercase' }} />
                         </ListItem>
                     </List>
@@ -109,60 +142,43 @@ function Header() {
                         <CloseIcon sx={{ color: "#E7B45A" }} />
                     </IconButton>
                     <List>
-                        <ListItem button onClick={toggleMobileMenu}>
+                        <ListItem button onClick={() => navigate('/home')}>
                             <ListItemText primary="Trang chủ" sx={{ ...menuTextStyle, textTransform: 'uppercase' }} />
                         </ListItem>
-                        <ListItem button onClick={toggleMobileMenu}>
+                        <ListItem button onClick={() => navigate('/home/introduction')}>
                             <ListItemText primary="Giới thiệu" sx={{ ...menuTextStyle, textTransform: 'uppercase' }} />
                         </ListItem>
-
-                        {/* Dropdown trong Mobile */}
-                        <ListItem button onClick={toggleSubmenu}>
-                            <ListItemText primary="Menu" sx={{ ...menuTextStyle, textTransform: 'uppercase' }} />
-                            {submenuOpen ? <ExpandLessIcon sx={{ color: "#E7B45A" }} /> : <ExpandMoreIcon sx={{ color: "#E7B45A" }} />}
+                        <ListItem button onClick={() => navigate('/home/menu')}>
+                            <ListItemText primary="Menu" sx={menuTextStyle } />
                         </ListItem>
-                        <Collapse in={submenuOpen} timeout="auto" unmountOnExit>
-                            <Box sx={{ paddingLeft: 4 }}>
-                                {/* Trà */}
-                                <ListItem sx={{ ...categoryStyle, textTransform: 'uppercase', fontWeight: 'bold' }}>
-                                    <ListItemText primary="Trà" sx={{ color: "#E7B45A" }} />
-                                </ListItem>
-                                <ListItem button>
-                                    <ListItemText primary="Trà Olong Vải" sx={{ ...menuTextStyle, textTransform: 'uppercase' }} />
-                                </ListItem>
-
-                                {/* Trà Sữa */}
-                                <ListItem sx={{ ...categoryStyle, textTransform: 'uppercase', fontWeight: 'bold' }}>
-                                    <ListItemText primary="Trà Sữa" sx={{ color: "#E7B45A" }} />
-                                </ListItem>
-                                <ListItem button>
-                                    <ListItemText primary="Trà sữa truyền thống" sx={{ ...menuTextStyle, textTransform: 'uppercase' }} />
-                                </ListItem>
-
-                                {/* Cà Phê */}
-                                <ListItem sx={{ ...categoryStyle, textTransform: 'uppercase', fontWeight: 'bold' }}>
-                                    <ListItemText primary="Cà Phê" sx={{ color: "#E7B45A" }} />
-                                </ListItem>
-                                <ListItem button>
-                                    <ListItemText primary="Cococcino Recipe" sx={{ ...menuTextStyle, textTransform: 'uppercase' }} />
-                                </ListItem>
-                                <ListItem button>
-                                    <ListItemText primary="Cocoapresso" sx={{ ...menuTextStyle, textTransform: 'uppercase' }} />
-                                </ListItem>
-                            </Box>
-                        </Collapse>
-
                         {/* Tin tức and Liên hệ in the mobile menu */}
-                        <ListItem button onClick={toggleMobileMenu}>
+                        <ListItem button onClick={() => navigate('/home/news')}>
                             <ListItemText primary="Tin tức" sx={{ ...menuTextStyle, textTransform: 'uppercase' }} />
                         </ListItem>
-                        <ListItem button onClick={toggleMobileMenu}>
+                        <ListItem button onClick={() => {
+                            handleDrawerClose(); // Đóng menu trên mobile
+                            setTimeout(() => { // Đợi Drawer đóng rồi mới cuộn mượt
+                                const footer = document.getElementById("footer");
+                                if (footer) {
+                                    footer.scrollIntoView({ behavior: "smooth" });
+                                }
+                            }, 300);
+                        }}>
                             <ListItemText primary="Liên hệ" sx={{ ...menuTextStyle, textTransform: 'uppercase' }} />
                         </ListItem>
                     </List>
                 </Box>
             </Drawer>
+
         </AppBar>
+    {breadcrumbs.length > 0 && (
+        <Box sx={{ marginTop: "100px",  marginBottom: "5px", paddingLeft: "20px"}}>
+            <Breadcrumbs aria-label="breadcrumb">
+                {breadcrumbs}
+            </Breadcrumbs>
+        </Box>
+        )}
+    </>
     );
 }
 

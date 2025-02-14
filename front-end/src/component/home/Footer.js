@@ -1,8 +1,14 @@
 import { Box, Container, Grid, Typography, Link, Divider } from "@mui/material";
 
 function Footer() {
+    const socialLinks = [
+        { text: "Twitter", href: "https://twitter.com" },
+        { text: "Facebook", href: "https://www.facebook.com/profile.php?id=61573004915840" },
+        { text: "Support", href: "/support" }, // Trang hỗ trợ nội bộ
+        { text: "FAQ", href: "/faq" } // Trang câu hỏi thường gặp
+    ];
     return (
-        <Box
+        <Box id="footer"
             component="footer"
             sx={{
                 bgcolor: "grey.900",
@@ -37,8 +43,15 @@ function Footer() {
                                     Help Center
                                 </Typography>
                                 <Box>
-                                    {["Twitter", "Facebook", "Support", "FAQ"].map((text) => (
-                                        <Link key={text} href="#" underline="hover" color="inherit" display="block" sx={{ mb: 0.5 }}>
+                                    {socialLinks.map(({ text, href }) => (
+                                        <Link
+                                            key={text}
+                                            href={href}
+                                            underline="hover"
+                                            color="inherit"
+                                            display="block"
+                                            sx={{ mb: 0.5 }}
+                                        >
                                             {text}
                                         </Link>
                                     ))}
@@ -46,7 +59,6 @@ function Footer() {
                             </Grid>
                         </Grid>
                     </Grid>
-
                     {/* Cột 2: Legal & Contact */}
                     <Grid item xs={12} sm={6}>
                         <Grid container spacing={2}>
@@ -73,23 +85,25 @@ function Footer() {
                                     <Link href="mailto:danafinest@gmail.com" underline="hover" color="inherit" display="block" sx={{ mb: 0.5 }}>
                                         danafinest@gmail.com
                                     </Link>
-                                    <Link href="tel:+1234567890" underline="hover" color="inherit" display="block">
-                                        +123 456 7890
+                                    <Link href="tel:+84 364 773 446" underline="hover" color="inherit" display="block">
+                                        +84 364 773 446
                                     </Link>
                                 </Box>
                             </Grid>
                         </Grid>
                     </Grid>
                 </Grid>
-
-                {/* Divider & Copyright */}
                 <Divider sx={{ bgcolor: "grey.700", my: 2 }} />
-                <Typography variant="body2" color="white" align="center">
-                    © 2023{" "}
-                    <Link href="https://flowbite.com/" color="#E7B45A" underline="hover">
-                        Flowbite™
+                <Typography variant="body2" color="white" align="center"
+                            sx={{ fontSize: "0.8rem", fontStyle: "italic" }}>
+                    Chứng nhận{" "}
+                    <Link
+                        href="https://kmr.com.vn/dich-vu-chung-nhan-iso/chung-nhan-iso-kmr/chung-nhan-iso-9001-2015-kmr.html"
+                        color="#E7B45A"
+                        underline="hover"
+                    >
+                        ISO 9001:2015
                     </Link>
-                    . All Rights Reserved.
                 </Typography>
             </Container>
         </Box>
