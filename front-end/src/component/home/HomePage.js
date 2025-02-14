@@ -11,8 +11,7 @@ import coffee2 from '../../styles/img/home/images2.jpeg';
 import coffee3 from '../../styles/img/home/images3.jpeg';
 import coffee4 from '../../styles/img/home/images4.jpg';
 import * as feedbackService from "../../service/FeedbackService";
-import  {TopProduct, addOrderDetail} from "../../service/OrderDetailService";
-import {createCartItem} from "../../service/CartItemService";
+import  {TopProduct, createCartItem} from "../../service/CartItemService";
 import {useLocation} from "react-router-dom";
 
 function CoffeeShop() {
