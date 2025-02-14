@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
-import { ToastContainer, toast } from 'react-toastify';
-import {Container, Box, Paper, Fab, Badge, Snackbar, Alert, Slider, Breadcrumbs, Link} from '@mui/material';
+import { toast } from 'react-toastify';
+import {Container, Box, Paper, Fab, Badge, Snackbar, Alert} from '@mui/material';
 import { Grid, Card, CardMedia, CardContent, Button, IconButton, Typography } from '@mui/material';
 import {ArrowBackIos, ArrowForwardIos, CheckCircle, Facebook, Phone, ShoppingCart} from '@mui/icons-material';
 import Header from "./Header";
@@ -12,7 +12,8 @@ import coffee3 from '../../styles/img/home/images3.jpeg';
 import coffee4 from '../../styles/img/home/images4.jpg';
 import * as feedbackService from "../../service/FeedbackService";
 import  {TopProduct, createCartItem} from "../../service/CartItemService";
-import {useLocation} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
+import {Helmet} from "react-helmet-async";
 
 function CoffeeShop() {
     const [index, setIndex] = useState(0);
@@ -25,6 +26,7 @@ function CoffeeShop() {
     const itemsToShow = 2;
     const feedbackShow = 2;
     const location = useLocation();
+    const navigate = useNavigate();
     useEffect(() => {
         getAll();
         fetchTopSellingDrinks();
@@ -100,6 +102,9 @@ function CoffeeShop() {
     };
     return (
         <>
+            <Helmet>
+                <title>DANA COFFEE - Trang Chủ</title>
+            </Helmet>
             <Box sx={{ position: "sticky", top: 0, zIndex: 1000, backgroundColor: "white" }}>
                 <Header/>
 
@@ -209,34 +214,36 @@ function CoffeeShop() {
                     </Box>
                 </Box>
                 {/* Phản hồi */}
-                <Paper elevation={3} sx={{ backgroundColor: "#333", color: "white", p: 4, mt: 4, borderRadius: 2 }}>
-                    <Typography
-                        variant="h5" // Giảm kích thước so với Món Nổi Bật
-                        color="#E7B45A"
-                        gutterBottom
-                        fontWeight="bold"
-                        sx={{
-                            textAlign: "center",
-                            textTransform: "uppercase",
-                            letterSpacing: 2,
-                            fontStyle: "italic",
-                            pb: 1,
-                            mb: 2
-                        }}
-                    >
-                        Khách Hàng Nói Gì
-                    </Typography>
-                    <Grid container spacing={2} justifyContent="center">
-                        {feedbacks.slice(feedbackIndex, feedbackIndex + feedbackShow).map((fb, i) => (
-                            <Grid item xs={12} sm={5} key={i}>
-                                <Paper elevation={2} sx={{ p: 3, textAlign: "center", borderRadius: 2, backgroundColor: "white", color: "black" }}>
-                                    <Typography variant="body1" fontStyle="italic">"{fb.content}"</Typography>
-                                    <Typography fontWeight="bold" mt={2}>{fb.customer?.nameCustomer || "Khách hàng ẩn danh"}</Typography>
-                                </Paper>
-                            </Grid>
-                        ))}
-                    </Grid>
-                </Paper>
+                    <Paper elevation={3} sx={{ backgroundColor: "#333", color: "white", p: 4, mt: 4, borderRadius: 2 }}>
+                        <Typography
+                            variant="h5" // Giảm kích thước so với Món Nổi Bật
+                            color="#E7B45A"
+                            gutterBottom
+                            fontWeight="bold"
+                            sx={{
+                                textAlign: "center",
+                                textTransform: "uppercase",
+                                letterSpacing: 2,
+                                fontStyle: "italic",
+                                pb: 1,
+                                mb: 2
+                            }}
+                        >
+                            Khách Hàng Nói Gì
+                        </Typography>
+                        <Grid container spacing={2} justifyContent="center">
+                            {feedbacks.slice(feedbackIndex, feedbackIndex + feedbackShow).map((fb, i) => (
+                                <Grid item xs={12} sm={5} key={i}>
+                                    <Paper elevation={2} sx={{ p: 3, textAlign: "center", borderRadius: 2, backgroundColor: "white", color: "black" }}>
+                                        <Typography variant="body1" fontStyle="italic">"{fb.content}"</Typography>
+                                        <Typography fontWeight="bold" mt={2}>{fb.customer?.nameCustomer || "Khách hàng ẩn danh"}</Typography>
+                                    </Paper>
+                                </Grid>
+                            ))}
+                        </Grid>
+                    </Paper>
+
+
                 <Box sx={{ position: 'fixed', bottom: 16, left: 16, display: 'flex', flexDirection: 'column', gap: 1,  zIndex: 1000 }}>
                     <Fab color="primary" size="small" href="tel:0364773446">
                         <Phone />
@@ -282,10 +289,8 @@ function CoffeeShop() {
                             boxShadow: "0px 2px 4px rgba(0,0,0,0.2)",
                             "&:hover": { backgroundColor: "#D9A144" },
                         }}
-                        onClick={() => {
-                            // Chuyển hướng đến trang giỏ hàng hoặc mở dialog giỏ hàng
-                            console.log("Chuyển đến trang giỏ hàng");
-                        }}
+                        onClick={() => navigate('/home/menu')
+                        }
                     >
                         <Badge badgeContent={cartCount} color="error">
                             <ShoppingCart fontSize="large" sx={{ color: "white" }}/>

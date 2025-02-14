@@ -4,8 +4,8 @@ function Footer() {
     const socialLinks = [
         { text: "Twitter", href: "https://twitter.com" },
         { text: "Facebook", href: "https://www.facebook.com/profile.php?id=61573004915840" },
-        { text: "Support", href: "/support" }, // Trang hỗ trợ nội bộ
-        { text: "FAQ", href: "/faq" } // Trang câu hỏi thường gặp
+        { text: "Support", href: "/support" },
+        { text: "FAQ", href: "/faq" }
     ];
     return (
         <Box id="footer"
@@ -13,17 +13,15 @@ function Footer() {
             sx={{
                 bgcolor: "grey.900",
                 color: "#E7B45A",
-                py: { xs: 2, sm: 3 }, // Giảm chiều cao
+                py: { xs: 2, sm: 3 },
                 mt: "auto",
                 position: "relative",
             }}
         >
             <Container maxWidth="xl">
                 <Grid container spacing={2}>
-                    {/* Cột 1: Company & Help Center */}
                     <Grid item xs={12} sm={6}>
                         <Grid container spacing={2}>
-                            {/* Company */}
                             <Grid item xs={6}>
                                 <Typography variant="body1" sx={{ fontWeight: "bold", mb: 1 }}>
                                     Company
@@ -36,8 +34,6 @@ function Footer() {
                                     ))}
                                 </Box>
                             </Grid>
-
-                            {/* Help Center */}
                             <Grid item xs={6}>
                                 <Typography variant="body1" sx={{ fontWeight: "bold", mb: 1 }}>
                                     Help Center
@@ -59,10 +55,8 @@ function Footer() {
                             </Grid>
                         </Grid>
                     </Grid>
-                    {/* Cột 2: Legal & Contact */}
                     <Grid item xs={12} sm={6}>
                         <Grid container spacing={2}>
-                            {/* Legal */}
                             <Grid item xs={6}>
                                 <Typography variant="body1" sx={{ fontWeight: "bold", mb: 1 }}>
                                     Legal
@@ -75,8 +69,6 @@ function Footer() {
                                     ))}
                                 </Box>
                             </Grid>
-
-                            {/* Contact */}
                             <Grid item xs={6}>
                                 <Typography variant="body1" sx={{ fontWeight: "bold", mb: 1 }}>
                                     Contact
@@ -96,18 +88,17 @@ function Footer() {
                 <Divider sx={{ bgcolor: "grey.700", my: 2 }} />
                 <Typography variant="body2" color="white" align="center"
                             sx={{ fontSize: "0.8rem", fontStyle: "italic" }}>
-                    Chứng nhận{" "}
+                    © Bản quyền thuộc về {" "}
                     <Link
-                        href="https://kmr.com.vn/dich-vu-chung-nhan-iso/chung-nhan-iso-kmr/chung-nhan-iso-9001-2015-kmr.html"
+                        href="http://localhost:3000/home"
                         color="#E7B45A"
                         underline="hover"
                     >
-                        ISO 9001:2015
+                        DANA Coffee
                     </Link>
                 </Typography>
             </Container>
         </Box>
     );
 }
-
 export default Footer;

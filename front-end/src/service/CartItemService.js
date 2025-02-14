@@ -1,5 +1,5 @@
 import axios from "axios";
-import {API_URL, BASE_URL} from "../config/apiConfig";
+import {API_URL} from "../config/apiConfig";
 
 const createCartItem = async (cartItem) => {
     try {
@@ -14,7 +14,7 @@ const createCartItem = async (cartItem) => {
 };
 const TopProduct = async() => {
     try{
-        const result = await axios.get(BASE_URL + "/orderDetails/top");
+        const result = await axios.get(API_URL + "/top");
         console.log("Dữ liệu từ API:", result.data);
         return result.data;
     }catch (error){

@@ -13,8 +13,6 @@ function Header() {
     const [submenuOpen, setSubmenuOpen] = useState(false);
     const [categories, setCategories] = useState([]);
     const navigate = useNavigate();
-    // const toggleMobileMenu = () => setMobileOpen(!mobileOpen);
-    // const toggleSubmenu = () => setSubmenuOpen(!submenuOpen);
     const toggleMobileMenu = () => {
         setMobileOpen((prev) => {
             console.log("Toggling mobile menu. New state:", !prev);
@@ -84,21 +82,19 @@ function Header() {
                     alt="Logo"
                     sx={{ height: 60, width: "auto" }}
                 />
-
                 {/* Menu for Desktop */}
                 <Box sx={{ display: { xs: "none", lg: "flex" }, gap: 3 }}>
                     <List sx={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 3, padding: 0 }}>
-                        <ListItem button sx={{ width: "auto", cursor: "pointer" }}>
+                        <ListItem button sx={{ width: "auto", cursor: "pointer" }} onClick={() => navigate('/home')}>
                             <ListItemText primary="Trang chủ" sx={{ ...menuTextStyle, textTransform: 'uppercase' }} />
                         </ListItem>
-                        <ListItem button sx={{ width: "auto", cursor: "pointer" }}>
+                        <ListItem button sx={{ width: "auto", cursor: "pointer" }} onClick={() => navigate('/home/introduction')}>
                             <ListItemText primary="Giới thiệu" sx={{ ...menuTextStyle, textTransform: 'uppercase' }} />
                         </ListItem>
-                        <ListItem button onClick={toggleSubmenu} sx={{ width: "auto", cursor: "pointer" }}>
-                            <ListItemText primary="Menu" sx={menuTextStyle} />
-                            {submenuOpen ? <ExpandLessIcon sx={{ color: "#E7B45A" }} /> : <ExpandMoreIcon sx={{ color: "#E7B45A" }} />}
+                        <ListItem button onClick={toggleSubmenu} sx={{ width: "auto", cursor: "pointer" }} onClick={() => navigate('/home/menu')}>
+                            <ListItemText primary="Menu" sx={{...menuTextStyle, textTransform: 'uppercase'}} />
                         </ListItem>
-                        <ListItem button sx={{ width: "auto", cursor: "pointer" }}>
+                        <ListItem button sx={{ width: "auto", cursor: "pointer" }} onClick={() => navigate('/home/news')}>
                             <ListItemText primary="Tin tức" sx={{ ...menuTextStyle, textTransform: 'uppercase' }} />
                         </ListItem>
                         <ListItem button onClick={() => {
@@ -111,29 +107,26 @@ function Header() {
                         </ListItem>
                     </List>
                 </Box>
-
-                {/* Mobile Menu Button (Hamburger) */}
                 <IconButton edge="end" onClick={toggleMobileMenu} sx={{ display: { lg: "none" } }}>
                     <MenuIcon sx={{ color: "#E7B45A" }} />
                 </IconButton>
             </Toolbar>
-
             {/* Mobile Menu (Drawer) */}
             <Drawer
                 anchor="right"
                 open={mobileOpen}
                 onClose={toggleMobileMenu}
                 sx={{
-                    width: "100%",  // Full width for mobile menu
+                    width: "100%",
                     flexShrink: 0,
                     "& .MuiDrawer-paper": {
-                        width: "100%", // Drawer should take full width of screen
-                        height: "100vh", // Full height of the screen
+                        width: "100%",
+                        height: "100vh",
                         padding: "20px",
                         display: "flex",
                         flexDirection: "column",
                         backgroundColor: "#ffffff",
-                        boxSizing: "border-box", // Added this to prevent overflow
+                        boxSizing: "border-box",
                     }
                 }}
             >
@@ -195,16 +188,13 @@ const headerStyle = {
 const menuTextStyle = {
     fontWeight: "500",
     color: "#E7B45A",
-    textTransform: 'uppercase', // Make sure text is in uppercase
-};
-
-// Updated categoryStyle for bold
-const categoryStyle = {
-    fontWeight: "bold", // Directly apply bold for category titles
-    color: "#E7B45A",
-    borderBottom: "2px solid #E7B45A", // Add a line below each category
-    paddingBottom: "8px", // Add space below the line
-    marginBottom: "8px", // Space between the category and products
+    textTransform: 'uppercase',
+    transition: "all 0.3s ease-in-out",
+    "&:hover": {
+        fontWeight: "bold",
+        color: "#d19544",
+        borderBottom: "2px solid #d19544",
+    }, // Make sure text is in uppercase
 };
 
 export default Header;

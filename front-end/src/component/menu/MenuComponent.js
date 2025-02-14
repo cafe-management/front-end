@@ -24,6 +24,7 @@ import { getCategories } from "../../service/CategoryService";
 import { getDrinks, getDrinksByCategory } from "../../service/DrinkService";
 import { getCloudinaryImageUrl } from "../../service/CloudinaryService";
 import { createCartItem } from "../../service/CartItemService";
+import Header from "../home/Header";
 
 const MenuComponent = () => {
     const [searchParams] = useSearchParams();
@@ -137,226 +138,233 @@ const MenuComponent = () => {
     };
 
     return (
-        <Box sx={{ backgroundColor: "#f3f4f6", minHeight: "100vh", fontFamily: "sans-serif" }}>
-            <AppBar position="static" elevation={3} sx={{ backgroundColor: "#fff", color: "#000" }}>
-                <Toolbar sx={{ px: { xs: 2, sm: 3 } }}>
-                    <Container maxWidth="md">
-                        <Typography
-                            variant="h4"
-                            component="h1"
-                            align="center"
-                            sx={{
-                                fontWeight: "bold",
-                                flexGrow: 1,
-                                fontSize: { xs: "1.5rem", sm: "2rem", md: "2.5rem" },
-                            }}
-                        >
-                            {table ? `Menu - Bàn: ${table.numberTable}` : "Menu"}
-                        </Typography>
-                    </Container>
-                </Toolbar>
-            </AppBar>
+        <>
+            <Box sx={{ position: "sticky", top: 0, zIndex: 1000, backgroundColor: "white" }}>
+                <Header/>
 
-            {/* Phần chọn danh mục */}
-            <Box
-                sx={{
-                    position: "sticky",
-                    top: 0,
-                    zIndex: 50,
-                    mb: { xs: 3, sm: 6 },
-                    backgroundColor: "#fff",
-                    pt: { xs: 2, sm: 3 },
-                    pb: { xs: 2, sm: 3 },
-                    px: { xs: 2, sm: 3 },
-                }}
-            >
-                <Container maxWidth="md">
-                    <Typography
-                        variant="h6"
-                        component="h2"
-                        sx={{
-                            mb: { xs: 1, sm: 2 },
-                            fontWeight: 600,
-                            fontSize: { xs: "1.1rem", sm: "1.25rem" },
-                            textAlign: "left",
-                        }}
-                    >
-                        Chọn Danh Mục
-                    </Typography>
-                    <Stack
-                        direction="row"
-                        spacing={{ xs: 1, sm: 2 }}
-                        sx={{
-                            overflowX: "auto",
-                            "&::-webkit-scrollbar": { display: "none" },
-                        }}
-                    >
-                        {Array.isArray(categories) && categories.map((category, index) => {
-                            const isActive = activeCategory?.id === category.id || (!activeCategory && index === 0);
-                            return (
-                                <Button
-                                    key={category.id}
-                                    onClick={() => setActiveCategory(category)}
-                                    sx={{
-                                        borderRadius: "50px",
-                                        textTransform: "none",
-                                        whiteSpace: "nowrap",
-                                        px: { xs: 1, sm: 1.5 },
-                                        py: { xs: 0.5, sm: 1 },
-                                        fontSize: { xs: "0.75rem", sm: "0.875rem" },
-                                        backgroundColor: isActive ? "#E7B45A" : "rgba(231,180,90,0.3)",
-                                        color: isActive ? "#fff" : "#E7B45A",
-                                        boxShadow: "none",
-                                        "&:hover": {
-                                            backgroundColor: isActive ? "#d6a24e" : "rgba(231,180,90,0.5)",
-                                        },
-                                    }}
-                                >
-                                    {category.nameCategory}
-                                </Button>
-                            );
-                        })}
-                    </Stack>
-                </Container>
             </Box>
+            <Box sx={{ backgroundColor: "#f3f4f6", minHeight: "100vh", fontFamily: "sans-serif" }}>
+                <AppBar position="static" elevation={3} sx={{ backgroundColor: "#fff", color: "#000" }}>
+                    <Toolbar sx={{ px: { xs: 2, sm: 3 } }}>
+                        <Container maxWidth="md">
+                            <Typography
+                                variant="h4"
+                                component="h1"
+                                align="center"
+                                sx={{
+                                    fontWeight: "bold",
+                                    flexGrow: 1,
+                                    fontSize: { xs: "1.5rem", sm: "2rem", md: "2.5rem" },
+                                }}
+                            >
+                                {table ? `Menu - Bàn: ${table.numberTable}` : "Menu"}
+                            </Typography>
+                        </Container>
+                    </Toolbar>
+                </AppBar>
 
-            {/* Phần danh sách đồ uống */}
-            {activeCategory && (
-                <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 6 } }}>
-                    <Typography variant="h5" sx={{ mb: { xs: 2, sm: 4 }, fontWeight: 600 }}>
-                        Danh Sách Đồ Uống
-                    </Typography>
-                    {drinks.length > 0 ? (
-                        <>
-                            <Grid container spacing={2}>
-                                {drinks.slice(0, visibleCount).map((drink) => (
-                                    <Grid item key={drink.id} xs={6} sm={6} md={4} lg={3}>
-                                        <Card>
-                                            <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
-                                                <Box sx={{ position: "relative" }}>
-                                                    <img
-                                                        src={getCloudinaryImageUrl(drink.imgDrinks, {
-                                                            width: 300,
-                                                            height: 300,
-                                                            crop: "fill",
-                                                        })}
-                                                        alt={drink.nameDrinks}
-                                                        style={{
-                                                            width: "100%",
-                                                            height: "auto",
-                                                            display: "block",
-                                                            borderRadius: "4px",
-                                                        }}
-                                                    />
-                                                    <IconButton
-                                                        color="primary"
-                                                        aria-label="Thêm vào giỏ hàng"
-                                                        sx={{
-                                                            position: "absolute",
-                                                            top: 8,
-                                                            right: 8,
-                                                            backgroundColor: "rgba(255,255,255,0.8)",
-                                                            "&:hover": { backgroundColor: "rgba(255,255,255,1)" },
-                                                        }}
-                                                        onClick={() => handleAddToCart(drink)}
-                                                    >
-                                                        <AddIcon />
-                                                    </IconButton>
-                                                </Box>
-                                                <Typography variant="h6" sx={{ fontWeight: "bold", fontSize: { xs: "0.875rem", sm: "1rem" }, mt: 1 }}>
-                                                    {drink.nameDrinks}
-                                                </Typography>
-                                                <Typography variant="h6" sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}>
-                                                    {formatPrice(drink.price)}
-                                                </Typography>
-                                            </CardContent>
-                                        </Card>
-                                    </Grid>
-                                ))}
-                            </Grid>
-                            {visibleCount < drinks.length && (
-                                <Box
-                                    sx={{
-                                        mt: { xs: 2, sm: 4 },
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        px: { xs: 2, sm: 0 },
-                                    }}
-                                >
-                                    <Button
-                                        variant="contained"
-                                        onClick={handleLoadMore}
-                                        sx={{
-                                            width: { xs: "100%", sm: "auto" },
-                                            px: { xs: 2, sm: 3 },
-                                            py: { xs: 1, sm: 1.5 },
-                                            fontSize: { xs: "0.875rem", sm: "1rem" },
-                                            backgroundColor: "#E7B45A",
-                                            color: "#fff",
-                                            borderRadius: "8px",
-                                            boxShadow: "none",
-                                            "&:hover": { backgroundColor: "#d6a24e" },
-                                        }}
-                                    >
-                                        Load More
-                                    </Button>
-                                </Box>
-                            )}
-                        </>
-                    ) : (
-                        <Typography variant="body1">Không có đồ uống cho danh mục này.</Typography>
-                    )}
-                    {/* Nút thanh toán minh họa: Khi nhấn sẽ cập nhật trạng thái bàn về 0 */}
-                    {tableId && (
-                        <Box sx={{ mt: 4, textAlign: "center" }}>
-                            <Button variant="contained" color="primary" onClick={handlePaymentSuccess}>
-                                Thanh toán
-                            </Button>
-                        </Box>
-                    )}
-                </Container>
-            )}
-
-            {/* Snackbar thông báo khi thêm vào giỏ hàng */}
-            <Snackbar
-                open={openSnackbar}
-                autoHideDuration={3000}
-                onClose={handleCloseSnackbar}
-                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-            >
-                <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: "100%", display: "flex", alignItems: "center" }}>
-                    <CheckCircleIcon sx={{ mr: 1 }} />
-                    Đã thêm sản phẩm vào giỏ hàng!
-                </Alert>
-            </Snackbar>
-
-            {/* Icon giỏ hàng ở dưới cùng */}
-            <Box
-                sx={{
-                    position: "fixed",
-                    bottom: 16,
-                    right: 16,
-                    zIndex: 1000,
-                }}
-            >
-                <IconButton
-                    color="primary"
+                {/* Phần chọn danh mục */}
+                <Box
                     sx={{
+                        position: "sticky",
+                        top: 0,
+                        zIndex: 50,
+                        mb: { xs: 3, sm: 6 },
                         backgroundColor: "#fff",
-                        boxShadow: "0px 2px 4px rgba(0,0,0,0.2)",
-                        "&:hover": { backgroundColor: "#f5f5f5" },
-                    }}
-                    onClick={() => {
-                        // Chuyển hướng đến trang giỏ hàng hoặc mở dialog giỏ hàng
-                        console.log("Chuyển đến trang giỏ hàng");
+                        pt: { xs: 2, sm: 3 },
+                        pb: { xs: 2, sm: 3 },
+                        px: { xs: 2, sm: 3 },
                     }}
                 >
-                    <Badge badgeContent={cartCount} color="error">
-                        <ShoppingCartIcon fontSize="large" />
-                    </Badge>
-                </IconButton>
+                    <Container maxWidth="md">
+                        <Typography
+                            variant="h6"
+                            component="h2"
+                            sx={{
+                                mb: { xs: 1, sm: 2 },
+                                fontWeight: 600,
+                                fontSize: { xs: "1.1rem", sm: "1.25rem" },
+                                textAlign: "left",
+                            }}
+                        >
+                            Chọn Danh Mục
+                        </Typography>
+                        <Stack
+                            direction="row"
+                            spacing={{ xs: 1, sm: 2 }}
+                            sx={{
+                                overflowX: "auto",
+                                "&::-webkit-scrollbar": { display: "none" },
+                            }}
+                        >
+                            {Array.isArray(categories) && categories.map((category, index) => {
+                                const isActive = activeCategory?.id === category.id || (!activeCategory && index === 0);
+                                return (
+                                    <Button
+                                        key={category.id}
+                                        onClick={() => setActiveCategory(category)}
+                                        sx={{
+                                            borderRadius: "50px",
+                                            textTransform: "none",
+                                            whiteSpace: "nowrap",
+                                            px: { xs: 1, sm: 1.5 },
+                                            py: { xs: 0.5, sm: 1 },
+                                            fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                                            backgroundColor: isActive ? "#E7B45A" : "rgba(231,180,90,0.3)",
+                                            color: isActive ? "#fff" : "#E7B45A",
+                                            boxShadow: "none",
+                                            "&:hover": {
+                                                backgroundColor: isActive ? "#d6a24e" : "rgba(231,180,90,0.5)",
+                                            },
+                                        }}
+                                    >
+                                        {category.nameCategory}
+                                    </Button>
+                                );
+                            })}
+                        </Stack>
+                    </Container>
+                </Box>
+
+                {/* Phần danh sách đồ uống */}
+                {activeCategory && (
+                    <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 6 } }}>
+                        <Typography variant="h5" sx={{ mb: { xs: 2, sm: 4 }, fontWeight: 600 }}>
+                            Danh Sách Đồ Uống
+                        </Typography>
+                        {drinks.length > 0 ? (
+                            <>
+                                <Grid container spacing={2}>
+                                    {drinks.slice(0, visibleCount).map((drink) => (
+                                        <Grid item key={drink.id} xs={6} sm={6} md={4} lg={3}>
+                                            <Card>
+                                                <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
+                                                    <Box sx={{ position: "relative" }}>
+                                                        <img
+                                                            src={getCloudinaryImageUrl(drink.imgDrinks, {
+                                                                width: 300,
+                                                                height: 300,
+                                                                crop: "fill",
+                                                            })}
+                                                            alt={drink.nameDrinks}
+                                                            style={{
+                                                                width: "100%",
+                                                                height: "auto",
+                                                                display: "block",
+                                                                borderRadius: "4px",
+                                                            }}
+                                                        />
+                                                        <IconButton
+                                                            color="primary"
+                                                            aria-label="Thêm vào giỏ hàng"
+                                                            sx={{
+                                                                position: "absolute",
+                                                                top: 8,
+                                                                right: 8,
+                                                                backgroundColor: "rgba(255,255,255,0.8)",
+                                                                "&:hover": { backgroundColor: "rgba(255,255,255,1)" },
+                                                            }}
+                                                            onClick={() => handleAddToCart(drink)}
+                                                        >
+                                                            <AddIcon />
+                                                        </IconButton>
+                                                    </Box>
+                                                    <Typography variant="h6" sx={{ fontWeight: "bold", fontSize: { xs: "0.875rem", sm: "1rem" }, mt: 1 }}>
+                                                        {drink.nameDrinks}
+                                                    </Typography>
+                                                    <Typography variant="h6" sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}>
+                                                        {formatPrice(drink.price)}
+                                                    </Typography>
+                                                </CardContent>
+                                            </Card>
+                                        </Grid>
+                                    ))}
+                                </Grid>
+                                {visibleCount < drinks.length && (
+                                    <Box
+                                        sx={{
+                                            mt: { xs: 2, sm: 4 },
+                                            display: "flex",
+                                            justifyContent: "center",
+                                            px: { xs: 2, sm: 0 },
+                                        }}
+                                    >
+                                        <Button
+                                            variant="contained"
+                                            onClick={handleLoadMore}
+                                            sx={{
+                                                width: { xs: "100%", sm: "auto" },
+                                                px: { xs: 2, sm: 3 },
+                                                py: { xs: 1, sm: 1.5 },
+                                                fontSize: { xs: "0.875rem", sm: "1rem" },
+                                                backgroundColor: "#E7B45A",
+                                                color: "#fff",
+                                                borderRadius: "8px",
+                                                boxShadow: "none",
+                                                "&:hover": { backgroundColor: "#d6a24e" },
+                                            }}
+                                        >
+                                            Load More
+                                        </Button>
+                                    </Box>
+                                )}
+                            </>
+                        ) : (
+                            <Typography variant="body1">Không có đồ uống cho danh mục này.</Typography>
+                        )}
+                        {/* Nút thanh toán minh họa: Khi nhấn sẽ cập nhật trạng thái bàn về 0 */}
+                        {tableId && (
+                            <Box sx={{ mt: 4, textAlign: "center" }}>
+                                <Button variant="contained" color="primary" onClick={handlePaymentSuccess}>
+                                    Thanh toán
+                                </Button>
+                            </Box>
+                        )}
+                    </Container>
+                )}
+
+                {/* Snackbar thông báo khi thêm vào giỏ hàng */}
+                <Snackbar
+                    open={openSnackbar}
+                    autoHideDuration={3000}
+                    onClose={handleCloseSnackbar}
+                    anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+                >
+                    <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: "100%", display: "flex", alignItems: "center" }}>
+                        <CheckCircleIcon sx={{ mr: 1 }} />
+                        Đã thêm sản phẩm vào giỏ hàng!
+                    </Alert>
+                </Snackbar>
+
+                {/* Icon giỏ hàng ở dưới cùng */}
+                <Box
+                    sx={{
+                        position: "fixed",
+                        bottom: 16,
+                        right: 16,
+                        zIndex: 1000,
+                    }}
+                >
+                    <IconButton
+                        color="primary"
+                        sx={{
+                            backgroundColor: "#fff",
+                            boxShadow: "0px 2px 4px rgba(0,0,0,0.2)",
+                            "&:hover": { backgroundColor: "#f5f5f5" },
+                        }}
+                        onClick={() => {
+                            // Chuyển hướng đến trang giỏ hàng hoặc mở dialog giỏ hàng
+                            console.log("Chuyển đến trang giỏ hàng");
+                        }}
+                    >
+                        <Badge badgeContent={cartCount} color="error">
+                            <ShoppingCartIcon fontSize="large" />
+                        </Badge>
+                    </IconButton>
+                </Box>
             </Box>
-        </Box>
+        </>
+
     );
 };
 

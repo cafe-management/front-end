@@ -8,10 +8,14 @@ import coffeeInterior3 from "../../styles/img/intro/intro3.jpg";
 import coffeeInterior4 from "../../styles/img/intro/intro5.jpg";
 import staff1 from "../../styles/img/intro/staff1.webp";
 import staff2 from "../../styles/img/intro/staff2.jpeg";
+import { Helmet } from "react-helmet-async";
 
 function AboutUs() {
     return (
         <>
+            <Helmet>
+                <title>DANA COFFEE - Giới Thiệu</title>
+            </Helmet>
             <Header />
             <Container sx={{ mt: 5, pb: 10 }}>
                 {/* Tiêu đề chính */}

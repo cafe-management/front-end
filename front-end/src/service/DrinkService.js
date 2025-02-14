@@ -1,11 +1,8 @@
 import axios from "axios";
 import {API_URL_DRINK} from "../config/apiConfig";
-
-
-const API_URL = "http://localhost:8080/api/drinks"
 const getDrinks = async ()=>{
     try{
-        const response = await axios.get(API_URL);
+        const response = await axios.get(API_URL_DRINK);
         return response.data;
     }
     catch(error){
@@ -15,7 +12,7 @@ const getDrinks = async ()=>{
 }
 const getDrinkById = async (id) => {
     try {
-        const response = await axios.get(`${API_URL}/${id}`);
+        const response = await axios.get(`${API_URL_DRINK}/${id}`);
         return response.data;
     } catch (error) {
         console.error("Error fetching drink by id: ", error);
@@ -25,7 +22,7 @@ const getDrinkById = async (id) => {
 
 const getDrinksByCategory = async (categoryId) => {
     try {
-        const response = await axios.get(`${API_URL}/category/${categoryId}`);
+        const response = await axios.get(`${API_URL_DRINK}/category/${categoryId}`);
         return response.data;
     } catch (error) {
         console.error("Error fetching drinks by category: ", error);
