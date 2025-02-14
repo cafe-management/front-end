@@ -2,7 +2,6 @@ import axios from "axios";
 
 const API_URL = "http://10.10.8.17:8080/api/cartItems";
 
-// Lấy danh sách tất cả các CartItem
 const getAllCartItems = async () => {
     try {
         const response = await axios.get(API_URL);

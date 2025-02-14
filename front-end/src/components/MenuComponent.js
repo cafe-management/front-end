@@ -13,30 +13,33 @@ import {
     Card,
     CardContent,
     IconButton,
-    Snackbar,
-    Alert,
     Badge,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { getCategories } from "../service/CategoryService";
 import { getDrinks, getDrinksByCategory } from "../service/DrinkService";
 import { getCloudinaryImageUrl } from "../service/CloudinaryService";
 import { createCartItem } from "../service/CartItemService";
+import CartModal from "./CartModal";
+import { createCart } from "../service/CartService";
+import RateReviewIcon from "@mui/icons-material/RateReview";
+import {createFeedback} from "../service/FeedBackService";
+import {createCustomer} from "../service/CustomerService";
+import FeedbackModal from "./FeedBackModal";
 
 const MenuComponent = () => {
     const [searchParams] = useSearchParams();
     const tableId = searchParams.get("tableId");
-
     const [table, setTable] = useState(null);
     const [activeCategory, setActiveCategory] = useState(null);
     const [categories, setCategories] = useState([]);
     const [drinks, setDrinks] = useState([]);
     const [visibleCount, setVisibleCount] = useState(4);
-    const [openSnackbar, setOpenSnackbar] = useState(false);
-    const [cartCount, setCartCount] = useState(0);
-
+    const [cartItems, setCartItems] = useState([]);
+    const [openCartModal, setOpenCartModal] = useState(false);
+    const [showRatingIcon, setShowRatingIcon] = useState(false);
+    const [openFeedbackModal, setOpenFeedbackModal] = useState(false);
     useEffect(() => {
         if (tableId) {
             updateTableCoffeeStatus(tableId, { statusTable: 1 })
@@ -44,6 +47,10 @@ const MenuComponent = () => {
                 .catch((err) => console.error("Lỗi cập nhật trạng thái bàn:", err));
         }
     }, [tableId]);
+
+    const generateCodeFeedback = () => {
+        return "FB-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+    };
 
     useEffect(() => {
         if (tableId) {
@@ -99,18 +106,56 @@ const MenuComponent = () => {
         }).format(price);
     };
 
+    const handleSubmitFeedback = async (feedbackData) => {
+        try {
+            const { name, email, phone, content } = feedbackData;
+            const customer = await createCustomer({
+                email,
+                phoneCustomer: phone,
+                nameCustomer: name,
+            });
+            const codeFeedback = generateCodeFeedback();
+            const dateFeedback = new Date().toISOString();
+
+            const feedbackPayload = {
+                codeFeedback,
+                dateFeedback,
+                customer,
+                content,
+            };
+
+            const newFeedback = await createFeedback(feedbackPayload);
+            console.log("Feedback đã được tạo:", newFeedback);
+        } catch (error) {
+            console.error("Lỗi khi tạo feedback:", error);
+        }
+    };
+
     const handleLoadMore = () => {
         setVisibleCount((prev) => prev + 4);
     };
 
-    const handlePaymentSuccess = async () => {
-        if (tableId) {
-            try {
-                await updateTableCoffeeStatus(tableId, { statusTable: 0 });
-                console.log("Bàn đã được cập nhật về trạng thái trống sau thanh toán.");
-            } catch (error) {
-                console.error("Lỗi cập nhật trạng thái bàn sau thanh toán:", error);
-            }
+    const handleOrder = async () => {
+        if (cartItems.length === 0) return;
+
+        const cart = {
+            table: { id: tableId },
+            items: cartItems.map((item) => ({
+                drink: { id: item.id },
+                quantity: item.quantity,
+                totalPrice: item.price * item.quantity,
+            })),
+        };
+
+        console.log("Payload gửi đi:", cart);
+        try {
+            const response = await createCart(cart);
+            console.log("Đơn hàng đã được tạo thành công:", response);
+            setCartItems([]);
+            setOpenCartModal(false);
+            setShowRatingIcon(true);
+        } catch (error) {
+            console.error("Lỗi khi tạo đơn hàng:", error);
         }
     };
 
@@ -119,22 +164,47 @@ const MenuComponent = () => {
             drink: { id: drink.id },
             quantity: 1,
             price: drink.price,
+            name: drink.nameDrinks,
         };
 
         try {
             const response = await createCartItem(cartItem);
             console.log("Đã thêm sản phẩm vào giỏ hàng:", response);
-            setCartCount((prev) => prev + 1);
-            setOpenSnackbar(true);
+            setCartItems((prev) => {
+                const existing = prev.find((item) => item.id === drink.id);
+                if (existing) {
+                    return prev.map((item) =>
+                        item.id === drink.id ? { ...item, quantity: item.quantity + 1 } : item
+                    );
+                } else {
+                    return [...prev, { id: drink.id, name: drink.nameDrinks, quantity: 1, price: drink.price }];
+                }
+            });
         } catch (error) {
             console.error("Lỗi thêm sản phẩm vào giỏ hàng:", error);
         }
     };
 
-    const handleCloseSnackbar = (event, reason) => {
-        if (reason === "clickaway") return;
-        setOpenSnackbar(false);
+    const adjustQuantity = (id, delta) => {
+        setCartItems((prev) =>
+            prev
+                .map((item) => {
+                    if (item.id === id) {
+                        const newQuantity = item.quantity + delta;
+                        return { ...item, quantity: newQuantity };
+                    }
+                    return item;
+                })
+                .filter((item) => item.quantity > 0)
+        );
     };
+
+    const removeFromCart = (id) => {
+        setCartItems((prev) => prev.filter((item) => item.id !== id));
+    };
+
+    const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+    const totalCartPrice = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
     return (
         <Box sx={{ backgroundColor: "#f3f4f6", minHeight: "100vh", fontFamily: "sans-serif" }}>
@@ -151,7 +221,7 @@ const MenuComponent = () => {
                                 fontSize: { xs: "1.5rem", sm: "2rem", md: "2.5rem" },
                             }}
                         >
-                            {table ? `Menu - Bàn: ${table.numberTable}` : "Menu"}
+                            {table ? `${table.numberTable}` : "Menu"}
                         </Typography>
                     </Container>
                 </Toolbar>
@@ -220,12 +290,8 @@ const MenuComponent = () => {
                 </Container>
             </Box>
 
-            {/* Phần danh sách đồ uống */}
             {activeCategory && (
                 <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 6 } }}>
-                    <Typography variant="h5" sx={{ mb: { xs: 2, sm: 4 }, fontWeight: 600 }}>
-                        Danh Sách Đồ Uống
-                    </Typography>
                     {drinks.length > 0 ? (
                         <>
                             <Grid container spacing={2}>
@@ -263,7 +329,10 @@ const MenuComponent = () => {
                                                         <AddIcon />
                                                     </IconButton>
                                                 </Box>
-                                                <Typography variant="h6" sx={{ fontWeight: "bold", fontSize: { xs: "0.875rem", sm: "1rem" }, mt: 1 }}>
+                                                <Typography
+                                                    variant="h6"
+                                                    sx={{ fontWeight: "bold", fontSize: { xs: "0.875rem", sm: "1rem" }, mt: 1 }}
+                                                >
                                                     {drink.nameDrinks}
                                                 </Typography>
                                                 <Typography variant="h6" sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}>
@@ -298,7 +367,7 @@ const MenuComponent = () => {
                                             "&:hover": { backgroundColor: "#d6a24e" },
                                         }}
                                     >
-                                        Load More
+                                        Xem thêm
                                     </Button>
                                 </Box>
                             )}
@@ -306,56 +375,70 @@ const MenuComponent = () => {
                     ) : (
                         <Typography variant="body1">Không có đồ uống cho danh mục này.</Typography>
                     )}
-                    {/* Nút thanh toán minh họa: Khi nhấn sẽ cập nhật trạng thái bàn về 0 */}
-                    {tableId && (
-                        <Box sx={{ mt: 4, textAlign: "center" }}>
-                            <Button variant="contained" color="primary" onClick={handlePaymentSuccess}>
-                                Thanh toán
-                            </Button>
-                        </Box>
-                    )}
                 </Container>
             )}
 
-            {/* Snackbar thông báo khi thêm vào giỏ hàng */}
-            <Snackbar
-                open={openSnackbar}
-                autoHideDuration={3000}
-                onClose={handleCloseSnackbar}
-                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-            >
-                <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: "100%", display: "flex", alignItems: "center" }}>
-                    <CheckCircleIcon sx={{ mr: 1 }} />
-                    Đã thêm sản phẩm vào giỏ hàng!
-                </Alert>
-            </Snackbar>
-
-            {/* Icon giỏ hàng ở dưới cùng */}
             <Box
                 sx={{
                     position: "fixed",
                     bottom: 16,
                     right: 16,
                     zIndex: 1000,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-end",
+                    gap: 1,
                 }}
             >
+                {showRatingIcon && (
+                    <IconButton
+                        onClick={() => {
+                            setOpenFeedbackModal(true)
+                        }}
+                        sx={{
+                            bgcolor: "#1976d2",
+                            color: "#fff",
+                            boxShadow: "0px 2px 4px rgba(0,0,0,0.2)",
+                            "&:hover": { bgcolor: "#115293" },
+                        }}
+                    >
+                        <RateReviewIcon fontSize="large" />
+                    </IconButton>
+                )}
+
                 <IconButton
-                    color="primary"
-                    sx={{
-                        backgroundColor: "#fff",
-                        boxShadow: "0px 2px 4px rgba(0,0,0,0.2)",
-                        "&:hover": { backgroundColor: "#f5f5f5" },
-                    }}
                     onClick={() => {
-                        // Chuyển hướng đến trang giỏ hàng hoặc mở dialog giỏ hàng
-                        console.log("Chuyển đến trang giỏ hàng");
+                        setOpenCartModal(true);
+                    }}
+                    sx={{
+                        bgcolor: "#E7B45A",
+                        color: "white",
+                        boxShadow: "0px 2px 4px rgba(0,0,0,0.2)",
+                        "&:hover": { bgcolor: "#D9A144" },
                     }}
                 >
-                    <Badge badgeContent={cartCount} color="error">
+                    <Badge badgeContent={totalCartCount} color="error">
                         <ShoppingCartIcon fontSize="large" />
                     </Badge>
                 </IconButton>
             </Box>
+
+            {/* Modal hiển thị giỏ hàng */}
+            <CartModal
+                open={openCartModal}
+                handleClose={() => setOpenCartModal(false)}
+                cartItems={cartItems}
+                adjustQuantity={adjustQuantity}
+                removeFromCart={removeFromCart}
+                formatPrice={formatPrice}
+                totalCartPrice={totalCartPrice}
+                handlePayment={handleOrder}
+            />
+            <FeedbackModal
+                open={openFeedbackModal}
+                handleClose={() => setOpenFeedbackModal(false)}
+                handleSubmitFeedback={handleSubmitFeedback}
+            />
         </Box>
     );
 };
