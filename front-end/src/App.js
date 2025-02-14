@@ -16,6 +16,8 @@ function App() {
               <Route path="/home/menu" element={<MenuComponent />} />
               <Route path="/home/introduction" element={<AboutUs />} />
               <Route path="/home/news" element={<News />} />
+              <Route path="/" element={<TableQRCodeList />} />
+              <Route path="/menu" element={<MenuComponent />} />
           </Routes>
         </BrowserRouter>
   );
