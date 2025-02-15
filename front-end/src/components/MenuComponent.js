@@ -108,7 +108,7 @@ const MenuComponent = () => {
 
     const handleSubmitFeedback = async (feedbackData) => {
         try {
-            const { name, email, phone, content } = feedbackData;
+            const { name, email, phone, content ,images} = feedbackData;
             const customer = await createCustomer({
                 email,
                 phoneCustomer: phone,
@@ -122,6 +122,7 @@ const MenuComponent = () => {
                 dateFeedback,
                 customer,
                 content,
+                images: images.map(url => ({ img: url })),
             };
 
             const newFeedback = await createFeedback(feedbackPayload);

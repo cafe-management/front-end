@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://10.10.8.17:8080/api/drinks"
+const API_URL = "http://localhost:8080/api/drinks"
 const getDrinks = async ()=>{
     try{
         const response = await axios.get(API_URL);

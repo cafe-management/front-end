@@ -56,4 +56,14 @@ const deleteFeedback = async (id) => {
     }
 };
 
-export { getFeedback, getFeedbackById, createFeedback, updateFeedback, deleteFeedback };
+const searchFeedbackByDate = async (date) => {
+    try {
+        const response = await axios.get(`${API_URL}/search?date=${date}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error searching feedback by date:", error);
+        throw error;
+    }
+}
+
+export { getFeedback, getFeedbackById, createFeedback, updateFeedback, deleteFeedback,searchFeedbackByDate};
