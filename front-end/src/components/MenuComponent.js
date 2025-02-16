@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { updateTableCoffeeStatus, getTableCoffeeById } from "../service/TableCoffeeService";
 import {
@@ -14,18 +14,19 @@ import {
     CardContent,
     IconButton,
     Badge,
+    Snackbar,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import RateReviewIcon from "@mui/icons-material/RateReview";
 import { getCategories } from "../service/CategoryService";
 import { getDrinks, getDrinksByCategory } from "../service/DrinkService";
 import { getCloudinaryImageUrl } from "../service/CloudinaryService";
 import { createCartItem } from "../service/CartItemService";
 import CartModal from "./CartModal";
 import { createCart } from "../service/CartService";
-import RateReviewIcon from "@mui/icons-material/RateReview";
-import {createFeedback} from "../service/FeedBackService";
-import {createCustomer} from "../service/CustomerService";
+import { createFeedback } from "../service/FeedBackService";
+import { createCustomer } from "../service/CustomerService";
 import FeedbackModal from "./FeedBackModal";
 
 const MenuComponent = () => {
@@ -40,17 +41,61 @@ const MenuComponent = () => {
     const [openCartModal, setOpenCartModal] = useState(false);
     const [showRatingIcon, setShowRatingIcon] = useState(false);
     const [openFeedbackModal, setOpenFeedbackModal] = useState(false);
-    useEffect(() => {
-        if (tableId) {
-            updateTableCoffeeStatus(tableId, { statusTable: 1 })
-                .then((data) => console.log("Cập nhật trạng thái bàn thành công:", data))
-                .catch((err) => console.error("Lỗi cập nhật trạng thái bàn:", err));
-        }
-    }, [tableId]);
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: "",
+    });
 
     const generateCodeFeedback = () => {
         return "FB-" + Math.random().toString(36).substr(2, 9).toUpperCase();
     };
+
+    const generateToken = () => {
+        return "TOKEN-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+    };
+
+    // Dùng useCallback để có tham chiếu ổn định cho hàm getSessionToken
+    const getSessionToken = useCallback(() => {
+        let token = sessionStorage.getItem("tableToken");
+        if (!token) {
+            token = generateToken();
+            sessionStorage.setItem("tableToken", token);
+        }
+        console.log("Session Token:", token);
+        return token;
+    }, []);
+
+    useEffect(() => {
+        if (tableId) {
+            const sessionToken = getSessionToken();
+
+            getTableCoffeeById(tableId)
+                .then((data) => {
+                    if (data.statusTable === 0) {
+                        console.log("Thông tin bàn:", data);
+                        updateTableCoffeeStatus(tableId, { statusTable: 1, token: sessionToken })
+                            .then((updatedData) => {
+                                console.log("Cập nhật trạng thái bàn thành công:", updatedData);
+                                setTable(updatedData);
+                            })
+                            .catch((err) =>
+                                console.error("Lỗi cập nhật trạng thái bàn:", err)
+                            );
+                    } else {
+                        if (data.token !== sessionToken) {
+                            setSnackbar({
+                                open: true,
+                                message:
+                                    "Bàn này đang được sử dụng. Vui lòng thử bàn khác hoặc chờ đến khi bàn được giải phóng.",
+                            });
+                        } else {
+                            console.log("Bạn đã sở hữu bàn này.");
+                        }
+                    }
+                })
+                .catch((error) => console.error("Lỗi lấy thông tin bàn:", error));
+        }
+    }, [tableId, getSessionToken]);
 
     useEffect(() => {
         if (tableId) {
@@ -108,7 +153,7 @@ const MenuComponent = () => {
 
     const handleSubmitFeedback = async (feedbackData) => {
         try {
-            const { name, email, phone, content ,images} = feedbackData;
+            const { name, email, phone, content, images } = feedbackData;
             const customer = await createCustomer({
                 email,
                 phoneCustomer: phone,
@@ -122,7 +167,7 @@ const MenuComponent = () => {
                 dateFeedback,
                 customer,
                 content,
-                images: images.map(url => ({ img: url })),
+                images: images.map((url) => ({ img: url })),
             };
 
             const newFeedback = await createFeedback(feedbackPayload);
@@ -136,7 +181,23 @@ const MenuComponent = () => {
         setVisibleCount((prev) => prev + 4);
     };
 
+    // Kiểm tra trạng thái bàn trước khi đặt hàng
     const handleOrder = async () => {
+        if (table && table.statusTable === 2) {
+            setSnackbar({
+                open: true,
+                message: "Bàn đang bảo trì. Bạn không thể thanh toán.",
+            });
+            return;
+        }
+        if (table && table.token !== getSessionToken()) {
+            setSnackbar({
+                open: true,
+                message: "Bàn này đang được sử dụng. Bạn không thể thanh toán.",
+            });
+            console.log(table.token);
+            return;
+        }
         if (cartItems.length === 0) return;
 
         const cart = {
@@ -160,7 +221,23 @@ const MenuComponent = () => {
         }
     };
 
+    // Kiểm tra trạng thái bàn trước khi thêm sản phẩm vào giỏ
     const handleAddToCart = async (drink) => {
+        if (table && table.statusTable === 2) {
+            setSnackbar({
+                open: true,
+                message: "Bàn đang bảo trì. Vui lòng thử lại sau.",
+            });
+            return;
+        }
+        if (table && (!table.token || table.token !== getSessionToken())) {
+            setSnackbar({
+                open: true,
+                message: "Bàn này đang được sử dụng. Bạn không thể thao tác giỏ hàng.",
+            });
+            console.log("Token bàn:", table.token, "Token phiên:", getSessionToken());
+            return;
+        }
         const cartItem = {
             drink: { id: drink.id },
             quantity: 1,
@@ -186,7 +263,22 @@ const MenuComponent = () => {
         }
     };
 
+    // Kiểm tra trạng thái bàn trước khi điều chỉnh giỏ hàng
     const adjustQuantity = (id, delta) => {
+        if (table && table.statusTable === 2) {
+            setSnackbar({
+                open: true,
+                message: "Bàn đang bảo trì. Bạn không thể thanh toán.",
+            });
+            return;
+        }
+        if (table && table.token !== getSessionToken()) {
+            setSnackbar({
+                open: true,
+                message: "Bàn này đang được sử dụng. Bạn không thể thay đổi giỏ hàng.",
+            });
+            return;
+        }
         setCartItems((prev) =>
             prev
                 .map((item) => {
@@ -201,6 +293,20 @@ const MenuComponent = () => {
     };
 
     const removeFromCart = (id) => {
+        if (table && table.statusTable === 2) {
+            setSnackbar({
+                open: true,
+                message: "Bàn đang bảo trì. Bạn không thể thanh toán.",
+            });
+            return;
+        }
+        if (table && table.token !== getSessionToken()) {
+            setSnackbar({
+                open: true,
+                message: "Bàn này đang được sử dụng. Bạn không thể thay đổi giỏ hàng.",
+            });
+            return;
+        }
         setCartItems((prev) => prev.filter((item) => item.id !== id));
     };
 
@@ -394,7 +500,7 @@ const MenuComponent = () => {
                 {showRatingIcon && (
                     <IconButton
                         onClick={() => {
-                            setOpenFeedbackModal(true)
+                            setOpenFeedbackModal(true);
                         }}
                         sx={{
                             bgcolor: "#1976d2",
@@ -439,6 +545,13 @@ const MenuComponent = () => {
                 open={openFeedbackModal}
                 handleClose={() => setOpenFeedbackModal(false)}
                 handleSubmitFeedback={handleSubmitFeedback}
+            />
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={6000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                message={snackbar.message}
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
             />
         </Box>
     );

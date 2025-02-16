@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URl = "http://localhost:8080/api/categories"
+const API_URl = "http://192.168.1.19:8080/api/categories"
 
 const getCategories = async ()=>{
     try {

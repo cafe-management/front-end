@@ -1,8 +1,7 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8080/api/carts";
+const API_URL = "http://192.168.1.19:8080/api/carts";
 
-// Lấy danh sách tất cả các Cart
 const getAllCarts = async () => {
     try {
         const response = await axios.get(API_URL);
@@ -12,7 +11,6 @@ const getAllCarts = async () => {
     }
 };
 
-// Lấy thông tin một Cart theo id
 const getCartById = async (id) => {
     try {
         const response = await axios.get(`${API_URL}/${id}`);
@@ -22,7 +20,6 @@ const getCartById = async (id) => {
     }
 };
 
-// Tạo mới một Cart
 const createCart = async (cart) => {
     try {
         const response = await axios.post(API_URL, cart, {
@@ -34,7 +31,6 @@ const createCart = async (cart) => {
     }
 };
 
-// Cập nhật thông tin Cart theo id
 const updateCart = async (id, cart) => {
     try {
         const response = await axios.put(`${API_URL}/${id}`, cart, {
@@ -46,7 +42,6 @@ const updateCart = async (id, cart) => {
     }
 };
 
-// Xóa Cart theo id
 const deleteCart = async (id) => {
     try {
         const response = await axios.delete(`${API_URL}/${id}`);
@@ -56,4 +51,14 @@ const deleteCart = async (id) => {
     }
 };
 
-export { getAllCarts, getCartById, createCart, updateCart, deleteCart };
+const getCartByTableId = async (tableId) => {
+    try {
+        const response = await axios.get(`${API_URL}/by-table/${tableId}`);
+        return response.data;
+    } catch (error) {
+        console.error(`Error fetching cart for table id ${tableId}:`, error);
+        throw error;
+    }
+};
+
+export { getAllCarts, getCartById, createCart, updateCart, deleteCart,getCartByTableId };
