@@ -33,7 +33,9 @@ export default function EmployeeList() {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
-
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
+    };
     return (
         <>
             <Helmet>
@@ -68,8 +70,9 @@ export default function EmployeeList() {
                                             <TableCell align="center">{employee.account ? employee.account.userName : 'N/A'}</TableCell> {/* Check if account exists */}
                                             <TableCell align="center">{employee.email}</TableCell>
                                             <TableCell align="center">{employee.phoneNumber}</TableCell> {/* Use phoneNumber directly */}
-                                            <TableCell align="center">{employee.salary}</TableCell>
-                                            <TableCell align="center">{employee.role}</TableCell>
+                                            <TableCell align="center">{employee.salary? formatCurrency(employee.salary): "N/A"}</TableCell>
+                                            <TableCell align="center">{employee.account?.role?.nameRoles || "N/A"}</TableCell>
+
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -96,7 +99,7 @@ export default function EmployeeList() {
                                     color: "#000",
                                     "&:hover": { backgroundColor: "#d09e4f" }
                                 }}
-                                onClick={() => navigate("/register")}
+                                onClick={() => navigate("/admins/register")}
                             >
                                 Thêm nhân viên
                             </Button>

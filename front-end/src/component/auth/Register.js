@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { getAllRoles } from "../../service/RoleService";
-import {createEmployee} from "../../service/UserService";
+import {checkAccount, createEmployee} from "../../service/UserService";
 import {toast} from "react-toastify"; // Import roleService
 
 export default function Register() {
@@ -42,10 +42,9 @@ export default function Register() {
         salary: yup.number().typeError("Lương phải là số").required("Trường này không được để trống").moreThan(0, "Lương phải lớn hơn 0"),
         role: yup.string().required("Trường này không được để trống"),
     });
-
     // useForm hook
     const { register, handleSubmit,
-        formState: { errors } } = useForm({ resolver: yupResolver(schema),
+       setError, formState: { errors } } = useForm({ resolver: yupResolver(schema),
         defaultValues: {
             birthDate: "",
             gender: ""
@@ -57,43 +56,51 @@ export default function Register() {
     console.log("Lỗi form:", errors);
     const getRoleId = (roleName, roles) => {
         if (!roles || roles.length === 0) {
-            console.error("❌ Danh sách roles chưa có dữ liệu!");
             return null;
         }
-
-        console.log("📢 Danh sách roles trong getRoleId:", roles);
-        console.log("🔍 Tên role cần tìm:", roleName);
-
         const role = roles.find(r => r.nameRoles === roleName);
-        console.log("🟢 Role tìm được:", role);
-
         return role ? role.id : null;
     };
-
-
     const onSubmit = async (data, event) => {
         event.preventDefault();
-        alert("Form submitted!");  // Kiểm tra xem có chạy không
         console.log("Dữ liệu gửi lên server trước khi chỉnh sửa:", data);
-
+        const exists = await checkAccount(data.email, data.username);
+        console.log("Dữ liệu trả về từ API checkAccount:", exists);
+        if (!exists) {
+            toast.error("Lỗi kiểm tra tài khoản, thử lại sau");
+            return;
+        }
+        if (exists.existsUsername) {
+            setError("username", {type: "manual", message: "Tên người dùng này đã tồn tại"});
+            return;
+        }
+        if (exists.existsEmail) {
+            setError("email", {type: "manual", message: "Email đã tồn tại"})
+            return;
+        }
         // Cập nhật lại dữ liệu trước khi gửi
+        const roleObj = roles.find(r => r.nameRoles === data.role);
         const modifiedData = {
             ...data,
+            birthDate: data.birthDate ? data.birthDate : "",
+                gender: data.gender === "Nam" ? true : false,
+            role: undefined,
+            phoneNumber: data.phone,
+            phone: undefined,
             account: {
                 userName: data.username, // Đặt username vào trong account
                 email: data.email,       // Nếu account cần email, thêm vào đây
-                role: { id: getRoleId(data.role) }
+                role: roleObj ? { id: roleObj.id, nameRoles: roleObj.nameRoles } : null,
             },
         };
-
-        console.log("Dữ liệu gửi lên server sau khi chỉnh sửa:", modifiedData);
-
         try {
             const response = await createEmployee(modifiedData);
             console.log("Phản hồi từ server:", response);
-            if (response) {
+            if (response && response.id) {
                 toast.success("Thêm nhân viên thành công!");
-                navigate("/admins/list");
+                setTimeout(() => {
+                    navigate("/admins/list");
+                }, 1500);
             } else {
                 toast.error("Thêm nhân viên thất bại!");
             }
