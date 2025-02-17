@@ -1,5 +1,4 @@
 const cloudName = "drszapjl6";
-
 export const getCloudinaryImageUrl = (publicId, options = {}) => {
     let transformation = "";
     if (options.width) {
