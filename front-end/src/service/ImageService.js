@@ -1,6 +1,7 @@
 import axios from "axios";
+import {API_URL_IMAGES} from "../config/apiConfig";
 
-const API_URL = "http://localhost:8080/api/images";
+const API_URL = API_URL_IMAGES;
 
 const getImages = async () => {
     try {

@@ -1,6 +1,7 @@
 import axios from "axios";
+import{API_URL_TABLE_COFFEE} from "../config/apiConfig";
 
-const API_URL = "http://10.10.8.75:8080/api/tableCoffee";
+const API_URL = API_URL_TABLE_COFFEE;
 
 const getTableCoffee = async () => {
     try {

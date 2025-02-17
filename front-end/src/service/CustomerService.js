@@ -1,6 +1,7 @@
 import axios from "axios";
+import{API_URL_CUSTOMER} from "../config/apiConfig";
 
-const API_URL = "http://localhost:8080/api/customers"
+const API_URL = API_URL_CUSTOMER;
 
 const getCustomers = async ()=>{
     try{

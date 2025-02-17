@@ -1,6 +1,7 @@
 import axios from "axios";
+import{API_URL_CART_ITEM} from "../config/apiConfig";
 
-const API_URL = "http://10.10.8.75:8080/api/cartItems";
+const API_URL = API_URL_CART_ITEM;
 
 const getAllCartItems = async () => {
     try {
@@ -52,13 +53,15 @@ const deleteCartItem = async (id) => {
         console.error(`Error deleting cart item with id ${id}:`, error);
     }
 };
-const TopProduct = async() => {
-    try{
-        const result = await axios.get(API_URL + "/top");
-        console.log("Dữ liệu từ API:", result.data);
-        return result.data;
-    }catch (error){
-        return [];
+
+const getTopProducts = async (limit = 5) => {
+    try {
+        const response = await axios.get(`${API_URL}/top-products`, {
+            params: { limit },
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching top products:", error);
     }
-}
-export { getAllCartItems, getCartItemById, createCartItem, updateCartItem, deleteCartItem,TopProduct };
+};
+export { getAllCartItems, getCartItemById, createCartItem, updateCartItem, deleteCartItem,getTopProducts };

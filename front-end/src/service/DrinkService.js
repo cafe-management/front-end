@@ -1,6 +1,7 @@
 import axios from "axios";
+import{API_URL_DRINKS} from "../config/apiConfig";
 
-const API_URL = "http://10.10.8.75:8080/api/drinks"
+const API_URL = API_URL_DRINKS;
 const getDrinks = async ()=>{
     try{
         const response = await axios.get(API_URL);

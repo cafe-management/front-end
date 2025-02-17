@@ -1,6 +1,12 @@
+
 export const BASE_URL = "http://localhost:8080/api";
-export const API_URL = "http://localhost:8080/api/cartItems";
-export const API_URL_DRINK = "http://localhost:8080/api/drinks";
-export const API_URl_CATEGORY = "http://localhost:8080/api/categories";
-export const API_URL_CART = "http://10.10.8.17:8080/api/carts";
-export const API_URL_TABLE = "http://localhost:8080/api/tableCoffee";
+
+export const API_URL_CART_ITEM = `${BASE_URL}/cartItems`;
+export const API_URL_CART=`${BASE_URL}/carts`;
+export const API_URL_CATEGORY = `${BASE_URL}/categories`;
+export const API_URL_CUSTOMER=`${BASE_URL}/customers`;
+export const API_URL_DRINKS=`${BASE_URL}/drinks`;
+export const API_URL_FEEDBACK=`${BASE_URL}/feedbacks`;
+export const API_URL_IMAGES=`${BASE_URL}/images`;
+export const API_URL_NOTIFICATIONS=`${BASE_URL}/notifications`;
+export const API_URL_TABLE_COFFEE=`${BASE_URL}/tableCoffee`;
