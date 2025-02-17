@@ -132,10 +132,8 @@ export default function Register() {
                                                <TextField sx={{ mb: 2 }} select label="Giới tính" fullWidth {...register("gender")} defaultValue = "">
                                                    <MenuItem value="Nam">Nam</MenuItem>
                                                    <MenuItem value="Nữ">Nữ</MenuItem>
-                                                   <MenuItem value="Khác">Khác</MenuItem>
                                                </TextField>
                                            </Grid>
-
                                            {/* Cột 2 */}
                                            <Grid item xs={12} sm={6}>
                                                <TextField sx={{ mb: 2 }} label={<RequiredLabel text="Số điện thoại" />} fullWidth {...register("phone")} error={!!errors.phone} helperText={errors.phone?.message} />

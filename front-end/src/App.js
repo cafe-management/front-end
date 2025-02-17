@@ -13,6 +13,7 @@ import Login from "./component/auth/Login";
 import Register from "./component/auth/Register";
 import EmployList from "./component/admin/EmployList";
 import {ToastContainer} from "react-toastify";
+import AccountInfo from "./component/auth/Information";
 function App() {
   return (
       <HelmetProvider>
@@ -23,6 +24,7 @@ function App() {
                   <Route path="admins/register" element={<Register/>}></Route>
                   <Route path="admins/list" element={<EmployList/>}></Route>
                   <Route path="home" element={<CoffeeShop/>}></Route>
+                  <Route path="/information" element={<AccountInfo />} />
                   <Route path="/home/menu" element={<MenuComponent />} />
                   <Route path="/home/introduction" element={<AboutUs />} />
                   <Route path="/home/news" element={<News />} />
