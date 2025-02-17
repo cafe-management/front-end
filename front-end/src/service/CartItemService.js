@@ -20,7 +20,6 @@ const getCartItemById = async (id) => {
     }
 };
 
-// Tạo mới một CartItem
 const createCartItem = async (cartItem) => {
     try {
         const response = await axios.post(API_URL, cartItem, {
@@ -53,5 +52,13 @@ const deleteCartItem = async (id) => {
         console.error(`Error deleting cart item with id ${id}:`, error);
     }
 };
-
-export { getAllCartItems, getCartItemById, createCartItem, updateCartItem, deleteCartItem };
+const TopProduct = async() => {
+    try{
+        const result = await axios.get(API_URL + "/top");
+        console.log("Dữ liệu từ API:", result.data);
+        return result.data;
+    }catch (error){
+        return [];
+    }
+}
+export { getAllCartItems, getCartItemById, createCartItem, updateCartItem, deleteCartItem,TopProduct };

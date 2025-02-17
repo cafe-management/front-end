@@ -1,4 +1,5 @@
 import axios from "axios";
+import {BASE_URL} from "../config/apiConfig";
 
 const API_URL = "http://10.10.8.75:8080/api/feedbacks";
 
@@ -13,6 +14,14 @@ const getFeedback = async ()=>{
     }
 }
 
+const getAllFeedbacks = async () => {
+    try{
+        const result = await axios.get(BASE_URL + "/feedbacks");
+        return result.data;
+    } catch (error) {
+        return [];
+    }
+}
 const getFeedbackById = async (id)=>{
     try{
         const response = await axios.get(`${API_URL}/${id}`);
@@ -66,4 +75,4 @@ const searchFeedbackByDate = async (date) => {
     }
 }
 
-export { getFeedback, getFeedbackById, createFeedback, updateFeedback, deleteFeedback,searchFeedbackByDate};
+export { getFeedback, getFeedbackById, createFeedback, updateFeedback, deleteFeedback,searchFeedbackByDate,getAllFeedbacks};
