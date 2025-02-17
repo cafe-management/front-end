@@ -1,28 +1,29 @@
 import axios from "axios";
 import {API_URL_CART} from "../config/apiConfig";
-// Lấy danh sách tất cả các Cart
+
+const API_URL = API_URL_CART;
+
 const getAllCarts = async () => {
     try {
-        const response = await axios.get(API_URL_CART);
+        const response = await axios.get(API_URL);
         return response.data;
     } catch (error) {
         console.error("Error fetching carts:", error);
     }
 };
-// Lấy thông tin một Cart theo id
+
 const getCartById = async (id) => {
     try {
-        const response = await axios.get(`${API_URL_CART}/${id}`);
+        const response = await axios.get(`${API_URL}/${id}`);
         return response.data;
     } catch (error) {
         console.error(`Error fetching cart with id ${id}:`, error);
     }
 };
 
-// Tạo mới một Cart
 const createCart = async (cart) => {
     try {
-        const response = await axios.post(API_URL_CART, cart, {
+        const response = await axios.post(API_URL, cart, {
             headers: { "Content-Type": "application/json" },
         });
         return response.data;
@@ -31,10 +32,9 @@ const createCart = async (cart) => {
     }
 };
 
-// Cập nhật thông tin Cart theo id
 const updateCart = async (id, cart) => {
     try {
-        const response = await axios.put(`${API_URL_CART}/${id}`, cart, {
+        const response = await axios.put(`${API_URL}/${id}`, cart, {
             headers: { "Content-Type": "application/json" },
         });
         return response.data;
@@ -43,14 +43,23 @@ const updateCart = async (id, cart) => {
     }
 };
 
-// Xóa Cart theo id
 const deleteCart = async (id) => {
     try {
-        const response = await axios.delete(`${API_URL_CART}/${id}`);
+        const response = await axios.delete(`${API_URL}/${id}`);
         return response.data;
     } catch (error) {
         console.error(`Error deleting cart with id ${id}:`, error);
     }
 };
 
-export { getAllCarts, getCartById, createCart, updateCart, deleteCart };
+const getCartByTableId = async (tableId) => {
+    try {
+        const response = await axios.get(`${API_URL}/by-table/${tableId}`);
+        return response.data;
+    } catch (error) {
+        console.error(`Error fetching cart for table id ${tableId}:`, error);
+        throw error;
+    }
+};
+
+export { getAllCarts, getCartById, createCart, updateCart, deleteCart,getCartByTableId };

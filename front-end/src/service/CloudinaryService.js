@@ -16,3 +16,4 @@ export const getCloudinaryImageUrl = (publicId, options = {}) => {
     const transformationPart = transformation ? transformation + "/" : "";
     return `https://res.cloudinary.com/${cloudName}/image/upload/${transformationPart}${publicId}`;
 };
+

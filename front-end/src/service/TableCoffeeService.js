@@ -1,8 +1,11 @@
 import axios from "axios";
-import {API_URL_TABLE} from "../config/apiConfig";
+import{API_URL_TABLE_COFFEE} from "../config/apiConfig";
+
+const API_URL = API_URL_TABLE_COFFEE;
+
 const getTableCoffee = async () => {
     try {
-        const response = await axios.get(API_URL_TABLE);
+        const response = await axios.get(API_URL);
         return response.data;
     } catch (error) {
         console.error("Error fetching getTableCoffee:", error);
@@ -10,16 +13,16 @@ const getTableCoffee = async () => {
 };
 const getTableCoffeeById = async (id) => {
     try {
-        const response = await axios.get(`${API_URL_TABLE}/${id}`);
+        const response = await axios.get(`${API_URL}/${id}`);
         return response.data;
     } catch (error) {
-        console.error("Error fetching table coffee by ID:", error);
+        console.error(`Error fetching table coffee with id ${id}:`, error);
     }
 };
 
 const updateTableCoffeeStatus = async (id, newStatus) => {
     try {
-        const response = await axios.put(`${API_URL_TABLE}/${id}/status`, newStatus, {
+        const response = await axios.put(`${API_URL}/${id}/status`, newStatus, {
             headers: { "Content-Type": "application/json" },
         });
         return response.data;
@@ -28,4 +31,4 @@ const updateTableCoffeeStatus = async (id, newStatus) => {
     }
 };
 
-export { getTableCoffee, updateTableCoffeeStatus, getTableCoffeeById};
+export { getTableCoffee, updateTableCoffeeStatus,getTableCoffeeById };
