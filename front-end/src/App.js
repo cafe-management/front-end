@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import EmployeeDashboard from "./components/EmployeeDashboard";
 import FeedBackManagement from "./components/FeedBackManagement";
 import SaleManagement from "./components/SaleManagement";
+import {ToastContainer} from "react-toastify";
 
 function App() {
     return (
@@ -18,6 +19,7 @@ function App() {
                     <Route path="/manager/sale" element={<SaleManagement/>}/>
                 </Routes>
             </BrowserRouter>
+            <ToastContainer/>
         </div>
     );
 }

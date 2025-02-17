@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect} from "react";
 import {
     Container,
     Typography,
@@ -8,7 +8,6 @@ import {
     CircularProgress,
     Alert,
     Grid,
-    Paper,
     Button,
     Table,
     TableBody,
@@ -20,14 +19,17 @@ import {
     CardContent,
     Box,
 } from "@mui/material";
-import { getTableCoffee, updateTableCoffeeStatus } from "../service/TableCoffeeService";
-import { getCartByTableId } from "../service/CartService";
+import {getTableCoffee, updateTableCoffeeStatus} from "../service/TableCoffeeService";
+import {getCartByTableId} from "../service/CartService";
+import {toast} from "react-toastify";
 
 const SaleManagement = () => {
     const [tables, setTables] = useState([]);
     const [error, setError] = useState(null);
     const [selectedTable, setSelectedTable] = useState(null);
-    const [cart, setCart] = useState(null);
+    // Sử dụng mảng carts thay vì một đối tượng cart
+    const [carts, setCarts] = useState([]);
+    const [warning, setWarning] = useState(""); // trạng thái cảnh báo cho nhân viên
 
     // Lấy danh sách bàn từ API
     const fetchTables = async () => {
@@ -44,23 +46,33 @@ const SaleManagement = () => {
         fetchTables();
     }, []);
 
-    // Khi bàn được chọn, lấy thông tin cart dựa theo table id
+    // Khi bàn được chọn, lấy danh sách đơn hàng (carts) dựa theo table id
     useEffect(() => {
         const fetchCart = async () => {
             if (selectedTable) {
                 try {
-                    const cartData = await getCartByTableId(selectedTable.id);
-                    setCart(cartData);
+                    const cartsData = await getCartByTableId(selectedTable.id);
+                    setCarts(cartsData); // cartsData là một mảng
                 } catch (err) {
                     console.error("Lỗi khi lấy thông tin cart:", err);
-                    setCart(null);
+                    setCarts([]);
                 }
             } else {
-                setCart(null);
+                setCarts([]);
             }
         };
         fetchCart();
     }, [selectedTable]);
+
+    // Tự động xoá cảnh báo sau 3 giây
+    useEffect(() => {
+        if (warning) {
+            const timer = setTimeout(() => {
+                setWarning("");
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [warning]);
 
     // Hàm chuyển đổi trạng thái thành chuỗi mô tả
     const getStatusText = (status) => {
@@ -79,11 +91,21 @@ const SaleManagement = () => {
     // Xử lý chọn bàn từ danh sách
     const handleSelectTable = (table) => {
         setSelectedTable(table);
+        setWarning(""); // reset cảnh báo khi chọn bàn khác
     };
-
-    // Hàm đặt lại trạng thái của bàn đã chọn về 0 và xóa token
     const handleResetStatus = async () => {
         if (!selectedTable) return;
+
+        // Nếu có đơn hàng (carts tồn tại và có ít nhất 1 đơn hàng có items) thì hiển thị cảnh báo
+        if (carts && carts.some((cart) => cart.items && cart.items.length > 0)) {
+            setWarning("Bàn có đơn hàng, không thể đặt lại trạng thái!");
+            return;
+        }
+        if (carts && carts.some((cart) => cart.items && cart.items.length > 0)) {
+            setWarning("Bàn có đơn hàng, không thể đặt lại trạng thái!");
+            return;
+        }
+
         try {
             const updatedTable = await updateTableCoffeeStatus(selectedTable.id, {
                 statusTable: 0,
@@ -92,6 +114,8 @@ const SaleManagement = () => {
             console.log("Bàn đã được cập nhật:", updatedTable);
             await fetchTables();
             setSelectedTable(updatedTable);
+            setWarning("");
+            toast.success("bàn đã cập nhật về trạng thái không có người ngồi");
         } catch (error) {
             console.error("Lỗi cập nhật bàn:", error);
         }
@@ -108,19 +132,25 @@ const SaleManagement = () => {
             console.log("Bàn đã được cập nhật về bảo trì:", updatedTable);
             await fetchTables();
             setSelectedTable(updatedTable);
+            setWarning("");
+            toast.warning("bàn đã cập nhập về trạng thái bảo trì");
         } catch (error) {
             console.error("Lỗi cập nhật bàn:", error);
         }
     };
 
-    // Tính tổng tiền của cart
-    const totalCart =
-        cart && cart.items && cart.items.length > 0
-            ? cart.items.reduce((acc, item) => acc + item.totalPrice, 0)
-            : 0;
+    // Tính tổng tiền của tất cả các đơn hàng (carts)
+    const overallTotal = carts.reduce((acc, cart) => {
+        const cartTotal = cart.items ? cart.items.reduce((sum, item) => sum + item.totalPrice, 0) : 0;
+        return acc + cartTotal;
+    }, 0);
+
+    const handlePayment = () => {
+        alert(`Thanh toán thành công. Tổng tiền: ${overallTotal.toLocaleString()} đ`);
+    };
 
     return (
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Container maxWidth="lg" sx={{mt: 4, mb: 4}}>
             <Typography variant="h4" gutterBottom align="center">
                 Quản Lý Bàn & Đơn Hàng
             </Typography>
@@ -142,7 +172,7 @@ const SaleManagement = () => {
                                             button
                                             selected={selectedTable && selectedTable.id === table.id}
                                             onClick={() => handleSelectTable(table)}
-                                            sx={{ "&.Mui-selected": { backgroundColor: "#e0f7fa" } }}
+                                            sx={{"&.Mui-selected": {backgroundColor: "#e0f7fa"}}}
                                         >
                                             <ListItemText
                                                 primary={`Bàn số: ${table.numberTable}`}
@@ -154,7 +184,7 @@ const SaleManagement = () => {
                             ) : (
                                 !error && (
                                     <Box display="flex" justifyContent="center" alignItems="center">
-                                        <CircularProgress />
+                                        <CircularProgress/>
                                     </Box>
                                 )
                             )}
@@ -187,7 +217,13 @@ const SaleManagement = () => {
                                             </TableRow>
                                         </TableBody>
                                     </Table>
-                                    <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+                                    {/* Hiển thị thông báo cảnh báo nếu có */}
+                                    {warning && (
+                                        <Alert severity="warning" sx={{mt: 2}}>
+                                            {warning}
+                                        </Alert>
+                                    )}
+                                    <Stack direction="row" spacing={2} sx={{mt: 2}}>
                                         <Button variant="contained" color="primary" onClick={handleResetStatus}>
                                             Đặt lại trạng thái
                                         </Button>
@@ -197,7 +233,7 @@ const SaleManagement = () => {
                                     </Stack>
                                 </>
                             ) : (
-                                <Typography align="center" sx={{ mt: 2 }}>
+                                <Typography align="center" sx={{mt: 2}}>
                                     Chưa có dữ liệu. Vui lòng chọn bàn.
                                 </Typography>
                             )}
@@ -205,7 +241,7 @@ const SaleManagement = () => {
                     </Card>
                 </Grid>
 
-                {/* Thông tin cart nếu có bàn được chọn */}
+                {/* Hiển thị danh sách đơn hàng nếu có bàn được chọn */}
                 {selectedTable && (
                     <Grid item xs={12}>
                         <Card>
@@ -213,48 +249,60 @@ const SaleManagement = () => {
                                 <Typography variant="h6" gutterBottom>
                                     Thông tin Đơn Hàng
                                 </Typography>
-                                {cart && cart.items && cart.items.length > 0 ? (
-                                    <>
-                                        <Table size="small">
-                                            <TableHead>
-                                                <TableRow>
-                                                    <TableCell>Tên đồ uống</TableCell>
-                                                    <TableCell>Giá</TableCell>
-                                                    <TableCell>Số lượng</TableCell>
-                                                    <TableCell>Tổng tiền</TableCell>
-                                                    <TableCell>Số bàn</TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody>
-                                                {cart.items.map((item) => (
-                                                    <TableRow key={item.id}>
-                                                        <TableCell>{item.drink.nameDrinks}</TableCell>
-                                                        <TableCell>{item.drink.price}</TableCell>
-                                                        <TableCell>{item.quantity}</TableCell>
-                                                        <TableCell>{item.totalPrice}</TableCell>
-                                                        <TableCell>{cart.table.numberTable}</TableCell>
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                        <Stack
-                                            direction="row"
-                                            justifyContent="space-between"
-                                            alignItems="center"
-                                            sx={{ mt: 2 }}
-                                        >
-                                            <Typography variant="h6">
-                                                Tổng tiền: {totalCart.toLocaleString()} đ
-                                            </Typography>
-                                            <Button variant="contained" color="success" onClick={() => {}}>
-                                                Tính tiền
-                                            </Button>
-                                        </Stack>
-                                    </>
+                                {carts.length > 0 ? (
+                                    carts.map((cart, index) => {
+                                        return (
+                                            <Box key={cart.id}
+                                                 sx={{mb: 3, p: 2, border: "1px solid #ccc", borderRadius: 1}}>
+                                                <Typography variant="subtitle1" sx={{ mb: 1, textAlign: "left" }}>
+                                                    Đơn hàng #{index + 1}
+                                                </Typography>
+                                                <Table size="small">
+                                                    <TableHead>
+                                                        <TableRow>
+                                                            <TableCell sx={{fontWeight: "bold"}}>Tên đồ uống</TableCell>
+                                                            <TableCell sx={{fontWeight: "bold"}}>Giá</TableCell>
+                                                            <TableCell sx={{fontWeight: "bold"}}>Số lượng</TableCell>
+                                                            <TableCell sx={{fontWeight: "bold"}}>Tổng tiền</TableCell>
+                                                            <TableCell sx={{fontWeight: "bold"}}>Số bàn</TableCell>
+                                                        </TableRow>
+                                                    </TableHead>
+                                                    <TableBody>
+                                                        {cart.items.map((item) => (
+                                                            <TableRow key={item.id}>
+                                                                <TableCell>{item.drink.nameDrinks}</TableCell>
+                                                                <TableCell>{item.drink.price}</TableCell>
+                                                                <TableCell>{item.quantity}</TableCell>
+                                                                <TableCell>{item.totalPrice}</TableCell>
+                                                                <TableCell>{cart.table.numberTable}</TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                    </TableBody>
+                                                </Table>
+                                            </Box>
+                                        );
+                                    })
                                 ) : (
-                                    <Typography align="center" sx={{ mt: 2 }}>
+                                    <Typography align="center" sx={{mt: 2}}>
                                         Không có thông tin cart hoặc chưa có đơn hàng.
                                     </Typography>
+                                )}
+
+                                {/* Hiển thị tổng tiền chung và nút "Tính tiền" nếu có đơn hàng */}
+                                {carts.length > 0 && (
+                                    <Stack
+                                        direction="row"
+                                        justifyContent="space-between"
+                                        alignItems="center"
+                                        sx={{mt: 2}}
+                                    >
+                                        <Typography variant="h6">
+                                            Tổng tiền chung: {overallTotal.toLocaleString()} đ
+                                        </Typography>
+                                        <Button variant="contained" color="success" onClick={handlePayment}>
+                                            Tính tiền
+                                        </Button>
+                                    </Stack>
                                 )}
                             </CardContent>
                         </Card>

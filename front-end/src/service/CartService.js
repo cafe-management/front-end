@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://192.168.1.19:8080/api/carts";
+const API_URL = "http://10.10.8.75:8080/api/carts";
 
 const getAllCarts = async () => {
     try {
