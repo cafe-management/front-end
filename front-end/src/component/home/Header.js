@@ -117,10 +117,10 @@ function Header() {
                 open={mobileOpen}
                 onClose={toggleMobileMenu}
                 sx={{
-                    width: "100%",
+                    width: "50%",
                     flexShrink: 0,
                     "& .MuiDrawer-paper": {
-                        width: "100%",
+                        width: "50%",
                         height: "100vh",
                         padding: "20px",
                         display: "flex",

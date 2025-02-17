@@ -9,11 +9,19 @@ import AboutUs from "./component/home/Introduction";
 import News from "./component/home/News";
 import TableQRCodeList from "./components/TableQRCodeList";
 import { HelmetProvider } from "react-helmet-async";
+import Login from "./component/auth/Login";
+import Register from "./component/auth/Register";
+import EmployList from "./component/admin/EmployList";
+import {ToastContainer} from "react-toastify";
 function App() {
   return (
       <HelmetProvider>
           <BrowserRouter>
+              <ToastContainer position="top-right" autoClose={2000} />
               <Routes>
+                  <Route path="login" element={<Login/>}></Route>
+                  <Route path="admins/register" element={<Register/>}></Route>
+                  <Route path="admins/list" element={<EmployList/>}></Route>
                   <Route path="home" element={<CoffeeShop/>}></Route>
                   <Route path="/home/menu" element={<MenuComponent />} />
                   <Route path="/home/introduction" element={<AboutUs />} />
