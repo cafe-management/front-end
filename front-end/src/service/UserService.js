@@ -37,75 +37,40 @@ const checkAccount = async (email, username) => {
     }
 }
 const login = async (username, password) => {
+    console.log("Dữ liệu gửi đến backend: ", { username, password });
     try {
         const response = await axios.post(BASE_URL + "/login", {
-            username,
+            username, // Đổi key cho khớp với backend
             password
         });
+
         console.log("Kết quả từ API:", response.data);
+        localStorage.setItem("username", username);
         return response.data;
-
-        if (response.data.success) {
-            // Sau khi đăng nhập thành công, lấy thông tin người dùng
-            const userResponse = await axios.get(BASE_URL + "/user/me", {
-                headers: {
-                    Authorization: `Bearer ${response.data.token}`  // Giả sử bạn sử dụng token để xác thực
-                }
-            });
-
-            if (userResponse.data) {
-                // Lưu userId vào localStorage
-                localStorage.setItem("userId", userResponse.data.id);
-            }
     } catch (error){
         console.error("Lỗi API:", error.response?.data || error.message);
         if (error.response && error.response.status === 400) {
+            console.log("Lỗi chi tiết từ backend:", error.response.data);
             return error.response.data;
-        }
-        console.log("Lỗi khi đăng nhập: ", error);
-        return null;
-    }
-}
-
-const getUserById = async (id) => {
-    if (!id) {
-        console.error("❌ Lỗi: ID không hợp lệ");
-        return null;
-    }
-
-    try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            console.error("❌ Lỗi: Không tìm thấy token!");
-            return null;
-        }
-
-        const response = await axios.get(`${BASE_URL}/users/${id}`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-
-        if (!response.data) {
-            console.warn("⚠️ API trả về dữ liệu rỗng.");
-            return null;
-        }
-
-        console.log("✅ Dữ liệu người dùng:", response.data);
-        return response.data;
-    } catch (error) {
-        if (error.response?.status === 401) {
-            console.error("❌ Token hết hạn hoặc không hợp lệ, đăng xuất...");
-            localStorage.removeItem("token");
-        } else if (error.response?.status === 404) {
-            console.error("❌ Người dùng không tồn tại!");
-        } else {
-            console.error("❌ Lỗi khi lấy thông tin người dùng:", error.response?.data || error.message);
         }
         return null;
     }
 };
 
+const getUserInfo = async () => {
+    const username = localStorage.getItem("username");
+    console.log("Username in getUserInfo", username);
+    console.log("Username in get", username);
+    try {
+        const response = await axios.get(`${BASE_URL}/information`, {
+            params: { username }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Lỗi khi lấy thông tin người dùng:", error);
+        return null;
+    }
+};
 
 const updateEmployee = async (id, employee) => {
     try{
@@ -116,4 +81,17 @@ const updateEmployee = async (id, employee) => {
         return [];
     }
 }
-export {getAllEmploy, createEmployee, updateEmployee, checkAccount, login, getUserById};
+const changePassword = async (userId, oldPassword, newPassword) => {
+    try {
+        const response = await axios.put(`${BASE_URL}/${userId}/change-password`, {
+            oldPassword,
+            newPassword
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error("Lỗi khi thay đổi mật khẩu:", error);
+        return { success: false, message: error.response?.data?.message || "Có lỗi xảy ra" };
+    }
+};
+export {getAllEmploy, createEmployee, updateEmployee, checkAccount, login, getUserInfo, changePassword};

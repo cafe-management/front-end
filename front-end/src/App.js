@@ -14,6 +14,7 @@ import Register from "./component/auth/Register";
 import EmployList from "./component/admin/EmployList";
 import {ToastContainer} from "react-toastify";
 import AccountInfo from "./component/auth/Information";
+import ChangePassword from "./component/auth/ChangePassword";
 function App() {
   return (
       <HelmetProvider>
@@ -22,6 +23,7 @@ function App() {
               <Routes>
                   <Route path="login" element={<Login/>}></Route>
                   <Route path="admins/register" element={<Register/>}></Route>
+                  <Route path="change_password" element={<ChangePassword/>}></Route>
                   <Route path="admins/list" element={<EmployList/>}></Route>
                   <Route path="home" element={<CoffeeShop/>}></Route>
                   <Route path="/information" element={<AccountInfo />} />
