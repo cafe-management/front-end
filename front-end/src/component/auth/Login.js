@@ -1,14 +1,15 @@
 import React from "react";
 import { Box, Button, Container, Paper, TextField, Typography } from "@mui/material";
 import { Helmet } from "react-helmet-async";
-import { useForm } from "react-hook-form"; // Import react-hook-form
-import * as yup from "yup"; // Import yup
-import { yupResolver } from "@hookform/resolvers/yup"; // Import yup resolver
+import { useForm } from "react-hook-form";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { login } from "../../service/UserService";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const schema = yup.object().shape({
-    email: yup.string().required("Email không được để trống").email("Email không hợp lệ"),
+    username: yup.string().required("Username không được để trống"),
     password: yup.string().required("Mật khẩu không được để trống")
 });
 
@@ -16,16 +17,16 @@ function Login() {
     const { register, handleSubmit, formState: { errors }, setError } = useForm({
         resolver: yupResolver(schema)
     });
-
+    const navigate = useNavigate();
     const onSubmit = async (data) => {
-        console.log("Email:", data.email, "Password:", data.password);
+        console.log("Username:", data.username, "Password:", data.password);
         try {
-            const result = await login(data.email, data.password);
+            const result = await login(data.username, data.password);
             if (result.success) {
                 toast.success("Đăng nhập thành công");
+                navigate("/information");
             } else {
-                // Nếu có lỗi từ server, hiển thị lỗi trong form
-                setError("password", { type: "manual", message: "*** Sai email hoặc mật khẩu" });
+                setError("password", { type: "manual", message: "*** Sai username hoặc mật khẩu" });
             }
         } catch (error) {
             toast.error("Lỗi kết nối tới server");
@@ -45,12 +46,12 @@ function Login() {
                         </Typography>
                         <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                             <TextField
-                                label="Email"
+                                label="Tên tài khoản"
                                 variant="outlined"
                                 fullWidth
-                                {...register("email")}
-                                error={!!errors.email}
-                                helperText={errors.email?.message}
+                                {...register("username")}
+                                error={!!errors.username}
+                                helperText={errors.username?.message}
                             />
                             <TextField
                                 label="Mật khẩu"

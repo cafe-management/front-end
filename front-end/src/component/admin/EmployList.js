@@ -10,7 +10,6 @@ export default function EmployeeList() {
     const [employees, setEmployees] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
-
     // Fetch employee data when the component mounts
     useEffect(() => {
         const fetchEmployees = async () => {
@@ -47,7 +46,6 @@ export default function EmployeeList() {
                         <Typography variant="h5" align="center" gutterBottom sx={{ color: "#000", fontWeight: "bold" }}>
                             Danh sách nhân viên
                         </Typography>
-
                         {/* Table displaying employee data */}
                         <TableContainer>
                             <Table sx={{ minWidth: 650 }} aria-label="employee table">
