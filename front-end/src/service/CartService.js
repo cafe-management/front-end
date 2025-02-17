@@ -1,6 +1,7 @@
 import axios from "axios";
+import {API_URL_CART} from "../config/apiConfig";
 
-const API_URL = "http://10.10.8.75:8080/api/carts";
+const API_URL = API_URL_CART;
 
 const getAllCarts = async () => {
     try {

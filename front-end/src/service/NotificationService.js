@@ -1,6 +1,7 @@
 import axios from "axios";
+import{API_URL_NOTIFICATIONS} from "../config/apiConfig";
 
-const API_URl = "http://localhost:8080/api/notifications";
+const API_URl = API_URL_NOTIFICATIONS;
 
 const getAllNotifications = async ()=>{
     try{

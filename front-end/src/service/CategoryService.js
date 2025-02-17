@@ -1,6 +1,7 @@
 import axios from "axios";
+import{API_URL_CATEGORY} from "../config/apiConfig";
 
-const API_URl = "http://10.10.8.75:8080/api/categories"
+const API_URl = API_URL_CATEGORY;
 
 const getCategories = async ()=>{
     try {
