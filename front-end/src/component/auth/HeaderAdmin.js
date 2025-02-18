@@ -24,7 +24,7 @@ function EmployeeManagementHeader() {
     const isAddEmployeeActive = location.pathname === "/admins/register"; // Đúng trang thêm nhân viên
 
     return (
-        <AppBar position="static" sx={{ backgroundColor: "#333", boxShadow: "none" }}>
+        <AppBar  position="fixed" sx={{ backgroundColor: "#333", boxShadow: "none" }}>
             <Toolbar sx={{ display: "flex", justifyContent: "flex-end", width: "100%", maxWidth: "1200px", margin: "0 auto" }}>
                 <Box sx={{ display: "flex", gap: 2 }}>
                     <Button

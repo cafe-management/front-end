@@ -17,11 +17,13 @@ import AccountInfo from "./component/auth/Information";
 import ChangePassword from "./component/auth/ChangePassword";
 import {HelmetProvider} from "react-helmet-async";
 import NewsCreateComponent from "./components/NewComponent";
+import {AbilityProvider} from "./Can";
 
 function App() {
     return (
         <HelmetProvider>
         <div className="App">
+            <AbilityProvider>
             <BrowserRouter>
                 <Routes>
                     <Route path="/" element={<TableQRCodeList />} />
@@ -40,6 +42,7 @@ function App() {
                 </Routes>
             </BrowserRouter>
             <ToastContainer/>
+            </AbilityProvider>
         </div>
         </HelmetProvider>
     );
