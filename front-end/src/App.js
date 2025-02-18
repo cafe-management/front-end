@@ -6,6 +6,7 @@ import {BrowserRouter, Route, Routes} from "react-router-dom";
 import MenuComponent from "./components/MenuComponent";
 import AboutUs from "./component/home/Introduction";
 import TableQRCodeList from "./components/TableQRCodeList";
+import EmployeeDashboard from "./components/EmployeeDashboard";
 import FeedBackManagement from "./components/FeedBackManagement";
 import SaleManagement from "./components/SaleManagement";
 import Login from "./component/auth/Login";
@@ -15,6 +16,9 @@ import {ToastContainer} from "react-toastify";
 import AccountInfo from "./component/auth/Information";
 import ChangePassword from "./component/auth/ChangePassword";
 import {HelmetProvider} from "react-helmet-async";
+import NewsCreateComponent from "./components/NewComponent";
+import {AbilityProvider} from "./Can";
+import Navbar from "./components/EmployeeDashboard";
 import NewsListComponent from "./components/NewsListComponent";
 import NewsUpdateComponent from "./components/NewsUpdateComponent";
 import NewComponent from "./components/NewComponent";
@@ -26,6 +30,7 @@ function App() {
     return (
         <HelmetProvider>
         <div className="App">
+            <AbilityProvider>
             <BrowserRouter>
                 <Routes>
                     <Route path="/" element={<TableQRCodeList />} />
@@ -43,9 +48,12 @@ function App() {
                     <Route path="/news" element={<NewsListComponent />} />
                     <Route path="/news/create" element={<NewComponent />} />
                     <Route path="/news/edit/:id" element={<NewsUpdateComponent />} />
+
+
                 </Routes>
             </BrowserRouter>
             <ToastContainer/>
+            </AbilityProvider>
         </div>
         </HelmetProvider>
     );

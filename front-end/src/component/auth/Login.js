@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { defineAbilitiesFor } from "../../ability";
 import { Box, Button, Container, Paper, TextField, Typography } from "@mui/material";
 import { Helmet } from "react-helmet-async";
 import { useForm } from "react-hook-form";
@@ -7,6 +8,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { login } from "../../service/UserService";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { useAbility } from "../../Can.js"; // Đảm bảo bạn import useAbility từ Can.js
 
 const schema = yup.object().shape({
     username: yup.string().required("Username không được để trống"),
@@ -18,18 +20,46 @@ function Login() {
         resolver: yupResolver(schema)
     });
     const navigate = useNavigate();
+    const { setCurrentAbility } = useAbility(); // Lấy hàm setCurrentAbility từ context
+
+    useEffect(() => {
+        // Lấy role từ localStorage nếu có
+        const userRole = localStorage.getItem("role");
+        if (userRole) {
+            // Nếu có role trong localStorage, cập nhật quyền
+            setCurrentAbility(defineAbilitiesFor(userRole));
+        }
+    }, [setCurrentAbility]); // Chạy khi component được render
+
     const onSubmit = async (data) => {
-        console.log("Username:", data.username, "Password:", data.password);
         try {
             const result = await login(data.username, data.password);
             if (result.success) {
                 toast.success("Đăng nhập thành công");
-                navigate("/information");
+                const userRole = result.role;
+                setCurrentAbility(defineAbilitiesFor(userRole));
+                localStorage.setItem("role", userRole);
+                console.log("role:", userRole);
+                if (userRole === "admin") {
+                    navigate("/admins/list");
+                } else if (userRole === "employ") {
+                    navigate("/information");
+                } else {
+                    toast.error("Role không hợp lệ");
+                }
             } else {
-                setError("password", { type: "manual", message: "*** Sai username hoặc mật khẩu" });
+                toast.error("Sai tên đăng nhập hoặc mật khẩu");
             }
         } catch (error) {
-            toast.error("Lỗi kết nối tới server");
+            console.error("Lỗi đăng nhập:", error);
+
+            if (error.response) {
+                // Nếu có lỗi phản hồi từ server
+                toast.error(`Lỗi từ server: ${error.response.data.message || "Có lỗi xảy ra"}`);
+            } else {
+                // Nếu không có phản hồi từ server
+                toast.error("Lỗi kết nối tới server");
+            }
         }
     };
 

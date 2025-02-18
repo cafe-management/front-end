@@ -52,7 +52,7 @@ function Header({ tableId }) {
                     Menu
                 </Typography>
             );
-        } else if (location.pathname.startsWith("/home/news")) {
+        } else if (location.pathname.startsWith("/news")) {
             breadcrumbs.push(
                 <Typography key="news" sx={{ color: "text.primary" }}>
                     Tin tức
