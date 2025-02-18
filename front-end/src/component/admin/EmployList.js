@@ -10,7 +10,6 @@ export default function EmployeeList() {
     const [employees, setEmployees] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
-    // Fetch employee data when the component mounts
     useEffect(() => {
         const fetchEmployees = async () => {
             try {

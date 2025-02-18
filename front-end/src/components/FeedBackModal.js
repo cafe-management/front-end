@@ -9,6 +9,8 @@ import {
     Box,
     ImageList,
     ImageListItem,
+    CircularProgress,
+    Backdrop,
 } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 
@@ -22,6 +24,8 @@ const FeedbackModal = ({ open, handleClose, handleSubmitFeedback }) => {
     const [content, setContent] = useState("");
     const [selectedFiles, setSelectedFiles] = useState([]); // File objects
     const [previewImages, setPreviewImages] = useState([]); // URL preview
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     const uploadImageToCloudinary = async (file) => {
         const url = `https://api.cloudinary.com/v1_1/${cloudName}/upload`;
         const formData = new FormData();
@@ -38,12 +42,12 @@ const FeedbackModal = ({ open, handleClose, handleSubmitFeedback }) => {
     const handleFileChange = (e) => {
         const files = Array.from(e.target.files);
         setSelectedFiles(files);
-
         const previews = files.map((file) => URL.createObjectURL(file));
         setPreviewImages(previews);
     };
 
     const onSubmit = async () => {
+        setIsSubmitting(true);
         try {
             const uploadedImages = await Promise.all(
                 selectedFiles.map((file) => uploadImageToCloudinary(file))
@@ -61,87 +65,102 @@ const FeedbackModal = ({ open, handleClose, handleSubmitFeedback }) => {
             handleClose();
         } catch (error) {
             console.error("Lỗi khi gửi feedback:", error);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     return (
-        <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-            <DialogTitle>Gửi Phản Hồi</DialogTitle>
-            <DialogContent>
-                <Box component="form" noValidate autoComplete="off" sx={{ mt: 2 }}>
-                    <TextField
-                        label="Họ và tên"
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                    />
-                    <TextField
-                        label="Email"
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
-                    <TextField
-                        label="Số điện thoại"
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                    />
-                    <TextField
-                        label="Nội dung phản hồi"
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        multiline
-                        rows={4}
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                    />
-                    <Box sx={{ mt: 2, display: "flex", alignItems: "center", gap: 1 }}>
-                        <Button variant="outlined" component="label" startIcon={<CloudUploadIcon />}>
-                            Chọn Ảnh
-                            <input type="file" accept="image/*" hidden multiple onChange={handleFileChange} />
-                        </Button>
-                        {selectedFiles.length > 0 && <span>{selectedFiles.length} file(s) đã chọn</span>}
+        <>
+            <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+                <DialogTitle>Gửi Phản Hồi</DialogTitle>
+                <DialogContent>
+                    <Box component="form" noValidate autoComplete="off" sx={{ mt: 2 }}>
+                        <TextField
+                            label="Họ và tên"
+                            variant="outlined"
+                            fullWidth
+                            margin="normal"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                        />
+                        <TextField
+                            label="Email"
+                            variant="outlined"
+                            fullWidth
+                            margin="normal"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
+                        <TextField
+                            label="Số điện thoại"
+                            variant="outlined"
+                            fullWidth
+                            margin="normal"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                        />
+                        <TextField
+                            label="Nội dung phản hồi"
+                            variant="outlined"
+                            fullWidth
+                            margin="normal"
+                            multiline
+                            rows={4}
+                            value={content}
+                            onChange={(e) => setContent(e.target.value)}
+                        />
+                        <Box sx={{ mt: 2, display: "flex", alignItems: "center", gap: 1 }}>
+                            <Button variant="outlined" component="label" startIcon={<CloudUploadIcon />}>
+                                Chọn Ảnh
+                                <input type="file" accept="image/*" hidden multiple onChange={handleFileChange} />
+                            </Button>
+                            {selectedFiles.length > 0 && <span>{selectedFiles.length} file(s) đã chọn</span>}
+                        </Box>
+                        {previewImages.length > 0 && (
+                            <ImageList cols={3} rowHeight={100} sx={{ mt: 2 }}>
+                                {previewImages.map((src, index) => (
+                                    <ImageListItem key={index}>
+                                        <img
+                                            src={src}
+                                            alt={`preview-${index}`}
+                                            style={{ objectFit: "cover", width: "100%", height: "100%" }}
+                                        />
+                                    </ImageListItem>
+                                ))}
+                            </ImageList>
+                        )}
                     </Box>
-                    {previewImages.length > 0 && (
-                        <ImageList cols={3} rowHeight={100} sx={{ mt: 2 }}>
-                            {previewImages.map((src, index) => (
-                                <ImageListItem key={index}>
-                                    <img src={src} alt={`preview-${index}`} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
-                                </ImageListItem>
-                            ))}
-                        </ImageList>
-                    )}
-                </Box>
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={handleClose} color="secondary">
-                    Hủy
-                </Button>
-                <Button
-                    onClick={onSubmit}
-                    variant="contained"
-                    sx={{
-                        bgcolor: "#E7B45A",
-                        color: "#fff",
-                        py: 1,
-                        px: 2,
-                        fontSize: "0.875rem",
-                        borderRadius: 2,
-                        "&:hover": { bgcolor: "#d6a24e" },
-                    }}
-                >
-                    Gửi Phản Hồi
-                </Button>
-            </DialogActions>
-        </Dialog>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose} color="secondary" disabled={isSubmitting}>
+                        Hủy
+                    </Button>
+                    <Button
+                        onClick={onSubmit}
+                        variant="contained"
+                        disabled={isSubmitting}
+                        sx={{
+                            bgcolor: "#E7B45A",
+                            color: "#fff",
+                            py: 1,
+                            px: 2,
+                            fontSize: "0.875rem",
+                            borderRadius: 2,
+                            "&:hover": { bgcolor: "#d6a24e" },
+                        }}
+                    >
+                        {isSubmitting ? <CircularProgress size={24} color="inherit" /> : "Gửi Phản Hồi"}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            <Backdrop
+                sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                open={isSubmitting}
+            >
+                <CircularProgress color="inherit" />
+            </Backdrop>
+        </>
     );
 };
 

@@ -12,8 +12,10 @@ import {
     Typography,
     Fab,
     Grow,
+    IconButton,
 } from "@mui/material";
 import { Facebook, Phone } from "@mui/icons-material";
+import AddIcon from "@mui/icons-material/Add";
 import Header from "./Header";
 import Footer from "./Footer";
 import ZaloIcon from "../../styles/img/zalo-icon.png";
@@ -28,38 +30,27 @@ import { Helmet } from "react-helmet-async";
 import { getCloudinaryImageUrl } from "../../service/CloudinaryService";
 
 function CoffeeShop() {
-    // Lấy tableId từ URL nếu cần dùng
     const [searchParams] = useSearchParams();
     const tableId = searchParams.get("tableId");
-    const [feedbacks, setFeedbacks] = useState([]);
-    // Lưu dữ liệu gốc (bao gồm drink và totalQuantity)
-    const [topDrinks, setTopDrinks] = useState([]);
-    const [visibleCount, setVisibleCount] = useState(4);
-    // State để kích hoạt hiệu ứng Grow
-    const [showTotal, setShowTotal] = useState(false);
 
     const navigate = useNavigate();
 
-    // Hàm định dạng giá tiền
-    const formatPrice = (price) => {
-        return new Intl.NumberFormat("vi-VN", {
-            style: "currency",
-            currency: "VND",
-        }).format(price);
-    };
+    const [feedbacks, setFeedbacks] = useState([]);
+    const [topDrinks, setTopDrinks] = useState([]);
+    const [visibleCount, setVisibleCount] = useState(4);
+    const [showTotal, setShowTotal] = useState(false);
 
-    // Lấy món bán chạy từ API
+    // Lấy món bán chạy
     const fetchTopSellingDrinks = async () => {
         try {
             const data = await getTopProducts(4);
             setTopDrinks(data);
-            console.log(tableId);
         } catch (error) {
             toast.error("Lỗi khi tải dữ liệu món bán chạy");
         }
     };
 
-    // Lấy phản hồi khách hàng từ API
+    // Lấy phản hồi khách hàng
     const fetchFeedbacks = async () => {
         try {
             const fbData = await feedbackService.getFeedback();
@@ -75,6 +66,19 @@ function CoffeeShop() {
         setShowTotal(true);
     }, []);
 
+    // Định dạng giá
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat("vi-VN", {
+            style: "currency",
+            currency: "VND",
+        }).format(price);
+    };
+
+    // Giả lập hàm thêm vào giỏ hàng
+    const handleAddToCart = (drink) => {
+        toast.success(`${drink.nameDrinks} đã được thêm vào giỏ hàng!`);
+    };
+
     const handleLoadMore = useCallback(() => {
         setVisibleCount((prev) => prev + 4);
     }, []);
@@ -84,10 +88,14 @@ function CoffeeShop() {
             <Helmet>
                 <title>DANA COFFEE - Trang Chủ</title>
             </Helmet>
+
+            {/* Header cố định */}
             <Box sx={{ position: "sticky", top: 0, zIndex: 1000, backgroundColor: "white" }}>
                 <Header tableId={tableId} />
             </Box>
-            <Container sx={{ mt: 15, pb: 10 }}>
+
+            {/* Nội dung chính */}
+            <Container sx={{ mt: 10, pb: 6 }}>
                 <Box display="flex" justifyContent="center">
                     <Typography variant="h4" color="#E7B45A" gutterBottom fontWeight="bold">
                         DANA COFFEE
@@ -95,24 +103,31 @@ function CoffeeShop() {
                 </Box>
                 <Typography variant="body1" align="center" paragraph fontStyle="italic">
                     Nơi bạn có thể thưởng thức những ly cà phê đậm đà, được pha chế từ những hạt cà phê nguyên chất,
-                    cùng những thức uống tinh tế như trà thanh mát và bánh ngọt thơm lừng. Với không gian ấm cúng và phong
-                    cách phục vụ chu đáo,{" "}
+                    cùng những thức uống tinh tế như trà thanh mát và bánh ngọt thơm lừng. Với không gian ấm cúng và
+                    phong cách phục vụ chu đáo,{" "}
                     <Typography component="span" fontWeight="bold">
                         DANA Coffee
                     </Typography>{" "}
                     là lựa chọn lý tưởng để bạn thư giãn, làm việc hay gặp gỡ bạn bè.
                 </Typography>
+
+                {/* Hình ảnh giới thiệu */}
                 <Grid container spacing={2} justifyContent="center">
                     {[coffee1, coffee2, coffee3, coffee4].map((imgSrc, i) => (
                         <Grid item xs={6} sm={3} key={i}>
                             <Card>
-                                <CardMedia component="img" height="140" image={imgSrc} alt={`Coffee ${i}`} />
+                                <CardMedia
+                                    component="img"
+                                    height="140"
+                                    image={imgSrc}
+                                    alt={`Coffee ${i}`}
+                                />
                             </Card>
                         </Grid>
                     ))}
                 </Grid>
 
-                {/* Phần "Món nổi bật" hiển thị theo dạng lưới */}
+                {/* Món nổi bật */}
                 <Box textAlign="center" mt={4}>
                     <Typography
                         variant="h4"
@@ -135,30 +150,13 @@ function CoffeeShop() {
                             <>
                                 <Grid container spacing={2}>
                                     {topDrinks.slice(0, visibleCount).map((item) => {
-                                        const { drink, totalQuantity } = item;
+                                        const { drink } = item;
                                         return (
                                             <Grid item key={drink.id} xs={6} sm={6} md={4} lg={3}>
                                                 <Card>
-                                                    <CardContent sx={{ p: 2, position: "relative" }}>
+                                                    <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
                                                         <Box sx={{ position: "relative" }}>
-                                                            {/* Hiển thị totalQuantity với hiệu ứng Grow */}
-                                                            <Box
-                                                                sx={{
-                                                                    position: "absolute",
-                                                                    top: 8,
-                                                                    right: 8,
-                                                                    backgroundColor: "rgba(255,255,255,0.8)",
-                                                                    px: 1,
-                                                                    py: 0.5,
-                                                                    borderRadius: 1,
-                                                                }}
-                                                            >
-                                                                <Grow in={showTotal} timeout={500}>
-                                                                    <Typography variant="h6" color="primary" sx={{ fontWeight: "bold" }}>
-                                                                        {totalQuantity}
-                                                                    </Typography>
-                                                                </Grow>
-                                                            </Box>
+                                                            {/* Ảnh sản phẩm */}
                                                             <img
                                                                 src={getCloudinaryImageUrl(drink.imgDrinks, {
                                                                     width: 300,
@@ -173,18 +171,38 @@ function CoffeeShop() {
                                                                     borderRadius: "4px",
                                                                 }}
                                                             />
+                                                            {/* Nút dấu + ở góc trên bên phải */}
+                                                            <IconButton
+                                                                color="primary"
+                                                                aria-label="Thêm vào giỏ hàng"
+                                                                sx={{
+                                                                    position: "absolute",
+                                                                    top: 8,
+                                                                    right: 8,
+                                                                    backgroundColor: "rgba(255,255,255,0.8)",
+                                                                    "&:hover": { backgroundColor: "rgba(255,255,255,1)" },
+                                                                }}
+                                                                onClick={() => handleAddToCart(drink)}
+                                                            >
+                                                                <AddIcon />
+                                                            </IconButton>
                                                         </Box>
+
+                                                        {/* Tên món và giá giống Menu */}
                                                         <Typography
                                                             variant="h6"
                                                             sx={{
                                                                 fontWeight: "bold",
-                                                                fontSize: { xs: "0.9rem", sm: "1rem" },
+                                                                fontSize: { xs: "0.875rem", sm: "1rem" },
                                                                 mt: 1,
                                                             }}
                                                         >
                                                             {drink.nameDrinks}
                                                         </Typography>
-                                                        <Typography variant="h6" sx={{ fontSize: { xs: "0.8rem", sm: "0.9rem" } }}>
+                                                        <Typography
+                                                            variant="h6"
+                                                            sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
+                                                        >
                                                             {formatPrice(drink.price)}
                                                         </Typography>
                                                     </CardContent>
@@ -193,13 +211,22 @@ function CoffeeShop() {
                                         );
                                     })}
                                 </Grid>
-                                {visibleCount < topDrinks.length && (
-                                    <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
+
+                                {/* Nút Xem thêm và Xem tất cả */}
+                                <Box sx={{ display: "flex", justifyContent: "center", gap: 2, my: 2 }}>
+                                    {/* Chỉ hiển thị "Xem thêm" nếu còn món */}
+                                    {visibleCount < topDrinks.length && (
                                         <Button variant="contained" onClick={handleLoadMore}>
                                             Xem thêm
                                         </Button>
-                                    </Box>
-                                )}
+                                    )}
+                                    <Button
+                                        variant="outlined"
+                                        onClick={() => navigate(`/menu?tableId=${tableId}`)}
+                                    >
+                                        Xem tất cả
+                                    </Button>
+                                </Box>
                             </>
                         ) : (
                             <Typography variant="h6" color="textSecondary" align="center" sx={{ mt: 4 }}>
@@ -209,8 +236,17 @@ function CoffeeShop() {
                     </Container>
                 </Box>
 
-                {/* Phần phản hồi khách hàng */}
-                <Paper elevation={3} sx={{ backgroundColor: "#333", color: "white", p: 4, mt: 4, borderRadius: 2 }}>
+                {/* Phản hồi khách hàng */}
+                <Paper
+                    elevation={3}
+                    sx={{
+                        backgroundColor: "#333",
+                        color: "white",
+                        p: 4,
+                        mt: 4,
+                        borderRadius: 2,
+                    }}
+                >
                     <Typography
                         variant="h5"
                         color="#E7B45A"
@@ -252,7 +288,7 @@ function CoffeeShop() {
                     </Grid>
                 </Paper>
 
-                {/* Các FAB liên hệ */}
+                {/* FAB liên hệ */}
                 <Box
                     sx={{
                         position: "fixed",
@@ -290,6 +326,8 @@ function CoffeeShop() {
                     </Fab>
                 </Box>
             </Container>
+
+            {/* Footer */}
             <Footer />
         </>
     );
