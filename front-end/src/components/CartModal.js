@@ -107,8 +107,6 @@ const CartModal = ({
                         ))}
 
                         <Divider sx={{ my: 2 }} />
-
-                        {/* Tổng tiền */}
                         <Box
                             sx={{
                                 display: "flex",
@@ -123,8 +121,6 @@ const CartModal = ({
                                 {formatPrice(totalCartPrice)}
                             </Typography>
                         </Box>
-
-                        {/* Nút Gọi Món */}
                         <Button
                             variant="contained"
                             fullWidth
