@@ -215,14 +215,13 @@ const MenuComponent = () => {
             console.log("Feedback đã được tạo:", newFeedback);
             setSnackbar({
                 open: true,
-                message: "Bạn đã đặt món thành công",
+                message: "Cảm ơn bạn đã đánh giá sản phẩm",
             });
         } catch (error) {
             console.error("Lỗi khi tạo feedback:", error);
         }
     };
 
-    // Kiểm tra trạng thái bàn trước khi đặt hàng
     const handleOrder = async () => {
         if (table && table.statusTable === 2) {
             setSnackbar({
@@ -266,7 +265,6 @@ const MenuComponent = () => {
         }
     };
 
-    // Kiểm tra trạng thái bàn trước khi thêm sản phẩm vào giỏ
     const handleAddToCart = async (drink) => {
         if (table && table.statusTable === 2) {
             setSnackbar({
