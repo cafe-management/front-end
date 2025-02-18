@@ -62,7 +62,6 @@ const MenuComponent = () => {
         return "TOKEN-" + Math.random().toString(36).substr(2, 9).toUpperCase();
     };
 
-    // Dùng useCallback để có tham chiếu ổn định cho hàm getSessionToken
     const getSessionToken = useCallback(() => {
         let token = sessionStorage.getItem("tableToken");
         if (!token) {
@@ -202,8 +201,6 @@ const MenuComponent = () => {
             console.error("Lỗi khi tạo feedback:", error);
         }
     };
-
-    // Khi gọi món, nếu bàn chưa được sử dụng (statusTable === 0) thì cập nhật trạng thái thành 1
     const handleOrder = async () => {
         if (table && table.statusTable === 2) {
             setSnackbar({

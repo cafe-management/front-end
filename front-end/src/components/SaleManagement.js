@@ -1,3 +1,4 @@
+// src/components/SaleManagement.js
 import React, { useState, useEffect } from "react";
 import {
     Container,
@@ -21,16 +22,15 @@ import {
 } from "@mui/material";
 import { getTableCoffee, updateTableCoffeeStatus } from "../service/TableCoffeeService";
 import { getCartByTableId } from "../service/CartService";
-import { createInvoice } from "../service/InvoiceService"; // Import hàm tạo hóa đơn
+import { createInvoice, assignInvoiceToCart } from "../service/InvoiceService"; // Import thêm assignInvoiceToCart
 import { toast } from "react-toastify";
 
 const SaleManagement = () => {
     const [tables, setTables] = useState([]);
     const [error, setError] = useState(null);
     const [selectedTable, setSelectedTable] = useState(null);
-    // Sử dụng mảng carts thay vì một đối tượng cart
     const [carts, setCarts] = useState([]);
-    const [warning, setWarning] = useState(""); // trạng thái cảnh báo cho nhân viên
+    const [warning, setWarning] = useState("");
 
     // Lấy danh sách bàn từ API
     const fetchTables = async () => {
@@ -47,13 +47,13 @@ const SaleManagement = () => {
         fetchTables();
     }, []);
 
-    // Khi bàn được chọn, lấy danh sách đơn hàng (carts) dựa theo table id
+    // Khi bàn được chọn, lấy danh sách đơn hàng (carts) theo table id
     useEffect(() => {
         const fetchCart = async () => {
             if (selectedTable) {
                 try {
                     const cartsData = await getCartByTableId(selectedTable.id);
-                    setCarts(cartsData); // cartsData là một mảng
+                    setCarts(cartsData);
                 } catch (err) {
                     console.error("Lỗi khi lấy thông tin cart:", err);
                     setCarts([]);
@@ -89,16 +89,16 @@ const SaleManagement = () => {
         }
     };
 
-    // Xử lý chọn bàn từ danh sách
+    // Xử lý chọn bàn
     const handleSelectTable = (table) => {
         setSelectedTable(table);
-        setWarning(""); // reset cảnh báo khi chọn bàn khác
+        setWarning("");
     };
 
+    // Reset trạng thái bàn về "Không có người ngồi" (status 0)
     const handleResetStatus = async () => {
         if (!selectedTable) return;
 
-        // Nếu có đơn hàng (carts tồn tại và có ít nhất 1 đơn hàng có items) thì hiển thị cảnh báo
         if (carts && carts.some((cart) => cart.items && cart.items.length > 0)) {
             setWarning("Bàn có đơn hàng, không thể đặt lại trạng thái!");
             return;
@@ -109,7 +109,6 @@ const SaleManagement = () => {
                 statusTable: 0,
                 token: null,
             });
-            console.log("Bàn đã được cập nhật:", updatedTable);
             await fetchTables();
             setSelectedTable(updatedTable);
             setWarning("");
@@ -119,7 +118,7 @@ const SaleManagement = () => {
         }
     };
 
-    // Hàm cập nhật trạng thái bàn về Bảo trì (status 2)
+    // Cập nhật trạng thái bàn về "Bảo trì" (status 2)
     const handleMaintenanceStatus = async () => {
         if (!selectedTable) return;
         try {
@@ -127,11 +126,10 @@ const SaleManagement = () => {
                 statusTable: 2,
                 token: null,
             });
-            console.log("Bàn đã được cập nhật về bảo trì:", updatedTable);
             await fetchTables();
             setSelectedTable(updatedTable);
             setWarning("");
-            toast.warning("Bàn đã cập nhật về trạng thái bảo trì");
+            toast.warning("Bàn đã cập nhập về trạng thái bảo trì");
         } catch (error) {
             console.error("Lỗi cập nhật bàn:", error);
         }
@@ -139,33 +137,52 @@ const SaleManagement = () => {
 
     // Tính tổng tiền của tất cả các đơn hàng (carts)
     const overallTotal = carts.reduce((acc, cart) => {
-        const cartTotal = cart.items ? cart.items.reduce((sum, item) => sum + item.totalPrice, 0) : 0;
+        const cartTotal = cart.items
+            ? cart.items.reduce((sum, item) => sum + item.totalPrice, 0)
+            : 0;
         return acc + cartTotal;
     }, 0);
 
-    // Hàm tạo hóa đơn khi bấm "Tính tiền"
+    // Tạo hóa đơn và gán mã hóa đơn cho từng cart
     const handlePayment = async () => {
-        // Tạo mã hóa đơn duy nhất dựa trên timestamp
-        const codeInvoice = "INV-" + new Date().getTime();
-
-        // Tạo đối tượng hóa đơn với trạng thái chờ thanh toán (statusOrder: false) và datePayment là null
-        const invoiceData = {
-            codeInvoice: codeInvoice,
-            dateCreate: new Date().toISOString(),
-            datePayment: null, // Chưa thanh toán nên để null
-            statusOrder: false, // false tương ứng trạng thái chờ thanh toán
-            totalAmount: overallTotal,
-            carts: carts // đảm bảo mỗi cart có thuộc tính invoice
+        if (carts.length === 0) {
+            toast.error("Không có đơn hàng để thanh toán!");
+            return;
         }
 
         try {
-            const createdInvoice = await createInvoice(invoiceData);
-            toast.success("Hóa đơn đã được tạo, chờ thanh toán");
-            // Bạn có thể thực hiện các thao tác khác sau khi tạo hóa đơn,
-            // như xoá thông tin cart, cập nhật trạng thái bàn, hoặc chuyển hướng sang trang thanh toán
-        } catch (error) {
-            console.error("Lỗi tạo hóa đơn:", error);
-            toast.error("Lỗi khi tạo hóa đơn");
+            // Tạo mã hóa đơn (có thể cải tiến cách tạo mã)
+            const codeInvoice = `INV-${Date.now()}`;
+            const invoicePayload = {
+                codeInvoice,
+                dateCreate: new Date().toISOString(),
+                datePayment: new Date().toISOString(),
+                statusOrder: true, // Đã thanh toán
+                totalAmount: overallTotal,
+                carts, // Nếu API cần danh sách cart kèm theo invoice
+            };
+
+            // Tạo hóa đơn trên server
+            const createdInvoice = await createInvoice(invoicePayload);
+            console.log("Invoice created:", createdInvoice);
+            toast.success(
+                `Thanh toán thành công. Tổng tiền: ${overallTotal.toLocaleString()} đ`
+            );
+
+            // Sau khi tạo hóa đơn thành công, gán mã invoice cho từng cart
+            // Giả sử createdInvoice có thuộc tính id
+            const invoiceId = createdInvoice.id;
+            const assignPromises = carts.map((cart) =>
+                assignInvoiceToCart(invoiceId, cart.id)
+            );
+            // Chờ tất cả các request gán invoice hoàn tất
+            await Promise.all(assignPromises);
+
+            // Sau khi gán invoice cho các cart, reset danh sách carts
+            setCarts([]);
+        } catch (err) {
+            console.error("Error processing payment", err);
+            toast.error("Lỗi khi tạo hóa đơn hoặc gán hóa đơn cho cart");
         }
     };
 
@@ -237,7 +254,6 @@ const SaleManagement = () => {
                                             </TableRow>
                                         </TableBody>
                                     </Table>
-                                    {/* Hiển thị thông báo cảnh báo nếu có */}
                                     {warning && (
                                         <Alert severity="warning" sx={{ mt: 2 }}>
                                             {warning}
@@ -270,44 +286,45 @@ const SaleManagement = () => {
                                     Thông tin Đơn Hàng
                                 </Typography>
                                 {carts.length > 0 ? (
-                                    carts.map((cart, index) => {
-                                        return (
-                                            <Box key={cart.id} sx={{ mb: 3, p: 2, border: "1px solid #ccc", borderRadius: 1 }}>
-                                                <Typography variant="subtitle1" sx={{ mb: 1, textAlign: "left" }}>
-                                                    Đơn hàng #{index + 1}
-                                                </Typography>
-                                                <Table size="small">
-                                                    <TableHead>
-                                                        <TableRow>
-                                                            <TableCell sx={{ fontWeight: "bold" }}>Tên đồ uống</TableCell>
-                                                            <TableCell sx={{ fontWeight: "bold" }}>Giá</TableCell>
-                                                            <TableCell sx={{ fontWeight: "bold" }}>Số lượng</TableCell>
-                                                            <TableCell sx={{ fontWeight: "bold" }}>Tổng tiền</TableCell>
-                                                            <TableCell sx={{ fontWeight: "bold" }}>Số bàn</TableCell>
+                                    carts.map((cart, index) => (
+                                        <Box
+                                            key={cart.id}
+                                            sx={{ mb: 3, p: 2, border: "1px solid #ccc", borderRadius: 1 }}
+                                        >
+                                            <Typography variant="subtitle1" sx={{ mb: 1, textAlign: "left" }}>
+                                                Đơn hàng #{index + 1}
+                                            </Typography>
+                                            <Table size="small">
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell sx={{ fontWeight: "bold" }}>Tên đồ uống</TableCell>
+                                                        <TableCell sx={{ fontWeight: "bold" }}>Giá</TableCell>
+                                                        <TableCell sx={{ fontWeight: "bold" }}>Số lượng</TableCell>
+                                                        <TableCell sx={{ fontWeight: "bold" }}>Tổng tiền</TableCell>
+                                                        <TableCell sx={{ fontWeight: "bold" }}>Số bàn</TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    {cart.items.map((item) => (
+                                                        <TableRow key={item.id}>
+                                                            <TableCell>{item.drink.nameDrinks}</TableCell>
+                                                            <TableCell>{item.drink.price}</TableCell>
+                                                            <TableCell>{item.quantity}</TableCell>
+                                                            <TableCell>{item.totalPrice}</TableCell>
+                                                            <TableCell>{cart.table.numberTable}</TableCell>
                                                         </TableRow>
-                                                    </TableHead>
-                                                    <TableBody>
-                                                        {cart.items.map((item) => (
-                                                            <TableRow key={item.id}>
-                                                                <TableCell>{item.drink.nameDrinks}</TableCell>
-                                                                <TableCell>{item.drink.price}</TableCell>
-                                                                <TableCell>{item.quantity}</TableCell>
-                                                                <TableCell>{item.totalPrice}</TableCell>
-                                                                <TableCell>{cart.table.numberTable}</TableCell>
-                                                            </TableRow>
-                                                        ))}
-                                                    </TableBody>
-                                                </Table>
-                                            </Box>
-                                        );
-                                    })
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </Box>
+                                    ))
                                 ) : (
                                     <Typography align="center" sx={{ mt: 2 }}>
                                         Không có thông tin cart hoặc chưa có đơn hàng.
                                     </Typography>
                                 )}
 
-                                {/* Hiển thị tổng tiền chung và nút "Tính tiền" nếu có đơn hàng */}
+                                {/* Hiển thị tổng tiền chung và nút "Tính tiền" */}
                                 {carts.length > 0 && (
                                     <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 2 }}>
                                         <Typography variant="h6">
