@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import {
     Container,
     Typography,
@@ -19,9 +19,10 @@ import {
     CardContent,
     Box,
 } from "@mui/material";
-import {getTableCoffee, updateTableCoffeeStatus} from "../service/TableCoffeeService";
-import {getCartByTableId} from "../service/CartService";
-import {toast} from "react-toastify";
+import { getTableCoffee, updateTableCoffeeStatus } from "../service/TableCoffeeService";
+import { getCartByTableId } from "../service/CartService";
+import { createInvoice } from "../service/InvoiceService"; // Import hàm tạo hóa đơn
+import { toast } from "react-toastify";
 
 const SaleManagement = () => {
     const [tables, setTables] = useState([]);
@@ -93,14 +94,11 @@ const SaleManagement = () => {
         setSelectedTable(table);
         setWarning(""); // reset cảnh báo khi chọn bàn khác
     };
+
     const handleResetStatus = async () => {
         if (!selectedTable) return;
 
         // Nếu có đơn hàng (carts tồn tại và có ít nhất 1 đơn hàng có items) thì hiển thị cảnh báo
-        if (carts && carts.some((cart) => cart.items && cart.items.length > 0)) {
-            setWarning("Bàn có đơn hàng, không thể đặt lại trạng thái!");
-            return;
-        }
         if (carts && carts.some((cart) => cart.items && cart.items.length > 0)) {
             setWarning("Bàn có đơn hàng, không thể đặt lại trạng thái!");
             return;
@@ -115,7 +113,7 @@ const SaleManagement = () => {
             await fetchTables();
             setSelectedTable(updatedTable);
             setWarning("");
-            toast.success("bàn đã cập nhật về trạng thái không có người ngồi");
+            toast.success("Bàn đã cập nhật về trạng thái không có người ngồi");
         } catch (error) {
             console.error("Lỗi cập nhật bàn:", error);
         }
@@ -133,7 +131,7 @@ const SaleManagement = () => {
             await fetchTables();
             setSelectedTable(updatedTable);
             setWarning("");
-            toast.warning("bàn đã cập nhập về trạng thái bảo trì");
+            toast.warning("Bàn đã cập nhật về trạng thái bảo trì");
         } catch (error) {
             console.error("Lỗi cập nhật bàn:", error);
         }
@@ -145,12 +143,34 @@ const SaleManagement = () => {
         return acc + cartTotal;
     }, 0);
 
-    const handlePayment = () => {
-        alert(`Thanh toán thành công. Tổng tiền: ${overallTotal.toLocaleString()} đ`);
+    // Hàm tạo hóa đơn khi bấm "Tính tiền"
+    const handlePayment = async () => {
+        // Tạo mã hóa đơn duy nhất dựa trên timestamp
+        const codeInvoice = "INV-" + new Date().getTime();
+
+        // Tạo đối tượng hóa đơn với trạng thái chờ thanh toán (statusOrder: false) và datePayment là null
+        const invoiceData = {
+            codeInvoice: codeInvoice,
+            dateCreate: new Date().toISOString(),
+            datePayment: null, // Chưa thanh toán nên để null
+            statusOrder: false, // false tương ứng trạng thái chờ thanh toán
+            totalAmount: overallTotal,
+            carts: carts // đảm bảo mỗi cart có thuộc tính invoice
+        }
+
+        try {
+            const createdInvoice = await createInvoice(invoiceData);
+            toast.success("Hóa đơn đã được tạo, chờ thanh toán");
+            // Bạn có thể thực hiện các thao tác khác sau khi tạo hóa đơn,
+            // như xoá thông tin cart, cập nhật trạng thái bàn, hoặc chuyển hướng sang trang thanh toán
+        } catch (error) {
+            console.error("Lỗi tạo hóa đơn:", error);
+            toast.error("Lỗi khi tạo hóa đơn");
+        }
     };
 
     return (
-        <Container maxWidth="lg" sx={{mt: 4, mb: 4}}>
+        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             <Typography variant="h4" gutterBottom align="center">
                 Quản Lý Bàn & Đơn Hàng
             </Typography>
@@ -172,7 +192,7 @@ const SaleManagement = () => {
                                             button
                                             selected={selectedTable && selectedTable.id === table.id}
                                             onClick={() => handleSelectTable(table)}
-                                            sx={{"&.Mui-selected": {backgroundColor: "#e0f7fa"}}}
+                                            sx={{ "&.Mui-selected": { backgroundColor: "#e0f7fa" } }}
                                         >
                                             <ListItemText
                                                 primary={`Bàn số: ${table.numberTable}`}
@@ -184,7 +204,7 @@ const SaleManagement = () => {
                             ) : (
                                 !error && (
                                     <Box display="flex" justifyContent="center" alignItems="center">
-                                        <CircularProgress/>
+                                        <CircularProgress />
                                     </Box>
                                 )
                             )}
@@ -219,11 +239,11 @@ const SaleManagement = () => {
                                     </Table>
                                     {/* Hiển thị thông báo cảnh báo nếu có */}
                                     {warning && (
-                                        <Alert severity="warning" sx={{mt: 2}}>
+                                        <Alert severity="warning" sx={{ mt: 2 }}>
                                             {warning}
                                         </Alert>
                                     )}
-                                    <Stack direction="row" spacing={2} sx={{mt: 2}}>
+                                    <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
                                         <Button variant="contained" color="primary" onClick={handleResetStatus}>
                                             Đặt lại trạng thái
                                         </Button>
@@ -233,7 +253,7 @@ const SaleManagement = () => {
                                     </Stack>
                                 </>
                             ) : (
-                                <Typography align="center" sx={{mt: 2}}>
+                                <Typography align="center" sx={{ mt: 2 }}>
                                     Chưa có dữ liệu. Vui lòng chọn bàn.
                                 </Typography>
                             )}
@@ -252,19 +272,18 @@ const SaleManagement = () => {
                                 {carts.length > 0 ? (
                                     carts.map((cart, index) => {
                                         return (
-                                            <Box key={cart.id}
-                                                 sx={{mb: 3, p: 2, border: "1px solid #ccc", borderRadius: 1}}>
+                                            <Box key={cart.id} sx={{ mb: 3, p: 2, border: "1px solid #ccc", borderRadius: 1 }}>
                                                 <Typography variant="subtitle1" sx={{ mb: 1, textAlign: "left" }}>
                                                     Đơn hàng #{index + 1}
                                                 </Typography>
                                                 <Table size="small">
                                                     <TableHead>
                                                         <TableRow>
-                                                            <TableCell sx={{fontWeight: "bold"}}>Tên đồ uống</TableCell>
-                                                            <TableCell sx={{fontWeight: "bold"}}>Giá</TableCell>
-                                                            <TableCell sx={{fontWeight: "bold"}}>Số lượng</TableCell>
-                                                            <TableCell sx={{fontWeight: "bold"}}>Tổng tiền</TableCell>
-                                                            <TableCell sx={{fontWeight: "bold"}}>Số bàn</TableCell>
+                                                            <TableCell sx={{ fontWeight: "bold" }}>Tên đồ uống</TableCell>
+                                                            <TableCell sx={{ fontWeight: "bold" }}>Giá</TableCell>
+                                                            <TableCell sx={{ fontWeight: "bold" }}>Số lượng</TableCell>
+                                                            <TableCell sx={{ fontWeight: "bold" }}>Tổng tiền</TableCell>
+                                                            <TableCell sx={{ fontWeight: "bold" }}>Số bàn</TableCell>
                                                         </TableRow>
                                                     </TableHead>
                                                     <TableBody>
@@ -283,19 +302,14 @@ const SaleManagement = () => {
                                         );
                                     })
                                 ) : (
-                                    <Typography align="center" sx={{mt: 2}}>
+                                    <Typography align="center" sx={{ mt: 2 }}>
                                         Không có thông tin cart hoặc chưa có đơn hàng.
                                     </Typography>
                                 )}
 
                                 {/* Hiển thị tổng tiền chung và nút "Tính tiền" nếu có đơn hàng */}
                                 {carts.length > 0 && (
-                                    <Stack
-                                        direction="row"
-                                        justifyContent="space-between"
-                                        alignItems="center"
-                                        sx={{mt: 2}}
-                                    >
+                                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 2 }}>
                                         <Typography variant="h6">
                                             Tổng tiền chung: {overallTotal.toLocaleString()} đ
                                         </Typography>

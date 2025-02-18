@@ -18,6 +18,10 @@ import ChangePassword from "./component/auth/ChangePassword";
 import {HelmetProvider} from "react-helmet-async";
 import NewsCreateComponent from "./components/NewComponent";
 import {AbilityProvider} from "./Can";
+import Navbar from "./components/EmployeeDashboard";
+import NewsListComponent from "./components/NewsListComponent";
+import NewsUpdateComponent from "./components/NewsUpdateComponent";
+import NewComponent from "./components/NewComponent";
 
 function App() {
     return (
@@ -28,7 +32,7 @@ function App() {
                 <Routes>
                     <Route path="/" element={<TableQRCodeList />} />
                     <Route path="/menu" element={<MenuComponent />} />
-                    <Route path="/dashboard" element={<EmployeeDashboard/>}/>
+                    <Route path="/dashboard" element={<Navbar/>}/>
                     <Route path="/manager/feedback" element={<FeedBackManagement/>} />
                     <Route path="/manager/sale" element={<SaleManagement/>}/>
                     <Route path="login" element={<Login/>}></Route>
@@ -38,7 +42,11 @@ function App() {
                     <Route path="/home/introduction" element={<AboutUs />} />
                     <Route path="/information" element={<AccountInfo />} />
                     <Route path="change_password" element={<ChangePassword/>}></Route>
-                    <Route path="/news" element={<NewsCreateComponent/>}/>
+                    <Route path="/news" element={<NewsListComponent />} />
+                    <Route path="/news/create" element={<NewComponent />} />
+                    <Route path="/news/edit/:id" element={<NewsUpdateComponent />} />
+
+
                 </Routes>
             </BrowserRouter>
             <ToastContainer/>

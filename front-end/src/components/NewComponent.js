@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { createNews } from "../service/NewService"; // API tạo tin tức
+import { createNews } from "../service/NewService";
 import {
     Container,
     Paper,
@@ -11,43 +11,40 @@ import {
     Grid,
     CircularProgress,
     Alert,
+    IconButton,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import PhotoCamera from "@mui/icons-material/PhotoCamera";
 
 const primaryColor = "#E7B45A";
 
 const NewsCreateComponent = () => {
-    // State quản lý tiêu đề, nội dung, danh sách file ảnh và preview
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
-    const [files, setFiles] = useState([]); // Danh sách file được chọn
-    const [previews, setPreviews] = useState([]); // Danh sách URL xem trước cho các ảnh
+    const [files, setFiles] = useState([]);
+    const [previews, setPreviews] = useState([]);
     const [uploading, setUploading] = useState(false);
     const [message, setMessage] = useState("");
+    const navigate = useNavigate();
 
-    // Cấu hình Cloudinary
     const cloudName = "drszapjl6";
     const uploadPreset = "test_cloundinary";
 
-    // Xử lý khi chọn nhiều file từ input
     const handleFileChange = (e) => {
         const selectedFiles = Array.from(e.target.files);
         setFiles(selectedFiles);
-        // Tạo preview cho từng file
         const previewUrls = selectedFiles.map((file) => URL.createObjectURL(file));
         setPreviews(previewUrls);
     };
 
-    // Xử lý submit form tạo tin tức
     const handleSubmit = async (e) => {
         e.preventDefault();
         setUploading(true);
         setMessage("");
 
         try {
-            // Mảng lưu trữ thông tin các ảnh đã upload (định dạng cho ImageNews: {img, public_id})
             const uploadedImages = [];
 
-            // Upload từng file lên Cloudinary
             for (const file of files) {
                 const formData = new FormData();
                 formData.append("file", file);
@@ -57,33 +54,30 @@ const NewsCreateComponent = () => {
                     `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
                     formData
                 );
-
                 const { secure_url, public_id } = cloudinaryResponse.data;
-                // Trường "img" của ImageNews nhận secure_url
                 uploadedImages.push({ img: secure_url, public_id: public_id });
             }
 
-            // Tạo đối tượng news với các thông tin và mảng ảnh
             const newsData = {
                 title,
                 content,
                 images: uploadedImages,
             };
 
-            // Gọi API tạo tin tức
             const savedNews = await createNews(newsData);
 
-            setMessage("Tin tức đã được đăng thành công!");
-            console.log("News created:", savedNews);
-
-            // Reset form
+            setMessage("✅ Tin tức đã được đăng thành công!");
             setTitle("");
             setContent("");
             setFiles([]);
             setPreviews([]);
+
+            setTimeout(() => {
+                navigate("/news");
+            }, 2000);
         } catch (error) {
-            console.error("Lỗi tạo tin tức:", error);
-            setMessage("Có lỗi xảy ra khi đăng tin tức.");
+            console.error("❌ Lỗi tạo tin tức:", error);
+            setMessage("⚠️ Có lỗi xảy ra khi đăng tin tức.");
         } finally {
             setUploading(false);
         }
@@ -91,32 +85,24 @@ const NewsCreateComponent = () => {
 
     return (
         <Container maxWidth="md" sx={{ mt: 4 }}>
-            <Paper
-                elevation={3}
-                sx={{
-                    p: 3,
-                    borderRadius: 2,
-                    border: `1px solid ${primaryColor}`,
-                }}
-            >
+            <Paper elevation={3} sx={{ p: 4, borderRadius: 3, border: `1px solid ${primaryColor}` }}>
                 <Typography
-                    variant="h5"
+                    variant="h4"
                     gutterBottom
-                    sx={{ color: primaryColor, fontWeight: "bold" }}
+                    sx={{ color: primaryColor, fontWeight: "bold", textAlign: "center" }}
                 >
-                    Đăng Tin Tức
+                    📰 Đăng Tin Tức Mới
                 </Typography>
+
                 {message && (
-                    <Alert
-                        severity={message.includes("thành công") ? "success" : "error"}
-                        sx={{ mb: 2 }}
-                    >
+                    <Alert severity={message.includes("thành công") ? "success" : "error"} sx={{ mb: 3 }}>
                         {message}
                     </Alert>
                 )}
+
                 <Box component="form" onSubmit={handleSubmit} noValidate>
                     <TextField
-                        label="Tiêu đề"
+                        label="📌 Tiêu đề"
                         fullWidth
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
@@ -125,53 +111,65 @@ const NewsCreateComponent = () => {
                         InputLabelProps={{ shrink: true }}
                     />
                     <TextField
-                        label="Nội dung"
+                        label="📝 Nội dung"
                         fullWidth
                         multiline
-                        rows={4}
+                        rows={5}
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
                         required
                         margin="normal"
                         InputLabelProps={{ shrink: true }}
                     />
-                    <Button
-                        variant="contained"
-                        component="label"
-                        sx={{
-                            mt: 2,
-                            backgroundColor: primaryColor,
-                            "&:hover": { backgroundColor: "#d1a750" },
-                        }}
-                    >
-                        Chọn ảnh (nhiều file)
+
+                    {/* Upload Button */}
+                    <Box display="flex" alignItems="center" mt={2}>
                         <input
+                            accept="image/*"
+                            id="file-upload"
+                            multiple
                             type="file"
                             hidden
-                            multiple
-                            accept="image/*"
                             onChange={handleFileChange}
                         />
-                    </Button>
+                        <label htmlFor="file-upload">
+                            <IconButton color="primary" component="span">
+                                <PhotoCamera />
+                            </IconButton>
+                        </label>
+                        <Typography variant="body1" color="textSecondary">
+                            {files.length > 0 ? `${files.length} ảnh đã chọn` : "Chọn ảnh tải lên"}
+                        </Typography>
+                    </Box>
+
+                    {/* Hiển thị ảnh đã chọn */}
                     {previews.length > 0 && (
                         <Box sx={{ mt: 2 }}>
                             <Typography variant="subtitle1" sx={{ color: primaryColor }}>
-                                Preview các ảnh:
+                                📷 Xem trước ảnh:
                             </Typography>
-                            <Grid container spacing={2}>
+                            <Grid container spacing={2} sx={{ mt: 1 }}>
                                 {previews.map((url, index) => (
-                                    <Grid item xs={6} sm={4} md={3} key={index}>
+                                    <Grid item xs={4} sm={3} md={2} key={index}>
                                         <img
                                             src={url}
                                             alt={`preview-${index}`}
-                                            style={{ width: "100%", borderRadius: 4 }}
+                                            style={{
+                                                width: "100%",
+                                                height: "auto",
+                                                borderRadius: 8,
+                                                border: "1px solid #ddd",
+                                                padding: 2,
+                                            }}
                                         />
                                     </Grid>
                                 ))}
                             </Grid>
                         </Box>
                     )}
-                    <Box sx={{ mt: 3, position: "relative" }}>
+
+                    {/* Nút Đăng Tin */}
+                    <Box sx={{ mt: 4, position: "relative" }}>
                         <Button
                             type="submit"
                             variant="contained"
@@ -184,7 +182,7 @@ const NewsCreateComponent = () => {
                                 fontSize: "1rem",
                             }}
                         >
-                            {uploading ? "Đang upload..." : "Đăng Tin Tức"}
+                            {uploading ? "⏳ Đang tải lên..." : "🚀 Đăng Tin Tức"}
                         </Button>
                         {uploading && (
                             <CircularProgress
