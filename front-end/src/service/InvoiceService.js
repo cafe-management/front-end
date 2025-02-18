@@ -1,31 +1,8 @@
 // src/services/InvoiceService.js
-
 import axios from "axios";
 import { API_URL_INVOICE } from "../config/apiConfig";
 
 
-const getInvoices = async () => {
-    try {
-        const response = await axios.get(API_URL_INVOICE);
-        return response.data;
-    } catch (error) {
-        console.error("Error fetching invoices:", error);
-        throw error;
-    }
-};
-
-// Lấy invoice theo ID
-const getInvoiceById = async (id) => {
-    try {
-        const response = await axios.get(`${API_URL_INVOICE}/${id}`);
-        return response.data;
-    } catch (error) {
-        console.error(`Error fetching invoice with id ${id}:`, error);
-        throw error;
-    }
-};
-
-// Tạo mới invoice
 const createInvoice = async (invoice) => {
     try {
         const response = await axios.post(API_URL_INVOICE, invoice);
@@ -36,26 +13,19 @@ const createInvoice = async (invoice) => {
     }
 };
 
-// Cập nhật invoice theo ID
-const updateInvoice = async (id, invoice) => {
+// Gán hóa đơn cho giỏ hàng (Assign Invoice to Cart)
+const assignInvoiceToCart = async (invoiceId, cartId) => {
     try {
-        const response = await axios.put(`${API_URL_INVOICE}/${id}`, invoice);
+        // Endpoint: PUT /api/invoices/{invoiceId}/cart/{cartId}
+        const response = await axios.put(`${API_URL_INVOICE}/${invoiceId}/cart/${cartId}`);
         return response.data;
     } catch (error) {
-        console.error(`Error updating invoice with id ${id}:`, error);
+        console.error(`Error assigning invoice ${invoiceId} to cart ${cartId}:`, error);
         throw error;
     }
 };
 
-// Xóa invoice theo ID
-const deleteInvoice = async (id) => {
-    try {
-        const response = await axios.delete(`${API_URL_INVOICE}/${id}`);
-        return response.data;
-    } catch (error) {
-        console.error(`Error deleting invoice with id ${id}:`, error);
-        throw error;
-    }
+export {
+    createInvoice,
+    assignInvoiceToCart
 };
-
-export { getInvoices, getInvoiceById, createInvoice, updateInvoice, deleteInvoice };

@@ -11,7 +11,7 @@ import {
     Button,
     Typography,
     Fab,
-    Grow, Badge, IconButton,
+    Chip,
 } from "@mui/material";
 import { Facebook, Phone } from "@mui/icons-material";
 import AddIcon from "@mui/icons-material/Add";
@@ -35,7 +35,6 @@ function CoffeeShop() {
     const navigate = useNavigate();
 
     const [feedbacks, setFeedbacks] = useState([]);
-    // Lưu dữ liệu gốc (bao gồm drink và totalQuantity)
     const [topDrinks, setTopDrinks] = useState([]);
     const [visibleCount, setVisibleCount] = useState(4);
     const [showTotal, setShowTotal] = useState(false);
@@ -45,13 +44,12 @@ function CoffeeShop() {
         try {
             const data = await getTopProducts(4);
             setTopDrinks(data);
-            console.log(tableId);
         } catch (error) {
             toast.error("Lỗi khi tải dữ liệu món bán chạy");
         }
     };
 
-    // Lấy phản hồi khách hàng từ API
+    // Lấy phản hồi khách hàng
     const fetchFeedbacks = async () => {
         try {
             const fbData = await feedbackService.getFeedback();
@@ -75,11 +73,7 @@ function CoffeeShop() {
         }).format(price);
     };
 
-    // Giả lập hàm thêm vào giỏ hàng
-    const handleAddToCart = (drink) => {
-        toast.success(`${drink.nameDrinks} đã được thêm vào giỏ hàng!`);
-    };
-
+    // Hàm load thêm món nổi bật
     const handleLoadMore = useCallback(() => {
         setVisibleCount((prev) => prev + 4);
     }, []);
@@ -89,9 +83,12 @@ function CoffeeShop() {
             <Helmet>
                 <title>DANA COFFEE - Trang Chủ</title>
             </Helmet>
+
+            {/* Header cố định */}
             <Box sx={{ position: "sticky", top: 0, zIndex: 1000, backgroundColor: "white" }}>
                 <Header tableId={tableId} />
             </Box>
+
             {/* Nội dung chính */}
             <Container sx={{ mt: 10, pb: 6 }}>
                 <Box display="flex" justifyContent="center">
@@ -101,13 +98,15 @@ function CoffeeShop() {
                 </Box>
                 <Typography variant="body1" align="center" paragraph fontStyle="italic">
                     Nơi bạn có thể thưởng thức những ly cà phê đậm đà, được pha chế từ những hạt cà phê nguyên chất,
-                    cùng những thức uống tinh tế như trà thanh mát và bánh ngọt thơm lừng. Với không gian ấm cúng và phong
-                    cách phục vụ chu đáo,{" "}
+                    cùng những thức uống tinh tế như trà thanh mát và bánh ngọt thơm lừng. Với không gian ấm cúng và
+                    phong cách phục vụ chu đáo,{" "}
                     <Typography component="span" fontWeight="bold">
                         DANA Coffee
                     </Typography>{" "}
                     là lựa chọn lý tưởng để bạn thư giãn, làm việc hay gặp gỡ bạn bè.
                 </Typography>
+
+                {/* Hình ảnh giới thiệu */}
                 <Grid container spacing={2} justifyContent="center">
                     {[coffee1, coffee2, coffee3, coffee4].map((imgSrc, i) => (
                         <Grid item xs={6} sm={3} key={i}>
@@ -123,7 +122,7 @@ function CoffeeShop() {
                     ))}
                 </Grid>
 
-                {/* Phần "Món nổi bật" hiển thị theo dạng lưới */}
+                {/* Món nổi bật */}
                 <Box textAlign="center" mt={4}>
                     <Typography
                         variant="h4"
@@ -152,6 +151,19 @@ function CoffeeShop() {
                                                 <Card>
                                                     <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
                                                         <Box sx={{ position: "relative" }}>
+                                                            {/* Hiển thị nhãn "Best Seller" luôn luôn */}
+                                                            <Chip
+                                                                label="Best Seller"
+                                                                color="secondary"
+                                                                sx={{
+                                                                    position: "absolute",
+                                                                    top: 8,
+                                                                    left: 8,
+                                                                    zIndex: 1,
+                                                                    fontWeight: "bold",
+                                                                    transform: "rotate(-10deg)",
+                                                                }}
+                                                            />
                                                             {/* Ảnh sản phẩm */}
                                                             <img
                                                                 src={getCloudinaryImageUrl(drink.imgDrinks, {
@@ -183,6 +195,8 @@ function CoffeeShop() {
                                                                 <AddIcon />
                                                             </IconButton>
                                                         </Box>
+
+                                                        {/* Tên món và giá giống Menu */}
                                                         <Typography
                                                             variant="h6"
                                                             sx={{
@@ -282,7 +296,7 @@ function CoffeeShop() {
                     </Grid>
                 </Paper>
 
-                {/* Các FAB liên hệ */}
+                {/* FAB liên hệ */}
                 <Box
                     sx={{
                         position: "fixed",
@@ -320,6 +334,8 @@ function CoffeeShop() {
                     </Fab>
                 </Box>
             </Container>
+
+            {/* Footer */}
             <Footer />
         </>
     );

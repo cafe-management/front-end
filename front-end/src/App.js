@@ -22,6 +22,9 @@ import Navbar from "./components/EmployeeDashboard";
 import NewsListComponent from "./components/NewsListComponent";
 import NewsUpdateComponent from "./components/NewsUpdateComponent";
 import NewComponent from "./components/NewComponent";
+import DashBoardFeedback from "./Navbar/DashBoardFeedBack";
+import EmployeeDashBoard from "./components/EmployeeDashboard";
+import DashBoardSale from "./Navbar/DashBoardSale";
 
 function App() {
     return (
@@ -32,9 +35,9 @@ function App() {
                 <Routes>
                     <Route path="/" element={<TableQRCodeList />} />
                     <Route path="/menu" element={<MenuComponent />} />
-                    <Route path="/dashboard" element={<Navbar/>}/>
-                    <Route path="/manager/feedback" element={<FeedBackManagement/>} />
-                    <Route path="/manager/sale" element={<SaleManagement/>}/>
+                    <Route path="/dashboard" element={<EmployeeDashBoard/>}/>
+                    <Route path="/manager/feedback" element={<DashBoardFeedback/>} />
+                    <Route path="/manager/sale" element={<DashBoardSale/>}/>
                     <Route path="login" element={<Login/>}></Route>
                     <Route path="admins/register" element={<Register/>}></Route>
                     <Route path="admins/list" element={<EmployList/>}></Route>
