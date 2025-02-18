@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+// Header.jsx
+import React, { useState } from "react";
 import {
     AppBar,
     Toolbar,
@@ -15,16 +16,10 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import logo from "../../styles/img/dana_logo.PNG";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { getCategories } from "../../service/CategoryService";
-
-function Header() {
+import { useLocation, useNavigate } from "react-router-dom";
+function Header({ tableId }) {
     const [mobileOpen, setMobileOpen] = useState(false);
-    const [categories, setCategories] = useState([]);
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
-    // Lấy tableId từ URL (nếu có)
-    const tableId = searchParams.get("tableId");
 
     const toggleMobileMenu = () => {
         setMobileOpen((prev) => !prev);
@@ -34,24 +29,11 @@ function Header() {
         setMobileOpen(false);
     };
 
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                const data = await getCategories();
-                console.log("Category", data);
-                setCategories(data);
-            } catch (error) {
-                console.error("Error fetching categories:", error);
-            }
-        };
-        fetchCategories();
-    }, []);
-
     const location = useLocation();
     const breadcrumbs = [];
     if (location.pathname !== "/home") {
         breadcrumbs.push(
-            <Link underline="hover" color="inherit" href="/home" key="home">
+            <Link underline="hover" color="inherit" key="home">
                 Trang chủ
             </Link>
         );
@@ -75,8 +57,6 @@ function Header() {
             );
         }
     }
-
-    // Hàm điều hướng đến Menu với query tableId
     const handleNavigateMenu = () => {
         if (tableId) {
             navigate(`/menu?tableId=${tableId}`);
@@ -95,10 +75,18 @@ function Header() {
                         alt="Logo"
                         sx={{ height: 60, width: "auto" }}
                     />
-                    {/* Menu for Desktop */}
+                    {/* Menu cho Desktop */}
                     <Box sx={{ display: { xs: "none", lg: "flex" }, gap: 3 }}>
                         <List sx={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 3, padding: 0 }}>
-                            <ListItem button sx={{ width: "auto", cursor: "pointer" }} onClick={() => navigate('/home')}>
+                            <ListItem
+                                button
+                                sx={{ width: "auto", cursor: "pointer" }}
+                                onClick={() => {
+                                    if (tableId) {
+                                        navigate(`/home?tableId=${tableId}`);
+                                    }
+                                }}
+                            >
                                 <ListItemText primary="Trang chủ" sx={{ ...menuTextStyle, textTransform: "uppercase" }} />
                             </ListItem>
                             <ListItem button sx={{ width: "auto", cursor: "pointer" }} onClick={() => navigate('/home/introduction')}>
