@@ -17,6 +17,7 @@ import AccountInfo from "./component/auth/Information";
 import ChangePassword from "./component/auth/ChangePassword";
 import {HelmetProvider} from "react-helmet-async";
 import NewsCreateComponent from "./components/NewComponent";
+import Navbar from "./components/EmployeeDashboard";
 
 function App() {
     return (
@@ -26,7 +27,7 @@ function App() {
                 <Routes>
                     <Route path="/" element={<TableQRCodeList />} />
                     <Route path="/menu" element={<MenuComponent />} />
-                    <Route path="/dashboard" element={<EmployeeDashboard/>}/>
+                    <Route path="/dashboard" element={<Navbar/>}/>
                     <Route path="/manager/feedback" element={<FeedBackManagement/>} />
                     <Route path="/manager/sale" element={<SaleManagement/>}/>
                     <Route path="login" element={<Login/>}></Route>

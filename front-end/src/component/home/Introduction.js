@@ -9,14 +9,19 @@ import coffeeInterior4 from "../../styles/img/intro/intro5.jpg";
 import staff1 from "../../styles/img/intro/staff1.webp";
 import staff2 from "../../styles/img/intro/staff2.jpeg";
 import { Helmet } from "react-helmet-async";
+import { useSearchParams } from "react-router-dom";
 
 function AboutUs() {
+    // Lấy tableId từ URL (nếu có)
+    const [searchParams] = useSearchParams();
+    const tableId = searchParams.get("tableId");
+
     return (
         <>
             <Helmet>
                 <title>DANA COFFEE - Giới Thiệu</title>
             </Helmet>
-            <Header />
+            <Header tableId={tableId} />
             <Container sx={{ mt: 5, pb: 10 }}>
                 {/* Tiêu đề chính */}
                 <Box textAlign="center" mb={4}>
@@ -28,8 +33,11 @@ function AboutUs() {
 
                 {/* Giới thiệu chung */}
                 <Typography variant="body1" align="center" paragraph fontStyle="italic">
-                    Chào mừng bạn đến với <Typography component="span" fontWeight="bold">Dana Coffee</Typography> – nơi hội tụ
-                    tinh hoa cà phê Việt. Chúng tôi cam kết mang đến những ly cà phê đậm đà, kết hợp với không gian ấm cúng
+                    Chào mừng bạn đến với{" "}
+                    <Typography component="span" fontWeight="bold">
+                        Dana Coffee
+                    </Typography>{" "}
+                    – nơi hội tụ tinh hoa cà phê Việt. Chúng tôi cam kết mang đến những ly cà phê đậm đà, kết hợp với không gian ấm cúng
                     và phong cách phục vụ tận tâm. Hãy ghé thăm Dana Coffee để tận hưởng những phút giây thư giãn tuyệt vời.
                 </Typography>
 
@@ -38,7 +46,16 @@ function AboutUs() {
                     <Typography variant="h5" color="#E7B45A" fontWeight="bold">
                         Không Gian Quán
                     </Typography>
-                    <Divider sx={{ width: "40px", height: "3px", backgroundColor: "#E7B45A", mx: "auto", mt: 1, mb: 3 }} />
+                    <Divider
+                        sx={{
+                            width: "40px",
+                            height: "3px",
+                            backgroundColor: "#E7B45A",
+                            mx: "auto",
+                            mt: 1,
+                            mb: 3,
+                        }}
+                    />
                     <Typography variant="body1" align="center" paragraph>
                         Dana Coffee mang đến một không gian ấm cúng với thiết kế hiện đại pha lẫn phong cách vintage.
                         Đây là nơi lý tưởng để bạn thư giãn, làm việc hay gặp gỡ bạn bè, tận hưởng ly cà phê nguyên chất
@@ -60,7 +77,16 @@ function AboutUs() {
                     <Typography variant="h5" color="#E7B45A" fontWeight="bold">
                         Đội Ngũ Nhân Viên & Dịch Vụ
                     </Typography>
-                    <Divider sx={{ width: "40px", height: "3px", backgroundColor: "#E7B45A", mx: "auto", mt: 1, mb: 3 }} />
+                    <Divider
+                        sx={{
+                            width: "40px",
+                            height: "3px",
+                            backgroundColor: "#E7B45A",
+                            mx: "auto",
+                            mt: 1,
+                            mb: 3,
+                        }}
+                    />
                     <Typography variant="body1" align="center" paragraph>
                         Đội ngũ nhân viên tại Dana Coffee luôn thân thiện, chuyên nghiệp và sẵn sàng phục vụ khách hàng tận tâm.
                         Chúng tôi cam kết mang đến trải nghiệm tốt nhất với chất lượng phục vụ hàng đầu.
@@ -81,7 +107,16 @@ function AboutUs() {
                     <Typography variant="h5" color="#E7B45A" fontWeight="bold">
                         Liên Hệ
                     </Typography>
-                    <Divider sx={{ width: "40px", height: "3px", backgroundColor: "#E7B45A", mx: "auto", mt: 1, mb: 3 }} />
+                    <Divider
+                        sx={{
+                            width: "40px",
+                            height: "3px",
+                            backgroundColor: "#E7B45A",
+                            mx: "auto",
+                            mt: 1,
+                            mb: 3,
+                        }}
+                    />
                     <Typography variant="body1" paragraph>
                         📍 <b>Địa chỉ:</b> 123 Đường Trần Phú, Đà Nẵng
                     </Typography>
