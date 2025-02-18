@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { defineAbilitiesFor } from "../../ability";
 import { Box, Button, Container, Paper, TextField, Typography } from "@mui/material";
 import { Helmet } from "react-helmet-async";
@@ -22,6 +22,15 @@ function Login() {
     const navigate = useNavigate();
     const { setCurrentAbility } = useAbility(); // Lấy hàm setCurrentAbility từ context
 
+    useEffect(() => {
+        // Lấy role từ localStorage nếu có
+        const userRole = localStorage.getItem("role");
+        if (userRole) {
+            // Nếu có role trong localStorage, cập nhật quyền
+            setCurrentAbility(defineAbilitiesFor(userRole));
+        }
+    }, [setCurrentAbility]); // Chạy khi component được render
+
     const onSubmit = async (data) => {
         try {
             const result = await login(data.username, data.password);
@@ -30,7 +39,7 @@ function Login() {
                 const userRole = result.role;
                 setCurrentAbility(defineAbilitiesFor(userRole));
                 localStorage.setItem("role", userRole);
-
+                console.log("role:", userRole);
                 if (userRole === "admin") {
                     navigate("/admins/list");
                 } else if (userRole === "employ") {
@@ -52,7 +61,8 @@ function Login() {
                 toast.error("Lỗi kết nối tới server");
             }
         }
-    }
+    };
+
     return (
         <>
             <Helmet>

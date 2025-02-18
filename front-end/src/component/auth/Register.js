@@ -9,19 +9,20 @@ import { useAbility } from "../../Can";  // Import CASL
 import { checkAccount, createEmployee } from "../../service/UserService";
 import { toast } from "react-toastify";
 import HeaderAdmin from "./HeaderAdmin";
+import {ability} from "../../ability";
 
 export default function Register() {
     const navigate = useNavigate();
-    const ability = useAbility();  // Lấy quyền từ CASL
+    // const ability = useAbility();  // Lấy quyền từ CASL
     const [roles, setRoles] = useState([]);
 
-    // Nếu không có quyền, chuyển hướng hoặc hiển thị thông báo
-    useEffect(() => {
-        if (!ability.can("create", "employee")) {
-            toast.error("Bạn không có quyền thêm nhân viên!");
-            navigate("/admins/list");  // Quay về trang danh sách
-        }
-    }, [ability, navigate]);
+    // // Nếu không có quyền, chuyển hướng hoặc hiển thị thông báo
+    // useEffect(() => {
+    //     if (!ability.can("create", "employee")) {
+    //         toast.error("Bạn không có quyền thêm nhân viên!");
+    //         navigate("/admins/list");  // Quay về trang danh sách
+    //     }
+    // }, [ability, navigate]);
 
     // Schema Yup để validate form
     const schema = yup.object().shape({
@@ -121,7 +122,8 @@ export default function Register() {
 
                             {/* Nút bấm */}
                             <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
-                                {ability.can("create", "employee") && (
+                                {ability.can("create", "employee") &&
+                                    (
                                     <Button variant="contained" sx={{ backgroundColor: "#E7B45A", color: "#000", "&:hover": { backgroundColor: "#d09e4f" } }} type="submit">
                                         Thêm
                                     </Button>

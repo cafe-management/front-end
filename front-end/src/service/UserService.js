@@ -44,9 +44,11 @@ const login = async (username, password) => {
             username,
             password
         });
-
+        const { role } = response.data;
+        console.log("Role từ API:", role);
         console.log("Kết quả từ API:", response.data);
         localStorage.setItem("username", username);
+        localStorage.setItem("role", role);
         return response.data;
     } catch (error){
         console.error("Lỗi API:", error.response?.data || error.message);

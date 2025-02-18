@@ -6,11 +6,13 @@ export const AbilityContext = createContext();
 
 // Tạo một Context để lưu Ability
 export const AbilityProvider = ({ children }) => {
-    const [currentAbility, setCurrentAbility] = useState(defineAbilitiesFor(localStorage.getItem("role") || ""));
+    const [currentAbility, setCurrentAbility] = useState(() => defineAbilitiesFor(localStorage.getItem("role") || ""));
 
     useEffect(() => {
-        const role = localStorage.getItem("role");  // Lấy role từ localStorage
-        setCurrentAbility(defineAbilitiesFor(role));  // Cập nhật quyền hạn mỗi khi role thay đổi
+        const role = localStorage.getItem("role");
+        if (role) {
+            setCurrentAbility(defineAbilitiesFor(role)); // Cập nhật quyền khi role thay đổi
+        }
     }, []);
 
     return (
