@@ -10,3 +10,5 @@ export const API_URL_FEEDBACK=`${BASE_URL}/feedbacks`;
 export const API_URL_IMAGES=`${BASE_URL}/images`;
 export const API_URL_NOTIFICATIONS=`${BASE_URL}/notifications`;
 export const API_URL_TABLE_COFFEE=`${BASE_URL}/tableCoffee`;
+export const API_URL_NEWS = `${BASE_URL}/news`;
+export const API_URL_NEWS_IMAGES =`${BASE_URL}/news/images`;
