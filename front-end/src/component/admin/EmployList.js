@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import { getAllEmploy } from "../../service/UserService"; // Assuming you've defined this in the UserService file
 import { toast } from "react-toastify";
+import HeaderAdmin from "../auth/HeaderAdmin";
 
 export default function EmployeeList() {
     const navigate = useNavigate();
@@ -40,6 +41,7 @@ export default function EmployeeList() {
             <Helmet>
                 <title>Danh sách nhân viên</title>
             </Helmet>
+            <HeaderAdmin/>
             <Box sx={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "white" }}>
                 <Container maxWidth="lg">
                     <Paper elevation={3} sx={{ padding: 4, borderRadius: 3, backgroundColor: "#fff" }}>

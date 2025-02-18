@@ -7,7 +7,8 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { getAllRoles } from "../../service/RoleService";
 import {checkAccount, createEmployee} from "../../service/UserService";
-import {toast} from "react-toastify"; // Import roleService
+import {toast} from "react-toastify";
+import HeaderAdmin from "./HeaderAdmin"; // Import roleService
 
 export default function Register() {
     const navigate = useNavigate();
@@ -40,7 +41,6 @@ export default function Register() {
         email: yup.string().required("Trường này không được để trống").email("Email không hợp lệ"),
         phone: yup.string().required("Trường này không được để trống").matches(/^\d{10,11}$/, "Số điện thoại phải có 10-11 chữ số"),
         salary: yup.number().typeError("Lương phải là số").required("Trường này không được để trống").moreThan(0, "Lương phải lớn hơn 0"),
-        role: yup.string().required("Trường này không được để trống"),
     });
     // useForm hook
     const { register, handleSubmit,
@@ -83,14 +83,16 @@ export default function Register() {
         const modifiedData = {
             ...data,
             birthDate: data.birthDate ? data.birthDate : "",
-                gender: data.gender === "Nam" ? true : false,
-            role: undefined,
+            gender: data.gender === "Nam" ? true : false,
             phoneNumber: data.phone,
             phone: undefined,
             account: {
-                userName: data.username, // Đặt username vào trong account
-                email: data.email,       // Nếu account cần email, thêm vào đây
-                role: roleObj ? { id: roleObj.id, nameRoles: roleObj.nameRoles } : null,
+                userName: data.username,
+                email: data.email,
+                role: {
+                    id: 1,
+                    nameRoles: "employ",
+                },
             },
         };
         try {
@@ -114,6 +116,7 @@ export default function Register() {
             <Helmet>
                 <title>Thêm mới nhân viên</title>
             </Helmet>
+            <HeaderAdmin/>
             <Box sx={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "white" }}>
                 <Container maxWidth="md"> {/* Tăng kích thước container để tránh cuộn */}
                     <Paper elevation={3} sx={{ padding: 4, borderRadius: 3, backgroundColor: "#fff" }}>
@@ -139,17 +142,13 @@ export default function Register() {
                                                <TextField sx={{ mb: 2 }} label={<RequiredLabel text="Số điện thoại" />} fullWidth {...register("phone")} error={!!errors.phone} helperText={errors.phone?.message} />
                                                <TextField sx={{ mb: 2 }} label="Ngày sinh" type="date" fullWidth {...register("birthDate")} InputLabelProps={{ shrink: true }} />
                                                <TextField sx={{ mb: 2 }} label={<RequiredLabel text="Lương" />} type="number" fullWidth {...register("salary")} error={!!errors.salary} helperText={errors.salary?.message} />
-                                               <TextField sx={{ mb: 2 }} select label={<RequiredLabel text="Vị trí" />} fullWidth {...register("role")} error={!!errors.role} helperText={errors.role?.message}>
-                                                   {roles.length > 0 ? (
-                                                       roles.map((role) => (
-                                                           <MenuItem key={role.id} value={role.nameRoles}>
-                                                               {role.nameRoles}
-                                                           </MenuItem>
-                                                       ))
-                                                   ) : (
-                                                       <MenuItem disabled>Đang tải...</MenuItem>
-                                                   )}
-                                               </TextField>
+                                               <TextField
+                                                   sx={{ mb: 2 }}
+                                                   label={<RequiredLabel text="Vị trí" />}
+                                                   fullWidth
+                                                   value="employ"
+                                                   disabled
+                                               />
                                            </Grid>
                             </Grid>
 

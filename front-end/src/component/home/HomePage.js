@@ -11,9 +11,12 @@ import {
     Button,
     Typography,
     Fab,
-    Grow,
+    Grow, Badge, IconButton,
 } from "@mui/material";
-import { Facebook, Phone } from "@mui/icons-material";
+import {ChevronLeft, ChevronRight, Facebook, Phone, ShoppingCart} from "@mui/icons-material";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 import Header from "./Header";
 import Footer from "./Footer";
 import ZaloIcon from "../../styles/img/zalo-icon.png";
@@ -26,6 +29,7 @@ import { getTopProducts } from "../../service/CartItemService";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { getCloudinaryImageUrl } from "../../service/CloudinaryService";
+import CartModal from "../../components/CartModal";
 
 function CoffeeShop() {
     // Lấy tableId từ URL nếu cần dùng
@@ -35,12 +39,14 @@ function CoffeeShop() {
     const [feedbacks, setFeedbacks] = useState([]);
     // Lưu dữ liệu gốc (bao gồm drink và totalQuantity)
     const [topDrinks, setTopDrinks] = useState([]);
-    const [visibleCount, setVisibleCount] = useState(4);
+    const [visibleCount, setVisibleCount] = useState(5);
     // State để kích hoạt hiệu ứng Grow
     const [showTotal, setShowTotal] = useState(false);
-
+    const [showCart, setShowCart] = useState(false);
     const navigate = useNavigate();
-
+    const [cartCount, setCartCount] = useState(0);
+    const [cartItems, setCartItems] = useState([]);
+    const [isCartOpen, setIsCartOpen] = useState(false);
     // Hàm định dạng giá tiền
     const formatPrice = (price) => {
         return new Intl.NumberFormat("vi-VN", {
@@ -52,7 +58,7 @@ function CoffeeShop() {
     // Lấy món bán chạy từ API
     const fetchTopSellingDrinks = async () => {
         try {
-            const data = await getTopProducts(4);
+            const data = await getTopProducts(5);
             setTopDrinks(data);
         } catch (error) {
             toast.error("Lỗi khi tải dữ liệu món bán chạy");
@@ -76,10 +82,75 @@ function CoffeeShop() {
         setShowTotal(true);
     }, []);
 
-    const handleLoadMore = useCallback(() => {
-        setVisibleCount((prev) => prev + 4);
-    }, []);
+    const ArrowButton = ({ direction, onClick }) => {
+        return (
+            <IconButton
+                onClick={onClick}
+                sx={{
+                    position: "absolute",
+                    top: "50%",
+                    [direction === "right" ? "right" : "left"]: 10,
+                    transform: "translateY(-50%)",
+                    zIndex: 10,
+                    backgroundColor: "rgba(0, 0, 0, 0.5)",
+                    "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.7)" },
+                }}
+            >
+                {direction === "right" ? <ChevronRight sx={{ color: "white" }} /> : <ChevronLeft sx={{ color: "white" }} />}
+            </IconButton>
+        );
+    };
+    const adjustQuantity = (itemId, quantityChange) => {
+        setCartItems((prev) => {
+            return prev.map((item) =>
+                item.id === itemId ? { ...item, quantity: item.quantity + quantityChange } : item
+            );
+        });
+    };
 
+    const removeFromCart = (itemId) => {
+        setCartItems((prev) => prev.filter(item => item.id !== itemId));
+    };
+
+    // Tính tổng tiền giỏ hàng
+    const totalCartPrice = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+    // Hiển thị giỏ hàng khi nhấn vào icon
+    const handleOrderNow = (drink) => {
+        setCartCount((prev) => prev + 1);
+        setCartItems((prev) => {
+            const existingItem = prev.find((item) => item.id === drink.id);
+            if (existingItem) {
+                return prev.map((item) =>
+                    item.id === drink.id ? { ...item, quantity: item.quantity + 1 } : item
+                );
+            } else {
+                return [...prev, { ...drink, quantity: 1 }];
+            }
+        });
+
+        toast.success(`${drink.nameDrinks} đã được thêm vào giỏ hàng!`);
+        setShowCart(true);
+    };
+    const settings = {
+        dots: false,
+        infinite: true,
+        speed: 500,
+        slidesToShow: 2,
+        slidesToScroll: 2,
+        autoplay: true,
+        autoplaySpeed: 3000,
+        arrows: false,
+        centerPadding: "20px",
+        responsive: [
+            {
+                breakpoint: 768, // Dưới 768px chỉ hiển thị 1 feedback
+                settings: {
+                    slidesToShow: 1,
+                },
+            },
+        ],
+    };
     return (
         <>
             <Helmet>
@@ -113,7 +184,6 @@ function CoffeeShop() {
                         </Grid>
                     ))}
                 </Grid>
-
                 {/* Phần "Món nổi bật" hiển thị theo dạng lưới */}
                 <Box textAlign="center" mt={4}>
                     <Typography
@@ -132,35 +202,39 @@ function CoffeeShop() {
                     >
                         Món Nổi Bật
                     </Typography>
-                    <Container maxWidth="lg">
+                    <Box sx={{ display: "flex", justifyContent: "flex-end"}}>
+                        <Typography
+                            variant="h5"
+                            sx={{
+                                color: "#E7B45A",
+                                fontWeight: "bold",
+                                cursor: "pointer",
+                                textDecoration: "underline",
+                                fontSize: "1.2rem",
+                                '&:hover': {
+                                    color: "#d19b4a", // Màu khi hover
+                                }
+                            }}
+                            onClick={() => navigate("/menu")}
+                        >
+                            Xem tất cả
+                        </Typography>
+                    </Box>
+                    <Container maxWidth="lg"  sx={{ mt: 2 }}>
                         {topDrinks.length > 0 ? (
                             <>
-                                <Grid container spacing={2}>
+                                <Slider
+                                    {...settings}
+                                    nextArrow={<ArrowButton direction="right" />}
+                                    prevArrow={<ArrowButton direction="left" />}
+                                >
                                     {topDrinks.slice(0, visibleCount).map((item) => {
                                         const { drink, totalQuantity } = item;
                                         return (
-                                            <Grid item key={drink.id} xs={6} sm={6} md={4} lg={3}>
+                                            <div key={drink.id}>
                                                 <Card>
                                                     <CardContent sx={{ p: 2, position: "relative" }}>
                                                         <Box sx={{ position: "relative" }}>
-                                                            {/* Hiển thị totalQuantity với hiệu ứng Grow */}
-                                                            <Box
-                                                                sx={{
-                                                                    position: "absolute",
-                                                                    top: 8,
-                                                                    right: 8,
-                                                                    backgroundColor: "rgba(255,255,255,0.8)",
-                                                                    px: 1,
-                                                                    py: 0.5,
-                                                                    borderRadius: 1,
-                                                                }}
-                                                            >
-                                                                <Grow in={showTotal} timeout={500}>
-                                                                    <Typography variant="h6" color="primary" sx={{ fontWeight: "bold" }}>
-                                                                        {totalQuantity}
-                                                                    </Typography>
-                                                                </Grow>
-                                                            </Box>
                                                             <img
                                                                 src={getCloudinaryImageUrl(drink.imgDrinks, {
                                                                     width: 300,
@@ -189,19 +263,28 @@ function CoffeeShop() {
                                                         <Typography variant="h6" sx={{ fontSize: { xs: "0.8rem", sm: "0.9rem" } }}>
                                                             {formatPrice(drink.price)}
                                                         </Typography>
+                                                        <Button
+                                                            variant="contained"
+                                                            color="primary"
+                                                            sx={{
+                                                                mt: 1,
+                                                                width: "auto",
+                                                                bgcolor: "#E7B45A",
+                                                                "&:hover": { bgcolor: "#d19b4a" },
+                                                                marginLeft: "auto",
+                                                                marginRight: "auto",
+                                                                display: "block",
+                                                            }}
+                                                            onClick={() => handleOrderNow(drink)}
+                                                        >
+                                                            Đặt ngay
+                                                        </Button>
                                                     </CardContent>
                                                 </Card>
-                                            </Grid>
+                                            </div>
                                         );
                                     })}
-                                </Grid>
-                                {visibleCount < topDrinks.length && (
-                                    <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
-                                        <Button variant="contained" onClick={handleLoadMore}>
-                                            Xem thêm
-                                        </Button>
-                                    </Box>
-                                )}
+                                </Slider>
                             </>
                         ) : (
                             <Typography variant="h6" color="textSecondary" align="center" sx={{ mt: 4 }}>
@@ -210,6 +293,7 @@ function CoffeeShop() {
                         )}
                     </Container>
                 </Box>
+
 
                 {/* Phần phản hồi khách hàng */}
                 <Paper elevation={3} sx={{ backgroundColor: "#333", color: "white", p: 4, mt: 4, borderRadius: 2 }}>
@@ -229,9 +313,9 @@ function CoffeeShop() {
                     >
                         Khách Hàng Nói Gì
                     </Typography>
-                    <Grid container spacing={2} justifyContent="center">
-                        {feedbacks.slice(0, 2).map((fb, i) => (
-                            <Grid item xs={12} sm={5} key={i}>
+                    <Slider {...settings}>
+                        {feedbacks.map((fb, i) => (
+                            <div key={i} style={{ padding: '0 10px' }}> {/* Thêm padding vào wrapper ở đây */}
                                 <Paper
                                     elevation={2}
                                     sx={{
@@ -240,6 +324,7 @@ function CoffeeShop() {
                                         borderRadius: 2,
                                         backgroundColor: "white",
                                         color: "black",
+                                        margin: "0 10px",  // Thêm margin vào Paper để tạo khoảng cách
                                     }}
                                 >
                                     <Typography variant="body1" fontStyle="italic">
@@ -249,11 +334,33 @@ function CoffeeShop() {
                                         {fb.customer?.nameCustomer || "Khách hàng ẩn danh"}
                                     </Typography>
                                 </Paper>
-                            </Grid>
+                            </div>
                         ))}
-                    </Grid>
+                    </Slider>
                 </Paper>
-
+                {showCart && cartCount > 0 && (
+                <Box sx={{ position: "fixed", bottom: 16, right: 16, zIndex: 1200 }}>
+                    <Fab
+                        sx={{ bgcolor: "#E7B45A", "&:hover": { bgcolor: "#d19b4a" } }}
+                        onClick={() => setIsCartOpen(true)}
+                    >
+                        <Badge badgeContent={cartCount} color="error">
+                            <ShoppingCart />
+                        </Badge>
+                    </Fab>
+                </Box>
+                )}
+                {/* CartModal component */}
+                <CartModal
+                    open={isCartOpen}
+                    handleClose={() => setIsCartOpen(false)}
+                    cartItems={cartItems}
+                    adjustQuantity={adjustQuantity}
+                    removeFromCart={removeFromCart}
+                    formatPrice={formatPrice}
+                    totalCartPrice={totalCartPrice}
+                    handlePayment={() => toast.success("Đặt món thành công!")}
+                />
                 {/* Các FAB liên hệ */}
                 <Box
                     sx={{

@@ -83,7 +83,7 @@ const updateEmployee = async (id, employee) => {
 }
 const changePassword = async (userId, oldPassword, newPassword) => {
     try {
-        const response = await axios.put(`${BASE_URL}/${userId}/change-password`, {
+        const response = await axios.put(`${BASE_URL}/change-password`, {
             oldPassword,
             newPassword
         });

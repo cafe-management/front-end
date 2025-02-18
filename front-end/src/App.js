@@ -1,12 +1,7 @@
 
 import './App.css';
 
-import CoffeeShop from "./component/home/HomePage";
 import {BrowserRouter, Route, Routes} from "react-router-dom";
-import MenuComponent from "./component/menu/MenuComponent";
-import Introduction from "./component/home/Introduction";
-import AboutUs from "./component/home/Introduction";
-import News from "./component/home/News";
 import TableQRCodeList from "./components/TableQRCodeList";
 import EmployeeDashboard from "./components/EmployeeDashboard";
 import FeedBackManagement from "./components/FeedBackManagement";
@@ -21,6 +16,7 @@ import {ToastContainer} from "react-toastify";
 import AccountInfo from "./component/auth/Information";
 import ChangePassword from "./component/auth/ChangePassword";
 import {HelmetProvider} from "react-helmet-async";
+import MenuComponent from "./components/MenuComponent";
 
 function App() {
     return (
