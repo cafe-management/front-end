@@ -11,11 +11,9 @@ import {
     Button,
     Typography,
     Fab,
-    Grow,
-    IconButton,
+    Chip,
 } from "@mui/material";
 import { Facebook, Phone } from "@mui/icons-material";
-import AddIcon from "@mui/icons-material/Add";
 import Header from "./Header";
 import Footer from "./Footer";
 import ZaloIcon from "../../styles/img/zalo-icon.png";
@@ -74,11 +72,7 @@ function CoffeeShop() {
         }).format(price);
     };
 
-    // Giả lập hàm thêm vào giỏ hàng
-    const handleAddToCart = (drink) => {
-        toast.success(`${drink.nameDrinks} đã được thêm vào giỏ hàng!`);
-    };
-
+    // Hàm load thêm món nổi bật
     const handleLoadMore = useCallback(() => {
         setVisibleCount((prev) => prev + 4);
     }, []);
@@ -156,6 +150,19 @@ function CoffeeShop() {
                                                 <Card>
                                                     <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
                                                         <Box sx={{ position: "relative" }}>
+                                                            {/* Hiển thị nhãn "Best Seller" luôn luôn */}
+                                                            <Chip
+                                                                label="Best Seller"
+                                                                color="secondary"
+                                                                sx={{
+                                                                    position: "absolute",
+                                                                    top: 8,
+                                                                    left: 8,
+                                                                    zIndex: 1,
+                                                                    fontWeight: "bold",
+                                                                    transform: "rotate(-10deg)",
+                                                                }}
+                                                            />
                                                             {/* Ảnh sản phẩm */}
                                                             <img
                                                                 src={getCloudinaryImageUrl(drink.imgDrinks, {
@@ -171,24 +178,9 @@ function CoffeeShop() {
                                                                     borderRadius: "4px",
                                                                 }}
                                                             />
-                                                            {/* Nút dấu + ở góc trên bên phải */}
-                                                            <IconButton
-                                                                color="primary"
-                                                                aria-label="Thêm vào giỏ hàng"
-                                                                sx={{
-                                                                    position: "absolute",
-                                                                    top: 8,
-                                                                    right: 8,
-                                                                    backgroundColor: "rgba(255,255,255,0.8)",
-                                                                    "&:hover": { backgroundColor: "rgba(255,255,255,1)" },
-                                                                }}
-                                                                onClick={() => handleAddToCart(drink)}
-                                                            >
-                                                                <AddIcon />
-                                                            </IconButton>
                                                         </Box>
 
-                                                        {/* Tên món và giá giống Menu */}
+                                                        {/* Tên món và giá */}
                                                         <Typography
                                                             variant="h6"
                                                             sx={{
@@ -214,7 +206,6 @@ function CoffeeShop() {
 
                                 {/* Nút Xem thêm và Xem tất cả */}
                                 <Box sx={{ display: "flex", justifyContent: "center", gap: 2, my: 2 }}>
-                                    {/* Chỉ hiển thị "Xem thêm" nếu còn món */}
                                     {visibleCount < topDrinks.length && (
                                         <Button variant="contained" onClick={handleLoadMore}>
                                             Xem thêm
