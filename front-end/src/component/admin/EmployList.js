@@ -1,8 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, Container, Paper, Typography,Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination } from "@mui/material";
+import {
+    Box,
+    Button,
+    Container,
+    Paper,
+    Typography,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    TablePagination,
+    TextField
+} from "@mui/material";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
-import { getAllEmploy } from "../../service/UserService"; // Assuming you've defined this in the UserService file
+import { getAllEmploy } from "../../service/UserService"; // Ensure this imports the updated function
 import { toast } from "react-toastify";
 import HeaderAdmin from "../auth/HeaderAdmin";
 
@@ -11,38 +25,42 @@ export default function EmployeeList() {
     const [employees, setEmployees] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
-    // Fetch employee data when the component mounts
+    const [totalCount, setTotalCount] = useState(0); // To track the total number of records
+
+    // Fetch employee data based on filter, page, and rowsPerPage
     useEffect(() => {
         const fetchEmployees = async () => {
             try {
-                const data = await getAllEmploy();
-                setEmployees(data); // Set the employee data from API
+                const data = await getAllEmploy(page, rowsPerPage);
+                setEmployees(data.content); // Assuming the response has a 'content' field for employees
+                setTotalCount(data.totalElements); // Assuming the response has a 'totalElements' field for total count
             } catch (error) {
                 console.error("Lỗi khi lấy danh sách nhân viên:", error);
                 toast.error("Không thể tải danh sách nhân viên!");
             }
         };
         fetchEmployees();
-    }, []);
+    }, [page, rowsPerPage]); // Re-run fetch on these dependencies
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
 
     const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
+        setRowsPerPage(parseInt(event.target.value, 5));
         setPage(0);
     };
+
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
     };
+
     return (
         <>
             <Helmet>
                 <title>Danh sách nhân viên</title>
             </Helmet>
-            <HeaderAdmin/>
-            <Box sx={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "white" }}>
+            <HeaderAdmin />
                 <Container maxWidth="lg">
                     <Paper elevation={3} sx={{ padding: 4, borderRadius: 3, backgroundColor: "#fff" }}>
                         <Typography variant="h5" align="center" gutterBottom sx={{ color: "#000", fontWeight: "bold" }}>
@@ -63,16 +81,15 @@ export default function EmployeeList() {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {employees.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((employee) => (
+                                    {(Array.isArray(employees) ? employees : []).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((employee) => (
                                         <TableRow key={employee.id}>
                                             <TableCell align="center">{employee.id}</TableCell>
                                             <TableCell align="center">{employee.fullName}</TableCell>
-                                            <TableCell align="center">{employee.account ? employee.account.userName : 'N/A'}</TableCell> {/* Check if account exists */}
+                                            <TableCell align="center">{employee.account?.userName || 'N/A'}</TableCell>
                                             <TableCell align="center">{employee.email}</TableCell>
-                                            <TableCell align="center">{employee.phoneNumber}</TableCell> {/* Use phoneNumber directly */}
-                                            <TableCell align="center">{employee.salary? formatCurrency(employee.salary): "N/A"}</TableCell>
+                                            <TableCell align="center">{employee.phoneNumber}</TableCell>
+                                            <TableCell align="center">{employee.salary ? formatCurrency(employee.salary) : "N/A"}</TableCell>
                                             <TableCell align="center">{employee.account?.role?.nameRoles || "N/A"}</TableCell>
-
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -83,7 +100,7 @@ export default function EmployeeList() {
                         <TablePagination
                             rowsPerPageOptions={[5, 10, 25]}
                             component="div"
-                            count={employees.length}
+                            count={totalCount}
                             rowsPerPage={rowsPerPage}
                             page={page}
                             onPageChange={handleChangePage}
@@ -106,7 +123,6 @@ export default function EmployeeList() {
                         </Box>
                     </Paper>
                 </Container>
-            </Box>
         </>
     );
 }

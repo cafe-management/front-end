@@ -1,14 +1,20 @@
 import axios from "axios";
 import {BASE_URL} from "../config/apiConfig";
 
-const getAllEmploy = async () => {
-    try{
-        const result = await axios.get(BASE_URL + "/admins");
-        return result.data;
+const getAllEmploy = async (page, size) => {
+    try {
+        const result = await axios.get(`${BASE_URL}/admins`, {
+            params: {
+                page: page,
+                size: size,
+            }
+        });
+        console.log("Dữ liệu:", result);
+        return result.data.content;
     } catch (error) {
         return [];
     }
-}
+};
 const createEmployee = async (employee) => {
     console.log("Dữ liệu gửi lên backend", employee);
     console.log("Dữ liệu gửi lên backend json", JSON.stringify(employee, null, 2));
