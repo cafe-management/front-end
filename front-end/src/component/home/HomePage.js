@@ -31,7 +31,6 @@ function CoffeeShop() {
     // Lấy tableId từ URL nếu cần dùng
     const [searchParams] = useSearchParams();
     const tableId = searchParams.get("tableId");
-
     const [feedbacks, setFeedbacks] = useState([]);
     // Lưu dữ liệu gốc (bao gồm drink và totalQuantity)
     const [topDrinks, setTopDrinks] = useState([]);
@@ -54,6 +53,7 @@ function CoffeeShop() {
         try {
             const data = await getTopProducts(4);
             setTopDrinks(data);
+            console.log(tableId);
         } catch (error) {
             toast.error("Lỗi khi tải dữ liệu món bán chạy");
         }
@@ -72,7 +72,6 @@ function CoffeeShop() {
     useEffect(() => {
         fetchTopSellingDrinks();
         fetchFeedbacks();
-        // Để đảm bảo hiệu ứng chạy sau khi component mount
         setShowTotal(true);
     }, []);
 
@@ -86,7 +85,7 @@ function CoffeeShop() {
                 <title>DANA COFFEE - Trang Chủ</title>
             </Helmet>
             <Box sx={{ position: "sticky", top: 0, zIndex: 1000, backgroundColor: "white" }}>
-                <Header />
+                <Header tableId={tableId} />
             </Box>
             <Container sx={{ mt: 15, pb: 10 }}>
                 <Box display="flex" justifyContent="center">
@@ -103,7 +102,6 @@ function CoffeeShop() {
                     </Typography>{" "}
                     là lựa chọn lý tưởng để bạn thư giãn, làm việc hay gặp gỡ bạn bè.
                 </Typography>
-                {/* Phần hiển thị ảnh giới thiệu */}
                 <Grid container spacing={2} justifyContent="center">
                     {[coffee1, coffee2, coffee3, coffee4].map((imgSrc, i) => (
                         <Grid item xs={6} sm={3} key={i}>
