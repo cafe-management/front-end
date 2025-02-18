@@ -1,4 +1,3 @@
-// Header.jsx
 import React, { useState } from "react";
 import {
     AppBar,
@@ -17,6 +16,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import logo from "../../styles/img/dana_logo.PNG";
 import { useLocation, useNavigate } from "react-router-dom";
+
 function Header({ tableId }) {
     const [mobileOpen, setMobileOpen] = useState(false);
     const navigate = useNavigate();
@@ -31,19 +31,22 @@ function Header({ tableId }) {
 
     const location = useLocation();
     const breadcrumbs = [];
-    if (location.pathname !== "/home") {
+
+    // Xử lý breadcrumbs
+    if (location.pathname !== `/home?tableId=${tableId}`) {
         breadcrumbs.push(
-            <Link underline="hover" color="inherit" key="home">
+            <Link underline="hover" color="inherit" key="home" onClick={() => navigate(`/home?tableId=${tableId}`)}>
                 Trang chủ
             </Link>
         );
-        if (location.pathname.startsWith("/home/introduction")) {
+
+        if (location.pathname.startsWith(`/home/introduction`)) {
             breadcrumbs.push(
                 <Typography key="introduction" sx={{ color: "text.primary" }}>
                     Giới thiệu
                 </Typography>
             );
-        } else if (location.pathname.startsWith("/home/menu")) {
+        } else if (location.pathname.startsWith(`/menu`)) {
             breadcrumbs.push(
                 <Typography key="menu" sx={{ color: "text.primary" }}>
                     Menu
@@ -57,6 +60,7 @@ function Header({ tableId }) {
             );
         }
     }
+
     const handleNavigateMenu = () => {
         if (tableId) {
             navigate(`/menu?tableId=${tableId}`);
@@ -73,7 +77,8 @@ function Header({ tableId }) {
                         component="img"
                         src={logo}
                         alt="Logo"
-                        sx={{ height: 60, width: "auto" }}
+                        sx={{ height: 60, width: "auto", cursor: "pointer" }}
+                        onClick={() => navigate(`/home?tableId=${tableId}`)}
                     />
                     {/* Menu cho Desktop */}
                     <Box sx={{ display: { xs: "none", lg: "flex" }, gap: 3 }}>
@@ -81,25 +86,17 @@ function Header({ tableId }) {
                             <ListItem
                                 button
                                 sx={{ width: "auto", cursor: "pointer" }}
-                                onClick={() => {
-                                    if (tableId) {
-                                        navigate(`/home?tableId=${tableId}`);
-                                    }
-                                }}
+                                onClick={() => navigate(`/home?tableId=${tableId}`)}
                             >
                                 <ListItemText primary="Trang chủ" sx={{ ...menuTextStyle, textTransform: "uppercase" }} />
                             </ListItem>
-                            <ListItem button sx={{ width: "auto", cursor: "pointer" }} onClick={() => navigate('/home/introduction')}>
+                            <ListItem button sx={{ width: "auto", cursor: "pointer" }} onClick={() => navigate(`/home/introduction?tableId=${tableId}`)}>
                                 <ListItemText primary="Giới thiệu" sx={{ ...menuTextStyle, textTransform: "uppercase" }} />
                             </ListItem>
-                            <ListItem
-                                button
-                                sx={{ width: "auto", cursor: "pointer" }}
-                                onClick={handleNavigateMenu}
-                            >
+                            <ListItem button sx={{ width: "auto", cursor: "pointer" }} onClick={handleNavigateMenu}>
                                 <ListItemText primary="Menu" sx={{ ...menuTextStyle, textTransform: "uppercase" }} />
                             </ListItem>
-                            <ListItem button sx={{ width: "auto", cursor: "pointer" }} onClick={() => navigate('/home/news')}>
+                            <ListItem button sx={{ width: "auto", cursor: "pointer" }} onClick={() => navigate(`/home/news?tableId=${tableId}`)}>
                                 <ListItemText primary="Tin tức" sx={{ ...menuTextStyle, textTransform: "uppercase" }} />
                             </ListItem>
                             <ListItem
@@ -144,16 +141,16 @@ function Header({ tableId }) {
                             <CloseIcon sx={{ color: "#E7B45A" }} />
                         </IconButton>
                         <List>
-                            <ListItem button onClick={() => navigate("/home")}>
+                            <ListItem button onClick={() => navigate(`/home?tableId=${tableId}`)}>
                                 <ListItemText primary="Trang chủ" sx={{ ...menuTextStyle, textTransform: "uppercase" }} />
                             </ListItem>
-                            <ListItem button onClick={() => navigate("/home/introduction")}>
+                            <ListItem button onClick={() => navigate(`/home/introduction?tableId=${tableId}`)}>
                                 <ListItemText primary="Giới thiệu" sx={{ ...menuTextStyle, textTransform: "uppercase" }} />
                             </ListItem>
-                            <ListItem button onClick={handleNavigateMenu}>
+                            <ListItem button onClick={() => navigate(`/menu?tableId=${tableId}`)}>
                                 <ListItemText primary="Menu" sx={{ ...menuTextStyle, textTransform: "uppercase" }} />
                             </ListItem>
-                            <ListItem button onClick={() => navigate("/home/news")}>
+                            <ListItem button onClick={() => navigate(`/home/news?tableId=${tableId}`)}>
                                 <ListItemText primary="Tin tức" sx={{ ...menuTextStyle, textTransform: "uppercase" }} />
                             </ListItem>
                             <ListItem
@@ -174,8 +171,10 @@ function Header({ tableId }) {
                     </Box>
                 </Drawer>
             </AppBar>
+
+            {/* Breadcrumbs */}
             {breadcrumbs.length > 0 && (
-                <Box sx={{ marginTop: "100px", marginBottom: "5px", paddingLeft: "20px" }}>
+                <Box sx={{ marginTop: "80px", marginBottom: "8px", paddingLeft: "20px" }}>
                     <Breadcrumbs aria-label="breadcrumb">
                         {breadcrumbs}
                     </Breadcrumbs>
@@ -191,8 +190,8 @@ const headerStyle = {
     padding: "10px 20px",
     borderBottom: "3px solid #E7B45A",
     boxShadow: "none",
-    width: "100%", // Ensure AppBar spans the full width
-    boxSizing: "border-box", // Prevents any overflow issues
+    width: "100%",
+    boxSizing: "border-box",
 };
 
 const menuTextStyle = {

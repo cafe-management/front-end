@@ -1,6 +1,6 @@
-import React, {useState, useEffect, useCallback, useRef} from "react";
-import {useSearchParams} from "react-router-dom";
-import {updateTableCoffeeStatus, getTableCoffeeById} from "../service/TableCoffeeService";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
+import { updateTableCoffeeStatus, getTableCoffeeById } from "../service/TableCoffeeService";
 import {
     AppBar,
     Box,
@@ -20,15 +20,18 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import RateReviewIcon from "@mui/icons-material/RateReview";
-import {getCategories} from "../service/CategoryService";
-import {getDrinks, getDrinksByCategory} from "../service/DrinkService";
-import {getCloudinaryImageUrl} from "../service/CloudinaryService";
-import {createCartItem} from "../service/CartItemService";
+import { getCategories } from "../service/CategoryService";
+import { getDrinks, getDrinksByCategory } from "../service/DrinkService";
+import { getCloudinaryImageUrl } from "../service/CloudinaryService";
+import { createCartItem } from "../service/CartItemService";
 import CartModal from "./CartModal";
-import {createCart} from "../service/CartService";
-import {createFeedback} from "../service/FeedBackService";
-import {createCustomer} from "../service/CustomerService";
+import { createCart } from "../service/CartService";
+import { createFeedback } from "../service/FeedBackService";
+import { createCustomer } from "../service/CustomerService";
 import FeedbackModal from "./FeedBackModal";
+import PaymentIcon from '@mui/icons-material/Payment';
+import Tooltip from "@mui/material/Tooltip";
+
 
 const MenuComponent = () => {
     const [searchParams] = useSearchParams();
@@ -47,7 +50,7 @@ const MenuComponent = () => {
         message: "",
     });
     const [isLoading, setIsLoading] = useState(false);
-
+    const [orderPlaced, setOrderPlaced] = useState(false);
     // Ref cho phần tử sentinel dùng để trigger load thêm
     const sentinelRef = useRef(null);
 
@@ -70,40 +73,14 @@ const MenuComponent = () => {
         return token;
     }, []);
 
+    // Chỉ lấy thông tin bàn ban đầu, không cập nhật trạng thái ngay lúc load menu
     useEffect(() => {
         if (tableId) {
-            const sessionToken = getSessionToken();
-
             getTableCoffeeById(tableId)
                 .then((data) => {
-                    if (data.statusTable === 0) {
-                        console.log("Thông tin bàn:", data);
-                        updateTableCoffeeStatus(tableId, {statusTable: 1, token: sessionToken})
-                            .then((updatedData) => {
-                                console.log("Cập nhật trạng thái bàn thành công:", updatedData);
-                                setTable(updatedData);
-                            })
-                            .catch((err) => console.error("Lỗi cập nhật trạng thái bàn:", err));
-                    } else {
-                        if (data.token !== sessionToken) {
-                            setSnackbar({
-                                open: true,
-                                message:
-                                    "Bàn này đang được sử dụng. Vui lòng thử bàn khác hoặc chờ đến khi bàn được giải phóng.",
-                            });
-                        } else {
-                            console.log("Bạn đã sở hữu bàn này.");
-                        }
-                    }
+                    console.log("Thông tin bàn:", data);
+                    setTable(data);
                 })
-                .catch((error) => console.error("Lỗi lấy thông tin bàn:", error));
-        }
-    }, [tableId, getSessionToken]);
-
-    useEffect(() => {
-        if (tableId) {
-            getTableCoffeeById(tableId)
-                .then((data) => setTable(data))
                 .catch((error) => console.error("Lỗi lấy thông tin bàn:", error));
         }
     }, [tableId]);
@@ -112,7 +89,7 @@ const MenuComponent = () => {
         const fetchCategories = async () => {
             try {
                 const response = await getCategories();
-                const categoriesWithAll = [{id: "all", nameCategory: "Tất Cả"}, ...response];
+                const categoriesWithAll = [{ id: "all", nameCategory: "Tất Cả" }, ...response];
                 setCategories(categoriesWithAll);
             } catch (error) {
                 console.error("Error fetching categories:", error);
@@ -134,7 +111,7 @@ const MenuComponent = () => {
                 try {
                     if (activeCategory.nameCategory === "Tất Cả") {
                         const allDrinks = await getDrinks();
-                        setDrinks(allDrinks);
+                        setDrinks(shuffleArray(allDrinks));
                     } else {
                         const drinksData = await getDrinksByCategory(activeCategory.id);
                         setDrinks(drinksData);
@@ -192,9 +169,13 @@ const MenuComponent = () => {
         }).format(price);
     };
 
+    const shuffleArray = (array) => {
+        return array.sort(() => Math.random() - 0.5);
+    };
+
     const handleSubmitFeedback = async (feedbackData) => {
         try {
-            const {name, email, phone, content, images} = feedbackData;
+            const { name, email, phone, content, images } = feedbackData;
             const customer = await createCustomer({
                 email,
                 phoneCustomer: phone,
@@ -208,7 +189,7 @@ const MenuComponent = () => {
                 dateFeedback,
                 customer,
                 content,
-                images: images.map((url) => ({img: url})),
+                images: images.map((url) => ({ img: url })),
             };
 
             const newFeedback = await createFeedback(feedbackPayload);
@@ -222,6 +203,7 @@ const MenuComponent = () => {
         }
     };
 
+    // Khi gọi món, nếu bàn chưa được sử dụng (statusTable === 0) thì cập nhật trạng thái thành 1
     const handleOrder = async () => {
         if (table && table.statusTable === 2) {
             setSnackbar({
@@ -230,7 +212,7 @@ const MenuComponent = () => {
             });
             return;
         }
-        if (table && table.token !== getSessionToken()) {
+        if (table && table.token && table.token !== getSessionToken()) {
             setSnackbar({
                 open: true,
                 message: "Bàn này đang được sử dụng. Bạn không thể thanh toán.",
@@ -240,10 +222,23 @@ const MenuComponent = () => {
         }
         if (cartItems.length === 0) return;
 
+        // Cập nhật trạng thái bàn thành 1 nếu bàn chưa được sử dụng
+        if (table && table.statusTable === 0) {
+            try {
+                const sessionToken = getSessionToken();
+                const updatedData = await updateTableCoffeeStatus(tableId, { statusTable: 1, token: sessionToken });
+                console.log("Cập nhật trạng thái bàn thành công:", updatedData);
+                setTable(updatedData);
+            } catch (error) {
+                console.error("Lỗi cập nhật trạng thái bàn:", error);
+                return;
+            }
+        }
+
         const cart = {
-            table: {id: tableId},
+            table: { id: tableId },
             items: cartItems.map((item) => ({
-                drink: {id: item.id},
+                drink: { id: item.id },
                 quantity: item.quantity,
                 totalPrice: item.price * item.quantity,
             })),
@@ -256,6 +251,7 @@ const MenuComponent = () => {
             setCartItems([]);
             setOpenCartModal(false);
             setShowRatingIcon(true);
+            setOrderPlaced(true);
             setSnackbar({
                 open: true,
                 message: "Bạn đã đặt món thành công",
@@ -273,16 +269,15 @@ const MenuComponent = () => {
             });
             return;
         }
-        if (table && (!table.token || table.token !== getSessionToken())) {
+        if (table && table.token && table.token !== getSessionToken()) {
             setSnackbar({
                 open: true,
                 message: "Bàn này đang được sử dụng. Bạn không thể thao tác giỏ hàng.",
             });
-            console.log("Token bàn:", table.token, "Token phiên:", getSessionToken());
             return;
         }
         const cartItem = {
-            drink: {id: drink.id},
+            drink: { id: drink.id },
             quantity: 1,
             price: drink.price,
             name: drink.nameDrinks,
@@ -295,10 +290,10 @@ const MenuComponent = () => {
                 const existing = prev.find((item) => item.id === drink.id);
                 if (existing) {
                     return prev.map((item) =>
-                        item.id === drink.id ? {...item, quantity: item.quantity + 1} : item
+                        item.id === drink.id ? { ...item, quantity: item.quantity + 1 } : item
                     );
                 } else {
-                    return [...prev, {id: drink.id, name: drink.nameDrinks, quantity: 1, price: drink.price}];
+                    return [...prev, { id: drink.id, name: drink.nameDrinks, quantity: 1, price: drink.price }];
                 }
             });
         } catch (error) {
@@ -314,10 +309,11 @@ const MenuComponent = () => {
             });
             return;
         }
-        if (table && table.token !== getSessionToken()) {
+        if (table && table.token && table.token !== getSessionToken()) {
+            // Chỉ từ chối thao tác nếu table.token đã tồn tại và không khớp với token phiên
             setSnackbar({
                 open: true,
-                message: "Bàn này đang được sử dụng. Bạn không thể thay đổi giỏ hàng.",
+                message: "Bàn này đang được sử dụng. Bạn không thể thao tác giỏ hàng.",
             });
             return;
         }
@@ -326,7 +322,7 @@ const MenuComponent = () => {
                 .map((item) => {
                     if (item.id === id) {
                         const newQuantity = item.quantity + delta;
-                        return {...item, quantity: newQuantity};
+                        return { ...item, quantity: newQuantity };
                     }
                     return item;
                 })
@@ -342,10 +338,11 @@ const MenuComponent = () => {
             });
             return;
         }
-        if (table && table.token !== getSessionToken()) {
+        if (table && table.token && table.token !== getSessionToken()) {
+            // Chỉ từ chối thao tác nếu table.token đã tồn tại và không khớp với token phiên
             setSnackbar({
                 open: true,
-                message: "Bàn này đang được sử dụng. Bạn không thể thay đổi giỏ hàng.",
+                message: "Bàn này đang được sử dụng. Bạn không thể thao tác giỏ hàng.",
             });
             return;
         }
@@ -356,9 +353,9 @@ const MenuComponent = () => {
     const totalCartPrice = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
     return (
-        <Box sx={{backgroundColor: "#f3f4f6", minHeight: "100vh", fontFamily: "sans-serif"}}>
-            <AppBar position="static" elevation={3} sx={{backgroundColor: "#fff", color: "#000"}}>
-                <Toolbar sx={{px: {xs: 2, sm: 3}}}>
+        <Box sx={{ backgroundColor: "#f3f4f6", minHeight: "100vh", fontFamily: "sans-serif" }}>
+            <AppBar position="static" elevation={3} sx={{ backgroundColor: "#fff", color: "#000" }}>
+                <Toolbar sx={{ px: { xs: 2, sm: 3 } }}>
                     <Container maxWidth="md">
                         <Typography
                             variant="h4"
@@ -367,7 +364,7 @@ const MenuComponent = () => {
                             sx={{
                                 fontWeight: "bold",
                                 flexGrow: 1,
-                                fontSize: {xs: "1.5rem", sm: "2rem", md: "2.5rem"},
+                                fontSize: { xs: "1.5rem", sm: "2rem", md: "2.5rem" },
                             }}
                         >
                             {table ? `${table.numberTable}` : "Menu"}
@@ -382,11 +379,11 @@ const MenuComponent = () => {
                     position: "sticky",
                     top: 0,
                     zIndex: 50,
-                    mb: {xs: 3, sm: 6},
+                    mb: { xs: 3, sm: 6 },
                     backgroundColor: "#fff",
-                    pt: {xs: 2, sm: 3},
-                    pb: {xs: 2, sm: 3},
-                    px: {xs: 2, sm: 3},
+                    pt: { xs: 2, sm: 3 },
+                    pb: { xs: 2, sm: 3 },
+                    px: { xs: 2, sm: 3 },
                 }}
             >
                 <Container maxWidth="md">
@@ -394,9 +391,9 @@ const MenuComponent = () => {
                         variant="h6"
                         component="h2"
                         sx={{
-                            mb: {xs: 1, sm: 2},
+                            mb: { xs: 1, sm: 2 },
                             fontWeight: 600,
-                            fontSize: {xs: "1.1rem", sm: "1.25rem"},
+                            fontSize: { xs: "1.1rem", sm: "1.25rem" },
                             textAlign: "left",
                         }}
                     >
@@ -404,10 +401,10 @@ const MenuComponent = () => {
                     </Typography>
                     <Stack
                         direction="row"
-                        spacing={{xs: 1, sm: 2}}
+                        spacing={{ xs: 1, sm: 2 }}
                         sx={{
                             overflowX: "auto",
-                            "&::-webkit-scrollbar": {display: "none"},
+                            "&::-webkit-scrollbar": { display: "none" },
                         }}
                     >
                         {categories.map((category, index) => {
@@ -420,9 +417,9 @@ const MenuComponent = () => {
                                         borderRadius: "50px",
                                         textTransform: "none",
                                         whiteSpace: "nowrap",
-                                        px: {xs: 1, sm: 1.5},
-                                        py: {xs: 0.5, sm: 1},
-                                        fontSize: {xs: "0.75rem", sm: "0.875rem"},
+                                        px: { xs: 1, sm: 1.5 },
+                                        py: { xs: 0.5, sm: 1 },
+                                        fontSize: { xs: "0.75rem", sm: "0.875rem" },
                                         backgroundColor: isActive ? "#E7B45A" : "rgba(231,180,90,0.3)",
                                         color: isActive ? "#fff" : "#E7B45A",
                                         boxShadow: "none",
@@ -440,15 +437,15 @@ const MenuComponent = () => {
             </Box>
 
             {activeCategory && (
-                <Container maxWidth="lg" sx={{py: {xs: 2, sm: 6}}}>
+                <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 6 } }}>
                     {drinks.length > 0 ? (
                         <>
                             <Grid container spacing={2}>
                                 {drinks.slice(0, visibleCount).map((drink) => (
                                     <Grid item key={drink.id} xs={6} sm={6} md={4} lg={3}>
                                         <Card>
-                                            <CardContent sx={{p: {xs: 1, sm: 2}}}>
-                                                <Box sx={{position: "relative"}}>
+                                            <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
+                                                <Box sx={{ position: "relative" }}>
                                                     <img
                                                         src={getCloudinaryImageUrl(drink.imgDrinks, {
                                                             width: 300,
@@ -471,25 +468,24 @@ const MenuComponent = () => {
                                                             top: 8,
                                                             right: 8,
                                                             backgroundColor: "rgba(255,255,255,0.8)",
-                                                            "&:hover": {backgroundColor: "rgba(255,255,255,1)"},
+                                                            "&:hover": { backgroundColor: "rgba(255,255,255,1)" },
                                                         }}
                                                         onClick={() => handleAddToCart(drink)}
                                                     >
-                                                        <AddIcon/>
+                                                        <AddIcon />
                                                     </IconButton>
                                                 </Box>
                                                 <Typography
                                                     variant="h6"
                                                     sx={{
                                                         fontWeight: "bold",
-                                                        fontSize: {xs: "0.875rem", sm: "1rem"},
-                                                        mt: 1
+                                                        fontSize: { xs: "0.875rem", sm: "1rem" },
+                                                        mt: 1,
                                                     }}
                                                 >
                                                     {drink.nameDrinks}
                                                 </Typography>
-                                                <Typography variant="h6"
-                                                            sx={{fontSize: {xs: "0.75rem", sm: "0.875rem"}}}>
+                                                <Typography variant="h6" sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}>
                                                     {formatPrice(drink.price)}
                                                 </Typography>
                                             </CardContent>
@@ -498,11 +494,11 @@ const MenuComponent = () => {
                                 ))}
                             </Grid>
                             {visibleCount < drinks.length && (
-                                <Box sx={{display: "flex", justifyContent: "center", my: 2}}>
+                                <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
                                     {isLoading ? (
-                                        <CircularProgress/>
+                                        <CircularProgress />
                                     ) : (
-                                        <div ref={sentinelRef} style={{height: "20px"}}/>
+                                        <div ref={sentinelRef} style={{ height: "20px" }} />
                                     )}
                                 </Box>
                             )}
@@ -526,36 +522,50 @@ const MenuComponent = () => {
                 }}
             >
                 {showRatingIcon && (
-                    <IconButton
-                        onClick={() => {
-                            setOpenFeedbackModal(true);
-                        }}
-                        sx={{
-                            bgcolor: "#1976d2",
-                            color: "#fff",
-                            boxShadow: "0px 2px 4px rgba(0,0,0,0.2)",
-                            "&:hover": {bgcolor: "#115293"},
-                        }}
-                    >
-                        <RateReviewIcon fontSize="large"/>
-                    </IconButton>
+                    <Tooltip title="Đánh giá món ăn">
+                        <IconButton
+                            onClick={() => setOpenFeedbackModal(true)}
+                            sx={{
+                                bgcolor: "#1976d2",
+                                color: "#fff",
+                                boxShadow: "0px 2px 4px rgba(0,0,0,0.2)",
+                                "&:hover": { bgcolor: "#115293" },
+                            }}
+                        >
+                            <RateReviewIcon fontSize="large" />
+                        </IconButton>
+                    </Tooltip>
                 )}
 
-                <IconButton
-                    onClick={() => {
-                        setOpenCartModal(true);
-                    }}
-                    sx={{
-                        bgcolor: "#E7B45A",
-                        color: "white",
-                        boxShadow: "0px 2px 4px rgba(0,0,0,0.2)",
-                        "&:hover": {bgcolor: "#D9A144"},
-                    }}
-                >
-                    <Badge badgeContent={totalCartCount} color="error">
-                        <ShoppingCartIcon fontSize="large"/>
-                    </Badge>
-                </IconButton>
+                <Tooltip title="Xem giỏ hàng">
+                    <IconButton
+                        onClick={() => setOpenCartModal(true)}
+                        sx={{
+                            bgcolor: "#E7B45A",
+                            color: "white",
+                            boxShadow: "0px 2px 4px rgba(0,0,0,0.2)",
+                            "&:hover": { bgcolor: "#D9A144" },
+                        }}
+                    >
+                        <Badge badgeContent={totalCartCount} color="error">
+                            <ShoppingCartIcon fontSize="large" />
+                        </Badge>
+                    </IconButton>
+                </Tooltip>
+                {orderPlaced && (
+                    <Tooltip title="Thanh toán">
+                        <IconButton
+                            sx={{
+                                bgcolor: "#4caf50",
+                                color: "white",
+                                boxShadow: "0px 2px 4px rgba(0,0,0,0.2)",
+                                "&:hover": { bgcolor: "#388e3c" },
+                            }}
+                        >
+                            <PaymentIcon fontSize="large" />
+                        </IconButton>
+                    </Tooltip>
+                )}
             </Box>
 
             <CartModal
@@ -576,9 +586,9 @@ const MenuComponent = () => {
             <Snackbar
                 open={snackbar.open}
                 autoHideDuration={3000}
-                onClose={() => setSnackbar({...snackbar, open: false})}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
                 message={snackbar.message}
-                anchorOrigin={{vertical: "bottom", horizontal: "center"}}
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
             />
         </Box>
     );
