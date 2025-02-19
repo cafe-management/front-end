@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { styled } from "@mui/material/styles";
 import AppBar from "@mui/material/AppBar";
@@ -16,8 +16,12 @@ import MoreIcon from "@mui/icons-material/MoreVert";
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
 import { Howl } from "howler";
-import { getAllNotifications } from "../service/NotificationService";
+import { getAllNotifications, markAllNotificationsAsSeen } from "../service/NotificationService";
 import { API_URL_SOCKET } from "../config/apiConfig";
+
+// Import react-toastify
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Styled component cho các liên kết trên desktop
 const DesktopLinks = styled("div")(({ theme }) => ({
@@ -43,10 +47,15 @@ const EmployeeDashBoard = () => {
     const isMenuOpen = Boolean(anchorEl);
     const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
     const isNotificationMenuOpen = Boolean(notificationAnchorEl);
-    const notificationSound = new Howl({
-        src: ["/notification-alert-269289.mp3"],
-        volume: 0.5,
-    });
+
+    const notificationSound = useMemo(
+        () =>
+            new Howl({
+                src: ["/notification-alert-269289.mp3"],
+                volume: 0.5,
+            }),
+        []
+    );
 
     useEffect(() => {
         const socket = new SockJS(API_URL_SOCKET);
@@ -56,26 +65,31 @@ const EmployeeDashBoard = () => {
                 if (message.body) {
                     const notification = JSON.parse(message.body);
                     console.log("Thông báo nhận được:", notification);
-                    setNotifications((prev) => [notification, ...prev]); // Thêm thông báo mới vào danh sách
-
-                    // Phát âm thanh khi nhận được thông báo mới
+                    // Giả sử thông báo mới nhận chưa được đọc (seen: false)
+                    setNotifications((prev) => [{ ...notification, seen: false }, ...prev]);
                     notificationSound.play();
+                    toast.info("Có thông báo mới!", {
+                        position: "bottom-right",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                    });
                 }
             });
         });
 
         getAllNotifications()
             .then((data) => setNotifications(data))
-            .catch((error) =>
-                console.error("Lỗi khi lấy thông báo:", error)
-            );
+            .catch((error) => console.error("Lỗi khi lấy thông báo:", error));
 
         return () => {
             if (stompClient) {
                 stompClient.disconnect();
             }
         };
-    }, []); // Nếu cần thay đổi cấu hình của âm thanh dựa vào state, bạn có thể thêm dependency
+    }, [notificationSound]);
 
     const handleProfileMenuOpen = (event) => {
         setAnchorEl(event.currentTarget);
@@ -94,12 +108,22 @@ const EmployeeDashBoard = () => {
         setMobileMoreAnchorEl(event.currentTarget);
     };
 
-    const handleNotificationMenuOpen = (event) => {
-        setNotificationAnchorEl(event.currentTarget);
+    // Khi tắt menu thông báo, gọi API đánh dấu đã xem và cập nhật trạng thái trong state
+    const handleNotificationMenuClose = async () => {
+        setNotificationAnchorEl(null);
+        try {
+            await markAllNotificationsAsSeen();
+            // Cập nhật trạng thái "seen" cho tất cả các thông báo
+            setNotifications((prev) =>
+                prev.map((notif) => ({ ...notif, seen: true }))
+            );
+        } catch (error) {
+            console.error("Error marking notifications as seen:", error);
+        }
     };
 
-    const handleNotificationMenuClose = () => {
-        setNotificationAnchorEl(null);
+    const handleNotificationMenuOpen = (event) => {
+        setNotificationAnchorEl(event.currentTarget);
     };
 
     const menuId = "primary-search-account-menu";
@@ -131,7 +155,8 @@ const EmployeeDashBoard = () => {
         >
             <MenuItem onClick={handleNotificationMenuOpen}>
                 <IconButton size="large" color="inherit">
-                    <Badge badgeContent={notifications.length} color="error">
+                    {/* Chỉ tính các thông báo chưa đọc */}
+                    <Badge badgeContent={notifications.filter((n) => !n.seen).length} color="error">
                         <NotificationsIcon />
                     </Badge>
                 </IconButton>
@@ -181,7 +206,12 @@ const EmployeeDashBoard = () => {
                 </MenuItem>
             ) : (
                 notifications.map((notif, index) => (
-                    <MenuItem key={index} onClick={handleNotificationMenuClose}>
+                    <MenuItem
+                        key={index}
+                        onClick={handleNotificationMenuClose}
+                        // Nếu đã đọc thì hiển thị màu xám, ngược lại màu mặc định
+                        style={{ color: notif.seen ? "gray" : "inherit" }}
+                    >
                         {notif.content} -{" "}
                         {new Date(notif.dateNote).toLocaleString("vi-VN")}
                     </MenuItem>
@@ -223,7 +253,7 @@ const EmployeeDashBoard = () => {
                             color="inherit"
                             onClick={handleNotificationMenuOpen}
                         >
-                            <Badge badgeContent={notifications.length} color="error">
+                            <Badge badgeContent={notifications.filter((n) => !n.seen).length} color="error">
                                 <NotificationsIcon />
                             </Badge>
                         </IconButton>
@@ -257,6 +287,7 @@ const EmployeeDashBoard = () => {
             {renderMobileMenu}
             {renderProfileMenu}
             {renderNotificationMenu}
+            <ToastContainer />
         </Box>
     );
 };

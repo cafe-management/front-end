@@ -46,5 +46,14 @@ const deleteNotification = async (id)=>{
         return null;
     }
 }
+const markAllNotificationsAsSeen = async () => {
+    try {
+        const response = await axios.put(`${API_URl}/mark-all-seen`);
+        return response.data;
+    } catch (error) {
+        console.error("Error marking notifications as seen:", error.message);
+        return null;
+    }
+};
 
-export { getAllNotifications, getNotificationById, createNotification, deleteNotification };
+export { getAllNotifications, getNotificationById, createNotification, deleteNotification ,markAllNotificationsAsSeen};
