@@ -1,5 +1,5 @@
 import axios from "axios";
-import {API_URL, BASE_URL} from "../config/apiConfig";
+import {API_URL} from "../config/apiConfig";
 
 const getAllEmploy = async () => {
     try{

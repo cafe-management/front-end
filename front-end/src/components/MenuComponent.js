@@ -31,6 +31,8 @@ import { createCustomer } from "../service/CustomerService";
 import FeedbackModal from "./FeedBackModal";
 import PaymentIcon from '@mui/icons-material/Payment';
 import Tooltip from "@mui/material/Tooltip";
+import { Client } from '@stomp/stompjs';
+import SockJS from "sockjs-client";
 
 
 const MenuComponent = () => {
@@ -53,6 +55,8 @@ const MenuComponent = () => {
     const [orderPlaced, setOrderPlaced] = useState(false);
     // Ref cho phần tử sentinel dùng để trigger load thêm
     const sentinelRef = useRef(null);
+    const stompClientRef = useRef(null);
+
 
     const generateCodeFeedback = () => {
         return "FB-" + Math.random().toString(36).substr(2, 9).toUpperCase();
@@ -70,6 +74,29 @@ const MenuComponent = () => {
         }
         console.log("Session Token:", token);
         return token;
+    }, []);
+
+    // UseEffect để cho gửi thông báo
+    useEffect(() => {
+        stompClientRef.current = new Client({
+            webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+            reconnectDelay: 5000,
+            onConnect: () => {
+                console.log("Connected to WebSocket");
+            },
+            onStompError: (frame) => {
+                console.error("Broker reported error: " + frame.headers['message']);
+                console.error("Additional details: " + frame.body);
+            },
+        });
+
+        stompClientRef.current.activate();
+
+        return () => {
+            if (stompClientRef.current) {
+                stompClientRef.current.deactivate();
+            }
+        };
     }, []);
 
     // Chỉ lấy thông tin bàn ban đầu, không cập nhật trạng thái ngay lúc load menu
@@ -122,6 +149,25 @@ const MenuComponent = () => {
         };
         fetchDrinks();
     }, [activeCategory]);
+
+    const handlePaymentNotification = () => {
+        if (stompClientRef.current && stompClientRef.current.connected) {
+            const payload = `Bàn ${tableId} muốn tính tiền`; // Send the message directly as a string
+            stompClientRef.current.publish({
+                destination: "/app/paymentNotification",
+                body: JSON.stringify(payload),
+            });
+            setSnackbar({
+                open: true,
+                message: "Thông báo thanh toán đã được gửi đến nhân viên.",
+            });
+        } else {
+            setSnackbar({
+                open: true,
+                message: "Kết nối WebSocket không khả dụng.",
+            });
+        }
+    };
 
     // Hàm load thêm dữ liệu, hiển thị spinner trong quá trình load
     const handleLoadMore = useCallback(() => {
@@ -552,6 +598,7 @@ const MenuComponent = () => {
                 {orderPlaced && (
                     <Tooltip title="Thanh toán">
                         <IconButton
+                            onClick={handlePaymentNotification} // Gọi hàm gửi thông báo qua WebSocket
                             sx={{
                                 bgcolor: "#4caf50",
                                 color: "white",

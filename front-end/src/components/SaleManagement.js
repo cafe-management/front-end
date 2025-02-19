@@ -182,10 +182,13 @@ const SaleManagement = () => {
             setCarts([]);
         } catch (err) {
             console.error("Error processing payment", err);
-            toast.error("Lỗi khi tạo hóa đơn hoặc gán hóa đơn cho cart");
         }
     };
 
+    const formatter = new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+    });
     return (
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             <Typography variant="h4" gutterBottom align="center">
@@ -308,9 +311,9 @@ const SaleManagement = () => {
                                                     {cart.items.map((item) => (
                                                         <TableRow key={item.id}>
                                                             <TableCell>{item.drink.nameDrinks}</TableCell>
-                                                            <TableCell>{item.drink.price}</TableCell>
+                                                            <TableCell>{formatter.format(item.drink.price)}</TableCell>
                                                             <TableCell>{item.quantity}</TableCell>
-                                                            <TableCell>{item.totalPrice}</TableCell>
+                                                            <TableCell>{formatter.format(item.totalPrice)}</TableCell>
                                                             <TableCell>{cart.table.numberTable}</TableCell>
                                                         </TableRow>
                                                     ))}

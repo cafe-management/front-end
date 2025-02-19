@@ -49,7 +49,8 @@ const EmployeeDashBoard = () => {
             stompClient.subscribe("/topic/notifications", (message) => {
                 if (message.body) {
                     const notification = JSON.parse(message.body);
-                    setNotifications((prev) => [notification, ...prev]);
+                    console.log("Thông báo nhận được:", notification);
+                    setNotifications((prev) => [notification, ...prev]); // Thêm thông báo mới vào danh sách
                 }
             });
         });
