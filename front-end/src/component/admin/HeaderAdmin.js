@@ -3,7 +3,6 @@ import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
 import {useAbility} from "../../Can";
 import {defineAbilitiesFor} from "../../ability";
-
 function EmployeeManagementHeader() {
     const navigate = useNavigate();
     const location = useLocation(); // Lấy thông tin location hiện tại
@@ -15,22 +14,17 @@ function EmployeeManagementHeader() {
             setCurrentAbility(defineAbilitiesFor(null));
             navigate("/login");
     };
-
     const handleGoToEmployeeList = () => {
         navigate("/admins/list"); // Điều hướng đến trang EmployeeList
     };
-
     const handleGoToAddEmployee = () => {
-        navigate("/admins/register"); // Điều hướng đến trang Thêm Nhân Viên
+        navigate("/admins/register");
     };
     const handleGoToListNew = () => {
         navigate("/news");
     };
-
-    // Kiểm tra trang hiện tại
     const isEmployeeListActive = location.pathname === "/admins/list";
-    const isAddEmployeeActive = location.pathname === "/admins/register"; 
-
+    const isAddEmployeeActive = location.pathname === "/admins/register";
     return (
         <AppBar  position="fixed" sx={{ backgroundColor: "#333",width: "100%", boxShadow: "none" }}>
             <Toolbar sx={{ display: "flex", justifyContent: "flex-end", width: "100%", maxWidth: "1200px", margin: "0 auto" }}>
@@ -109,5 +103,4 @@ function EmployeeManagementHeader() {
         </AppBar>
     );
 }
-
 export default EmployeeManagementHeader;
