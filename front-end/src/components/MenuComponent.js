@@ -235,6 +235,7 @@ const MenuComponent = () => {
                 dateFeedback,
                 customer,
                 content,
+                tableId: table ? table.id : null,
                 images: images.map((url) => ({ img: url })),
             };
 
