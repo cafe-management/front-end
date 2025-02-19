@@ -1,4 +1,4 @@
-    import React, { useState } from "react";
+import React, { useState } from "react";
 import {
     AppBar,
     Toolbar,
@@ -9,55 +9,28 @@ import {
     ListItemText,
     Typography,
     Box,
-    Link,
-    Breadcrumbs,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import logo from "../../styles/img/dana_logo.PNG";
 import { useLocation, useNavigate } from "react-router-dom";
 
-function Header({ tableId }) {
+function Header() {
     const [mobileOpen, setMobileOpen] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+    // Get tableId from the URL's query parameters
+    const queryParams = new URLSearchParams(location.search);
+    const tableId = queryParams.get("tableId");
 
     const toggleMobileMenu = () => {
         setMobileOpen((prev) => !prev);
     };
+
     const handleDrawerClose = () => {
         setMobileOpen(false);
     };
-    const location = useLocation();
-    const breadcrumbs = [];
 
-    // Xử lý breadcrumbs
-    if (location.pathname !== `/home?tableId=${tableId}`) {
-        breadcrumbs.push(
-            <Link underline="hover" color="inherit" key="home" onClick={() => navigate(`/home?tableId=${tableId}`)}>
-                Trang chủ
-            </Link>
-        );
-
-        if (location.pathname.startsWith(`/home/introduction`)) {
-            breadcrumbs.push(
-                <Typography key="introduction" sx={{ color: "text.primary" }}>
-                    Giới thiệu
-                </Typography>
-            );
-        } else if (location.pathname.startsWith(`/menu`)) {
-            breadcrumbs.push(
-                <Typography key="menu" sx={{ color: "text.primary" }}>
-                    Menu
-                </Typography>
-            );
-        } else if (location.pathname.startsWith("/news")) {
-            breadcrumbs.push(
-                <Typography key="news" sx={{ color: "text.primary" }}>
-                    Tin tức
-                </Typography>
-            );
-        }
-    }
     const handleNavigateMenu = () => {
         if (tableId) {
             navigate(`/menu?tableId=${tableId}`);
@@ -65,6 +38,7 @@ function Header({ tableId }) {
             navigate("/menu");
         }
     };
+
     return (
         <>
             <AppBar position="fixed" sx={headerStyle}>
@@ -76,14 +50,10 @@ function Header({ tableId }) {
                         sx={{ height: 60, width: "auto", cursor: "pointer" }}
                         onClick={() => navigate(`/home?tableId=${tableId}`)}
                     />
-                    {/* Menu cho Desktop */}
+                    {/* Menu for Desktop */}
                     <Box sx={{ display: { xs: "none", lg: "flex" }, gap: 3 }}>
                         <List sx={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 3, padding: 0 }}>
-                            <ListItem
-                                button
-                                sx={{ width: "auto", cursor: "pointer" }}
-                                onClick={() => navigate(`/home?tableId=${tableId}`)}
-                            >
+                            <ListItem button sx={{ width: "auto", cursor: "pointer" }} onClick={() => navigate(`/home?tableId=${tableId}`)}>
                                 <ListItemText primary="Trang chủ" sx={{ ...menuTextStyle, textTransform: "uppercase" }} />
                             </ListItem>
                             <ListItem button sx={{ width: "auto", cursor: "pointer" }} onClick={() => navigate(`/home/introduction?tableId=${tableId}`)}>
@@ -167,15 +137,6 @@ function Header({ tableId }) {
                     </Box>
                 </Drawer>
             </AppBar>
-
-            {/* Breadcrumbs */}
-            {breadcrumbs.length > 0 && (
-                <Box sx={{ marginTop: "80px", marginBottom: "8px", paddingLeft: "20px" }}>
-                    <Breadcrumbs aria-label="breadcrumb">
-                        {breadcrumbs}
-                    </Breadcrumbs>
-                </Box>
-            )}
         </>
     );
 }
