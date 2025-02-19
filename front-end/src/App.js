@@ -43,8 +43,8 @@ function App() {
                     <Route path="/manager/feedback" element={<DashBoardFeedback/>} />
                     <Route path="/manager/sale" element={<DashBoardSale/>}/>
                     <Route path="login" element={<Login/>}></Route>
-                    <Route path="admins/register" element={<Register/>}></Route>
-                    <Route path="admins/list" element={<EmployList/>}></Route>
+                    <Route path="admin/register" element={<Register/>}></Route>
+                    <Route path="admin/list" element={<EmployList/>}></Route>
                     <Route path="home" element={<CoffeeShop/>}></Route>
                     <Route path="/home/introduction" element={<AboutUs />} />
                     <Route path="/information" element={<AccountInfo />} />

@@ -15,16 +15,17 @@ function EmployeeManagementHeader() {
             navigate("/login");
     };
     const handleGoToEmployeeList = () => {
-        navigate("/admins/list"); // Điều hướng đến trang EmployeeList
+        navigate("/admin/list"); // Điều hướng đến trang EmployeeList
     };
     const handleGoToAddEmployee = () => {
-        navigate("/admins/register");
+        navigate("/admin/register");
     };
     const handleGoToListNew = () => {
         navigate("/news");
     };
-    const isEmployeeListActive = location.pathname === "/admins/list";
-    const isAddEmployeeActive = location.pathname === "/admins/register";
+    const isEmployeeListActive = location.pathname === "/admin/list";
+    const isAddEmployeeActive = location.pathname === "/admin/register";
+    const isNewsListActive = location.pathname === "/news";
     return (
         <AppBar  position="fixed" sx={{ backgroundColor: "#333",width: "100%", boxShadow: "none" }}>
             <Toolbar sx={{ display: "flex", justifyContent: "flex-end", width: "100%", maxWidth: "1200px", margin: "0 auto" }}>
@@ -71,9 +72,9 @@ function EmployeeManagementHeader() {
                         sx={{
                             fontWeight: "bold",
                             padding: "8px 16px",
-                            backgroundColor: isAddEmployeeActive ? "#E7B45A" : "transparent",
-                            color: isAddEmployeeActive ? "#fff" : "white",
-                            boxShadow: isAddEmployeeActive ? "0px 4px 10px rgba(231, 180, 90, 0.6)" : "none",
+                            backgroundColor: isNewsListActive ? "#E7B45A" : "transparent",
+                            color: isNewsListActive ? "#fff" : "white",
+                            boxShadow: isNewsListActive ? "0px 4px 10px rgba(231, 180, 90, 0.6)" : "none",
                             "&:hover": {
                                 backgroundColor: "#E7B45A",
                                 color: "#fff",

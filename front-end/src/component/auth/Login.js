@@ -31,17 +31,22 @@ function Login() {
     }, [setCurrentAbility]);
 
     const onSubmit = async (data) => {
+
         try {
             const result = await login(data.username, data.password);
+            console.log(result)
             if (result.success) {
                 toast.success("Đăng nhập thành công");
-                const userRole = result.role;
-                setCurrentAbility(defineAbilitiesFor(userRole));
-                localStorage.setItem("role", userRole);
-                console.log("role:", userRole);
-                if (userRole === "admin") {
-                    navigate("/admins/list");
-                } else if (userRole === "employ") {
+                const { token, role, username } = result;
+                localStorage.setItem("token", token);      // Lưu JWT token
+                localStorage.setItem("role", role);         // Lưu role của người dùng
+                localStorage.setItem("username", username);
+                setCurrentAbility(defineAbilitiesFor(role));
+                localStorage.setItem("role", role);
+                console.log("role:", role);
+                if (role === "admin") {
+                    navigate("/admin/list");
+                } else if (role === "employ") {
                     navigate("/information");
                 } else {
                     toast.error("Role không hợp lệ");

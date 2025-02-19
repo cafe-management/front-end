@@ -3,32 +3,28 @@ import { Box, Button, Container, Paper, TextField, Typography, Grid } from "@mui
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import {getUserInfo, updateEmployee} from "../../service/UserService";
-import {toast} from "react-toastify"; // Giả sử bạn có hàm lấy thông tin người dùng
+import {toast} from "react-toastify";
 
-const themeColor = "#E7B45A"; // Màu chủ đạo
+const themeColor = "#E7B45A";
 
 export default function AccountInfo() {
     const navigate = useNavigate();
-    const [userInfo, setUserInfo] = useState(null); // Khởi tạo userInfo là null
-    const [isEditing, setIsEditing] = useState(false); // Trạng thái cho phép chỉnh sửa
+    const [userInfo, setUserInfo] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
     const [editedInfo, setEditedInfo] = useState({
         phoneNumber: "",
         address: "",
     });
-
-    // Gọi API lấy thông tin người dùng khi component mount
     useEffect(() => {
         const fetchUserInfo = async () => {
-            const username = localStorage.getItem("username"); // Lấy username từ localStorage hoặc context
-            console.log("Username đang được gửi:", username);  // Kiểm tra giá trị username
-            const user = await getUserInfo(username);
+            const username = localStorage.getItem("username");
+            const user = await getUserInfo();
             if (user) {
-                setUserInfo(user);  // Cập nhật thông tin người dùng
+                setUserInfo(user);
                 setEditedInfo({
                     phoneNumber: user.phoneNumber,
                     address: user.address,
                 });
-                console.log("Thông tin người dùng:", user);
             } else {
                 console.log("Không tìm thấy thông tin người dùng.");
             }
@@ -65,7 +61,7 @@ export default function AccountInfo() {
         }
     };
     const handleBack = () => {
-        navigate(-1);
+        navigate("/manager/sale");
     };
     const handleChangePassword = () => {
         navigate("/change_password");
@@ -101,7 +97,10 @@ export default function AccountInfo() {
                                         fullWidth
                                         value={userInfo.fullName || ""}
                                         InputProps={{ readOnly: true }}
-                                        sx={{ marginBottom: 2 }}
+                                        sx={{
+                                            marginBottom: 2,
+                                            backgroundColor: isEditing ? "#f0f0f0" : "white"
+                                        }}
                                     />
                                     <TextField
                                         label="Địa chỉ"
@@ -124,7 +123,10 @@ export default function AccountInfo() {
                                         fullWidth
                                         value={userInfo.gender ? "Nam" : "Nữ"}
                                         InputProps={{ readOnly: true }}
-                                        sx={{ marginBottom: 2 }}
+                                        sx={{
+                                            marginBottom: 2,
+                                            backgroundColor: isEditing ? "#f0f0f0" : "white"
+                                        }}
                                     />
                                 </Grid>
 
@@ -135,28 +137,40 @@ export default function AccountInfo() {
                                         fullWidth
                                         value={userInfo.account?.userName || ""}
                                         InputProps={{ readOnly: true }}
-                                        sx={{ marginBottom: 2 }}
+                                        sx={{
+                                            marginBottom: 2,
+                                            backgroundColor: isEditing ? "#f0f0f0" : "white"
+                                        }}
                                     />
                                     <TextField
                                         label="Email"
                                         fullWidth
                                         value={userInfo.email || ""}
                                         InputProps={{ readOnly: true }}
-                                        sx={{ marginBottom: 2 }}
+                                        sx={{
+                                            marginBottom: 2,
+                                            backgroundColor: isEditing ? "#f0f0f0" : "white"
+                                        }}
                                     />
                                     <TextField
                                         label="Vị trí"
                                         fullWidth
                                         value={userInfo.account?.role?.nameRoles || "Chưa có thông tin"}
                                         InputProps={{ readOnly: true }}
-                                        sx={{ marginBottom: 2 }}
+                                        sx={{
+                                            marginBottom: 2,
+                                            backgroundColor: isEditing ? "#f0f0f0" : "white"
+                                        }}
                                     />
                                     <TextField
                                         label="Lương"
                                         fullWidth
                                         value={userInfo.salary ? formatCurrency(userInfo.salary) : ""}
                                         InputProps={{ readOnly: true }}
-                                        sx={{ marginBottom: 2 }}
+                                        sx={{
+                                            marginBottom: 2,
+                                            backgroundColor: isEditing ? "#f0f0f0" : "white"
+                                        }}
                                     />
                                 </Grid>
                             </Grid>
