@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { createNews } from "../service/NewService";
 import {
@@ -11,12 +11,13 @@ import {
     Grid,
     CircularProgress,
     Alert,
-    IconButton,
+    IconButton
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
+import DeleteIcon from "@mui/icons-material/Delete";
 import HeaderAdmin from "../component/admin/HeaderAdmin";
-import {Helmet} from "react-helmet-async";
+import { Helmet } from "react-helmet-async";
 
 const primaryColor = "#E7B45A";
 
@@ -37,11 +38,19 @@ const NewsCreateComponent = () => {
             navigate("/login");
         }
     }, [userRole, navigate]);
+
     const handleFileChange = (e) => {
         const selectedFiles = Array.from(e.target.files);
-        setFiles(selectedFiles);
+        setFiles([...files, ...selectedFiles]);
         const previewUrls = selectedFiles.map((file) => URL.createObjectURL(file));
-        setPreviews(previewUrls);
+        setPreviews([...previews, ...previewUrls]);
+    };
+
+    const handleRemoveImage = (index) => {
+        const updatedFiles = files.filter((_, i) => i !== index);
+        const updatedPreviews = previews.filter((_, i) => i !== index);
+        setFiles(updatedFiles);
+        setPreviews(updatedPreviews);
     };
 
     const handleSubmit = async (e) => {
@@ -71,7 +80,7 @@ const NewsCreateComponent = () => {
                 images: uploadedImages,
             };
 
-            const savedNews = await createNews(newsData);
+            await createNews(newsData);
 
             setMessage("✅ Tin tức đã được đăng thành công!");
             setTitle("");
@@ -95,7 +104,7 @@ const NewsCreateComponent = () => {
             <Helmet>
                 <title>Đăng Tin Tức Mới</title>
             </Helmet>
-            <HeaderAdmin/>
+            <HeaderAdmin />
             <Container maxWidth="md" sx={{ mt: 10 }}>
                 <Paper elevation={3} sx={{ p: 4, borderRadius: 3, border: `1px solid ${primaryColor}` }}>
                     <Typography
@@ -134,7 +143,6 @@ const NewsCreateComponent = () => {
                             InputLabelProps={{ shrink: true }}
                         />
 
-                        {/* Upload Button */}
                         <Box display="flex" alignItems="center" mt={2}>
                             <input
                                 accept="image/*"
@@ -154,7 +162,6 @@ const NewsCreateComponent = () => {
                             </Typography>
                         </Box>
 
-                        {/* Hiển thị ảnh đã chọn */}
                         {previews.length > 0 && (
                             <Box sx={{ mt: 2 }}>
                                 <Typography variant="subtitle1" sx={{ color: primaryColor }}>
@@ -162,7 +169,7 @@ const NewsCreateComponent = () => {
                                 </Typography>
                                 <Grid container spacing={2} sx={{ mt: 1 }}>
                                     {previews.map((url, index) => (
-                                        <Grid item xs={4} sm={3} md={2} key={index}>
+                                        <Grid item xs={4} sm={3} md={2} key={index} position="relative">
                                             <img
                                                 src={url}
                                                 alt={`preview-${index}`}
@@ -174,13 +181,19 @@ const NewsCreateComponent = () => {
                                                     padding: 2,
                                                 }}
                                             />
+                                            <IconButton
+                                                sx={{ position: "absolute", top: 5, right: 5, background: "rgba(0,0,0,0.5)" }}
+                                                size="small"
+                                                onClick={() => handleRemoveImage(index)}
+                                            >
+                                                <DeleteIcon sx={{ color: "white" }} />
+                                            </IconButton>
                                         </Grid>
                                     ))}
                                 </Grid>
                             </Box>
                         )}
 
-                        {/* Nút Đăng Tin */}
                         <Box sx={{ mt: 4, position: "relative" }}>
                             <Button
                                 type="submit"
@@ -196,25 +209,11 @@ const NewsCreateComponent = () => {
                             >
                                 {uploading ? "⏳ Đang tải lên..." : "🚀 Đăng Tin Tức"}
                             </Button>
-                            {uploading && (
-                                <CircularProgress
-                                    size={24}
-                                    sx={{
-                                        color: primaryColor,
-                                        position: "absolute",
-                                        top: "50%",
-                                        left: "50%",
-                                        marginTop: "-12px",
-                                        marginLeft: "-12px",
-                                    }}
-                                />
-                            )}
                         </Box>
                     </Box>
                 </Paper>
             </Container>
         </>
-
     );
 };
 
