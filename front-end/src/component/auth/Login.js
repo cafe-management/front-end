@@ -16,7 +16,7 @@ const schema = yup.object().shape({
 });
 
 function Login() {
-    const { register, handleSubmit, formState: { errors }, setError } = useForm({
+    const { register, handleSubmit, formState: { errors } } = useForm({
         resolver: yupResolver(schema)
     });
     const navigate = useNavigate();
