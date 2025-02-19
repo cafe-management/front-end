@@ -1,14 +1,19 @@
 import React from "react";
 import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
+import {useAbility} from "../../Can";
+import {defineAbilitiesFor} from "../../ability";
 
 function EmployeeManagementHeader() {
     const navigate = useNavigate();
     const location = useLocation(); // Lấy thông tin location hiện tại
-
-    const handleLogout = () => {
-        // Xử lý logout, ví dụ: xóa token, chuyển hướng trang login
-        navigate("/login");
+    const { setCurrentAbility } = useAbility();
+        const handleLogout = () => {
+            localStorage.removeItem("token");
+            localStorage.removeItem("role");
+            setCurrentAbility(defineAbilitiesFor(null));
+            navigate("/login");
+            navigate("/login");
     };
 
     const handleGoToEmployeeList = () => {
