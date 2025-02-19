@@ -21,6 +21,7 @@ const createEmployee = async (employee) => {
                 "Content-Type": "application/json",
             },
         });
+        console.log("Dữ liệu từ API: ", result);
         return result.data;
     } catch (error) {
         console.error("Lỗi khi gửi request:", error.response?.data || error.message);

@@ -25,8 +25,12 @@ import NewComponent from "./components/NewComponent";
 import DashBoardFeedback from "./Navbar/DashBoardFeedBack";
 import EmployeeDashBoard from "./components/EmployeeDashboard";
 import DashBoardSale from "./Navbar/DashBoardSale";
-
+import {Ability} from "@casl/ability";
+import {useState} from "react";
+import { AbilityContext } from "./Can";
+const ability = new Ability([]);
 function App() {
+    const [currentAbility, setCurrentAbility] = useState(ability);
     return (
         <HelmetProvider>
         <div className="App">
@@ -48,8 +52,6 @@ function App() {
                     <Route path="/news" element={<NewsListComponent />} />
                     <Route path="/news/create" element={<NewComponent />} />
                     <Route path="/news/edit/:id" element={<NewsUpdateComponent />} />
-
-
                 </Routes>
             </BrowserRouter>
             <ToastContainer/>

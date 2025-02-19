@@ -8,23 +8,20 @@ import * as yup from "yup";
 import { useAbility } from "../../Can";  // Import CASL
 import { checkAccount, createEmployee } from "../../service/UserService";
 import { toast } from "react-toastify";
-import HeaderAdmin from "./HeaderAdmin";
-import {ability} from "../../ability";
+import HeaderAdmin from "../admin/HeaderAdmin";
+
 
 export default function Register() {
     const navigate = useNavigate();
-    // const ability = useAbility();  // Lấy quyền từ CASL
-    const [roles, setRoles] = useState([]);
+    const { ability } = useAbility();
+    useEffect(() => {
+        const role = localStorage.getItem("role");
 
-    // // Nếu không có quyền, chuyển hướng hoặc hiển thị thông báo
-    // useEffect(() => {
-    //     if (!ability.can("create", "employee")) {
-    //         toast.error("Bạn không có quyền thêm nhân viên!");
-    //         navigate("/admins/list");  // Quay về trang danh sách
-    //     }
-    // }, [ability, navigate]);
+        if (role !== "admin") {
+            navigate("/login"); // Chặn truy cập nếu không phải admin
+        }
+    }, []);
 
-    // Schema Yup để validate form
     const schema = yup.object().shape({
         username: yup.string().required("Không được để trống").min(6, "Tên tài khoản ít nhất 6 ký tự"),
         fullName: yup.string().required("Không được để trống"),

@@ -1,12 +1,16 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { defineAbilitiesFor } from "./ability"; // Đảm bảo import defineAbilitiesFor đúng
+import { defineAbilitiesFor} from "./ability";
+import {Ability} from "@casl/ability"; // Đảm bảo import defineAbilitiesFor đúng
 
 // Tạo Context cho Ability
-export const AbilityContext = createContext();
+export const AbilityContext = createContext({
+    ability: new Ability([]),
+    setCurrentAbility: () => {},
+});
 
 // Tạo một Context để lưu Ability
 export const AbilityProvider = ({ children }) => {
-    const [currentAbility, setCurrentAbility] = useState(() => defineAbilitiesFor(localStorage.getItem("role") || ""));
+    const [ability, setCurrentAbility] = useState(() => defineAbilitiesFor(localStorage.getItem("role") || ""));
 
     useEffect(() => {
         const role = localStorage.getItem("role");
@@ -16,7 +20,7 @@ export const AbilityProvider = ({ children }) => {
     }, []);
 
     return (
-        <AbilityContext.Provider value={{ currentAbility, setCurrentAbility }}>
+        <AbilityContext.Provider value={{ ability, setCurrentAbility }}>
             {children}
         </AbilityContext.Provider>
     );

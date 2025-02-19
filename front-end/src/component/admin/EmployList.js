@@ -4,13 +4,19 @@ import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import { getAllEmploy } from "../../service/UserService"; // Assuming you've defined this in the UserService file
 import { toast } from "react-toastify";
-import HeaderAdmin from "../auth/HeaderAdmin";
+import HeaderAdmin from "./HeaderAdmin";
 
 export default function EmployeeList() {
     const navigate = useNavigate();
     const [employees, setEmployees] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
+    useEffect(() => {
+        const role = localStorage.getItem("role");
+        if (role !== "admin") {
+            navigate("/login"); // Chặn truy cập nếu không phải admin
+        }
+    }, [navigate]);
     useEffect(() => {
         const fetchEmployees = async () => {
             try {

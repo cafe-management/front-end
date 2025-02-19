@@ -10,6 +10,8 @@ import {
     CircularProgress,
     Alert,
 } from "@mui/material";
+import {Helmet} from "react-helmet-async";
+import HeaderAdmin from "../component/admin/HeaderAdmin";
 
 const NewsUpdateComponent = () => {
     const { id } = useParams();
@@ -21,7 +23,12 @@ const NewsUpdateComponent = () => {
     const [message, setMessage] = useState("");
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
-
+    useEffect(() => {
+        const userRole = localStorage.getItem("role"); // Hoặc lấy từ context, Redux...
+        if (userRole !== "admin") {
+            navigate("/login"); // Chuyển hướng nếu không phải admin
+        }
+    }, [navigate]);
     useEffect(() => {
         const fetchNews = async () => {
             try {
@@ -82,7 +89,12 @@ const NewsUpdateComponent = () => {
     }
 
     return (
-        <Container maxWidth="md" sx={{ mt: 4 }}>
+        <>
+            <Helmet>
+                <title>Cập nhật tin tức</title>
+            </Helmet>
+            <HeaderAdmin/>
+        <Container maxWidth="md" sx={{ mt: 10 }}>
             <Typography variant="h4" gutterBottom>
                 Cập nhật bài tin
             </Typography>
@@ -126,6 +138,7 @@ const NewsUpdateComponent = () => {
                 </Button>
             </Box>
         </Container>
+        </>
     );
 };
 

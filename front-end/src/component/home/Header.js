@@ -24,11 +24,9 @@ function Header({ tableId }) {
     const toggleMobileMenu = () => {
         setMobileOpen((prev) => !prev);
     };
-
     const handleDrawerClose = () => {
         setMobileOpen(false);
     };
-
     const location = useLocation();
     const breadcrumbs = [];
 
@@ -60,7 +58,6 @@ function Header({ tableId }) {
             );
         }
     }
-
     const handleNavigateMenu = () => {
         if (tableId) {
             navigate(`/menu?tableId=${tableId}`);
@@ -68,7 +65,6 @@ function Header({ tableId }) {
             navigate("/menu");
         }
     };
-
     return (
         <>
             <AppBar position="fixed" sx={headerStyle}>
