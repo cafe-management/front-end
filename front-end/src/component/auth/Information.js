@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Box, Button, Container, Paper, TextField, Typography, Grid } from "@mui/material";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
-import {getUserInfo, updateEmployee} from "../../service/UserService"; // Giả sử bạn có hàm lấy thông tin người dùng
+import {getUserInfo, updateEmployee} from "../../service/UserService";
+import {toast} from "react-toastify"; // Giả sử bạn có hàm lấy thông tin người dùng
 
 const themeColor = "#E7B45A"; // Màu chủ đạo
 
@@ -43,19 +44,19 @@ export default function AccountInfo() {
     const handleUpdate = async () => {
         try {
             const updatedData = {
+                ...userInfo,
                 phoneNumber: editedInfo.phoneNumber,
                 address: editedInfo.address,
             };
-
             const response = await updateEmployee(userInfo.id, updatedData);
-
-            if (response.success) {
+            if (response && response.id) {
                 setUserInfo({
                     ...userInfo,
                     phoneNumber: editedInfo.phoneNumber,
                     address: editedInfo.address,
                 });
                 setIsEditing(false);
+                toast.success("Cập nhật thành công")
             } else {
                 console.error("Cập nhật thất bại:", response.message);
             }

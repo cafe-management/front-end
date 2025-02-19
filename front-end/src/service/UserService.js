@@ -76,15 +76,12 @@ const getUserInfo = async () => {
 };
 
 const updateEmployee = async (id, employee) => {
-    const role = localStorage.getItem("role");  // Lấy vai trò từ localStorage
-
-    if (role !== 'employ' && role !== 'admin') {
-        console.log("Bạn không có quyền cập nhật thông tin nhân viên.");
-        return [];
-    }
     try{
         const result = await axios.put(`${API_URL}/${id}`, employee);
+        console.log("Response status:", result.status);
+        console.log("Dữ liệu từ API:", result.data);
         return result.data;
+
     } catch (error) {
         console.log(error);
         return [];
