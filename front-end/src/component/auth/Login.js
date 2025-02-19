@@ -41,11 +41,12 @@ function Login() {
                 console.log("role:", userRole);
                 if (userRole === "admin") {
                     navigate("/admins/list");
-                } else if (userRole === "employ") {
+                } else  {
                     navigate("/information");
-                } else {
-                    toast.error("Role không hợp lệ");
                 }
+                // } else {
+                //     toast.error("Role không hợp lệ");
+                // }
             } else {
                 toast.error("Sai tên đăng nhập hoặc mật khẩu");
             }

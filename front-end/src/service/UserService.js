@@ -4,6 +4,7 @@ import {API_URL} from "../config/apiConfig";
 const getAllEmploy = async () => {
     try{
         const result = await axios.get(API_URL + "/admins");
+        console.log("dât api", result);
         return result.data;
     } catch (error) {
         return [];
