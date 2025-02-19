@@ -20,16 +20,15 @@ function Login() {
         resolver: yupResolver(schema)
     });
     const navigate = useNavigate();
-    const { setCurrentAbility } = useAbility(); // Lấy hàm setCurrentAbility từ context
+    const { setCurrentAbility } = useAbility();
 
     useEffect(() => {
-        // Lấy role từ localStorage nếu có
+        setCurrentAbility(defineAbilitiesFor(null));
         const userRole = localStorage.getItem("role");
         if (userRole) {
-            // Nếu có role trong localStorage, cập nhật quyền
             setCurrentAbility(defineAbilitiesFor(userRole));
         }
-    }, [setCurrentAbility]); // Chạy khi component được render
+    }, [setCurrentAbility]);
 
     const onSubmit = async (data) => {
         try {

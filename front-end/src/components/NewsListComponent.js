@@ -27,6 +27,8 @@ import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import CloseIcon from "@mui/icons-material/Close";
+import {Helmet} from "react-helmet-async";
+import HeaderAdmin from "../component/admin/HeaderAdmin";
 
 const NewsListComponent = () => {
     const [newsList, setNewsList] = useState([]);
@@ -62,11 +64,16 @@ const NewsListComponent = () => {
     };
 
     useEffect(() => {
-        fetchNews();
-        connectWebSocketUser(() => {
-            setNotification({ open: true, message: "🆕 Tin tức mới đã được cập nhật!" });
+        const userRole = localStorage.getItem("role"); // Hoặc lấy từ context nếu có
+        if (userRole !== "admin") {
+            navigate("/login"); // Điều hướng về trang đăng nhập nếu không phải admin
+        } else {
             fetchNews();
-        });
+            connectWebSocketUser(() => {
+                setNotification({ open: true, message: "🆕 Tin tức mới đã được cập nhật!" });
+                fetchNews();
+            });
+        }
 
         return () => {
             disconnectWebSocket();
@@ -124,9 +131,13 @@ const NewsListComponent = () => {
             </Container>
         );
     }
-
     return (
-        <Container maxWidth="lg" sx={{ mt: 4 }}>
+        <>
+            <Helmet>
+                <title>Quản lý tin tức</title>
+            </Helmet>
+            <HeaderAdmin/>
+        <Container maxWidth="lg" sx={{ mt: 10 }}>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
                 <Typography variant="h4" sx={{ fontWeight: "bold" }}>
                     📰 Danh sách tin tức
@@ -224,8 +235,8 @@ const NewsListComponent = () => {
                     </Box>
                 </Box>
             </Modal>
-
         </Container>
+        </>
     );
 };
 
