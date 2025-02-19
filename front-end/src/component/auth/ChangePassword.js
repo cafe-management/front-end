@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { Box, Button, Container, Paper, TextField, Typography } from "@mui/material";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
@@ -20,7 +20,6 @@ export default function ChangePassword() {
             setError("Mật khẩu mới và xác nhận mật khẩu không khớp.");
             return;
         }
-
         try {
             const response = await changePassword(currentPassword, newPassword);
             if (response.success) {

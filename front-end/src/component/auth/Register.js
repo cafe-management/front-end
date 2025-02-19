@@ -34,6 +34,7 @@ export default function Register() {
     const onSubmit = async (data, event) => {
         event.preventDefault();
         const exists = await checkAccount(data.email, data.username);
+        console.log("Kết quả kiểm tra tài khoản:", exists);
         if (!exists) {
             toast.error("Lỗi kiểm tra tài khoản, thử lại sau");
             return;
@@ -62,7 +63,7 @@ export default function Register() {
             const response = await createEmployee(modifiedData);
             if (response && response.id) {
                 toast.success("Thêm nhân viên thành công!");
-                setTimeout(() => navigate("/admins/list"), 1500);
+                setTimeout(() => navigate("/admin/list"), 1500);
             } else {
                 toast.error("Thêm nhân viên thất bại!");
             }
