@@ -11,24 +11,27 @@ export default function EmployeeList() {
     const [employees, setEmployees] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [ setLoading] = useState(true);
     useEffect(() => {
         const role = localStorage.getItem("role");
         if (role !== "admin") {
-            navigate("/login"); // Chặn truy cập nếu không phải admin
+            navigate("/login");
+        }else {
+            fetchEmployees();
         }
     }, [navigate]);
-    useEffect(() => {
         const fetchEmployees = async () => {
+            setLoading(true);
             try {
                 const data = await getAllEmploy();
-                setEmployees(data); // Set the employee data from API
+                setEmployees(data);
             } catch (error) {
                 console.error("Lỗi khi lấy danh sách nhân viên:", error);
                 toast.error("Không thể tải danh sách nhân viên!");
+            } finally {
+                setLoading(false);
             }
         };
-        fetchEmployees();
-    }, []);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
