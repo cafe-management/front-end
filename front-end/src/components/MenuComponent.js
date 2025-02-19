@@ -33,6 +33,7 @@ import PaymentIcon from '@mui/icons-material/Payment';
 import Tooltip from "@mui/material/Tooltip";
 import { Client } from '@stomp/stompjs';
 import SockJS from "sockjs-client";
+import{API_URL_SOCKET} from "../config/apiConfig";
 
 
 const MenuComponent = () => {
@@ -79,7 +80,7 @@ const MenuComponent = () => {
     // UseEffect để cho gửi thông báo
     useEffect(() => {
         stompClientRef.current = new Client({
-            webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+            webSocketFactory: () => new SockJS(API_URL_SOCKET),
             reconnectDelay: 5000,
             onConnect: () => {
                 console.log("Connected to WebSocket");
@@ -234,6 +235,7 @@ const MenuComponent = () => {
                 dateFeedback,
                 customer,
                 content,
+                tableId: table ? table.id : null,
                 images: images.map((url) => ({ img: url })),
             };
 

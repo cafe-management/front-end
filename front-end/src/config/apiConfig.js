@@ -13,3 +13,4 @@ export const API_URL_TABLE_COFFEE=`${BASE_URL}/tableCoffee`;
 export const API_URL_NEWS = `${BASE_URL}/news`;
 export const API_URL_NEWS_IMAGES =`${BASE_URL}/news/images`;
 export const API_URL_INVOICE = `${BASE_URL}/invoices`;
+export const API_URL_SOCKET="http://10.10.8.75:8080/ws";

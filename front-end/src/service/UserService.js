@@ -15,13 +15,16 @@ const getAllEmploy = async () => {
         console.error("Lỗi khi lấy danh sách nhân viên:", error);
         return [];
     }
-};
+}
 
 const createEmployee = async (employee) => {
+    console.log("Dữ liệu gửi lên backend", employee);
+    console.log("Dữ liệu gửi lên backend json", JSON.stringify(employee, null, 2));
     try {
         const result = await axios.post(`${API_URL}/admin`, employee, {
             headers: authHeaders,
         });
+        console.log("Dữ liệu từ API: ", result);
         return result.data;
     } catch (error) {
         console.error("Lỗi khi gửi request:", error.response?.data || error.message);
@@ -41,6 +44,7 @@ const checkAccount = async (email, username) => {
     }
 }
 const login = async (username, password) => {
+    console.log("Dữ liệu gửi đến backend: ", { username, password });
     try {
         const response = await axios.post(`${API_URL}/login`, { username, password }, {
             headers: {
@@ -67,14 +71,16 @@ const getUserInfo = async () => {
         return null;
     }
 };
+
 const updateEmployee = async (id, employee) => {
     try {
         const result = await axios.put(`${API_URL}/${id}`, employee, {
             headers: authHeaders,
         });
         return result.data;
+
     } catch (error) {
-        console.error("Lỗi khi cập nhật nhân viên:", error.response?.data || error.message);
+        console.log(error);
         return [];
     }
 };
@@ -90,7 +96,7 @@ const changePassword = async (oldPassword, newPassword) => {
         console.log("Response từ backend:", response);
         return response.data;
     } catch (error) {
-        console.error("Lỗi khi thay đổi mật khẩu:", error.response?.data?.message || "Có lỗi xảy ra");
+        console.error("Lỗi khi thay đổi mật khẩu:", error);
         return { success: false, message: error.response?.data?.message || "Có lỗi xảy ra" };
     }
 };
