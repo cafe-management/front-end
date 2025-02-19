@@ -16,6 +16,7 @@ import MoreIcon from "@mui/icons-material/MoreVert";
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
 import { getAllNotifications } from "../service/NotificationService";
+import{API_URL_SOCKET} from "../config/apiConfig";
 
 // Styled component cho các liên kết trên desktop
 const DesktopLinks = styled("div")(({ theme }) => ({
@@ -43,7 +44,7 @@ const EmployeeDashBoard = () => {
     const isNotificationMenuOpen = Boolean(notificationAnchorEl);
 
     useEffect(() => {
-        const socket = new SockJS("http://localhost:8080/ws");
+        const socket = new SockJS(API_URL_SOCKET);
         const stompClient = Stomp.over(socket);
         stompClient.connect({}, () => {
             stompClient.subscribe("/topic/notifications", (message) => {
