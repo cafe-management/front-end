@@ -15,7 +15,9 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import MoreIcon from "@mui/icons-material/MoreVert";
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
+import { Howl } from "howler";
 import { getAllNotifications } from "../service/NotificationService";
+import { API_URL_SOCKET } from "../config/apiConfig";
 
 // Styled component cho các liên kết trên desktop
 const DesktopLinks = styled("div")(({ theme }) => ({
@@ -41,9 +43,13 @@ const EmployeeDashBoard = () => {
     const isMenuOpen = Boolean(anchorEl);
     const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
     const isNotificationMenuOpen = Boolean(notificationAnchorEl);
+    const notificationSound = new Howl({
+        src: ["/notification-alert-269289.mp3"],
+        volume: 0.5,
+    });
 
     useEffect(() => {
-        const socket = new SockJS("http://localhost:8080/ws");
+        const socket = new SockJS(API_URL_SOCKET);
         const stompClient = Stomp.over(socket);
         stompClient.connect({}, () => {
             stompClient.subscribe("/topic/notifications", (message) => {
@@ -51,6 +57,9 @@ const EmployeeDashBoard = () => {
                     const notification = JSON.parse(message.body);
                     console.log("Thông báo nhận được:", notification);
                     setNotifications((prev) => [notification, ...prev]); // Thêm thông báo mới vào danh sách
+
+                    // Phát âm thanh khi nhận được thông báo mới
+                    notificationSound.play();
                 }
             });
         });
@@ -66,7 +75,7 @@ const EmployeeDashBoard = () => {
                 stompClient.disconnect();
             }
         };
-    }, []);
+    }, []); // Nếu cần thay đổi cấu hình của âm thanh dựa vào state, bạn có thể thêm dependency
 
     const handleProfileMenuOpen = (event) => {
         setAnchorEl(event.currentTarget);
