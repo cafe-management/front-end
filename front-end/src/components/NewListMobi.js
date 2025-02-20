@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { getAllNews } from "../service/NewService";
-import { connectWebSocketUser, disconnectWebSocket } from "../service/WebSocketService";
 import {
     Container,
     Typography,
@@ -13,8 +12,11 @@ import {
     Dialog,
     DialogTitle,
     DialogContent,
+    IconButton
 } from "@mui/material";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import Footer from "../component/home/Footer";
 import Header from "../component/home/Header";
 
@@ -24,7 +26,7 @@ const NewsListMobi = () => {
     const [error, setError] = useState("");
     const [selectedNews, setSelectedNews] = useState(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const [visibleNews, setVisibleNews] = useState(6); // Số lượng tin hiển thị ban đầu
+    const [visibleNews, setVisibleNews] = useState(6);
     const isMobile = useMediaQuery("(max-width:600px)");
 
     const location = useLocation();
@@ -50,22 +52,21 @@ const NewsListMobi = () => {
         };
 
         fetchNews();
-        connectWebSocketUser(() => {
-            fetchNews();
-        });
-
-        return () => {
-            disconnectWebSocket();
-        };
+        // Loại bỏ kết nối WebSocket để không làm ảnh hưởng đến nội dung
     }, [tableId]);
 
     useEffect(() => {
+        let intervalId;
         if (selectedNews?.images?.length > 1) {
-            const interval = setInterval(() => {
+            intervalId = setInterval(() => {
                 setCurrentImageIndex((prevIndex) => (prevIndex + 1) % selectedNews.images.length);
-            }, 2000);
-            return () => clearInterval(interval);
+            }, 5000);
         }
+        return () => {
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+        };
     }, [selectedNews]);
 
     useEffect(() => {
@@ -74,10 +75,23 @@ const NewsListMobi = () => {
                 setVisibleNews((prev) => prev + 6);
             }
         };
-
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
+
+    const handleNextImage = () => {
+        if (selectedNews?.images?.length > 1) {
+            setCurrentImageIndex((prevIndex) => (prevIndex + 1) % selectedNews.images.length);
+        }
+    };
+
+    const handlePrevImage = () => {
+        if (selectedNews?.images?.length > 1) {
+            setCurrentImageIndex((prevIndex) =>
+                prevIndex === 0 ? selectedNews.images.length - 1 : prevIndex - 1
+            );
+        }
+    };
 
     if (loading) {
         return (
@@ -107,7 +121,7 @@ const NewsListMobi = () => {
                         Không có tin tức nào.
                     </Typography>
                 ) : (
-                    <Grid container spacing={2} justifyContent="center">
+                    <Grid container spacing={5} justifyContent="center">
                         {newsList.slice(0, visibleNews).map((news) => (
                             <Grid item xs={12} sm={6} md={4} key={news.id}>
                                 <Box
@@ -145,17 +159,8 @@ const NewsListMobi = () => {
                                             <CalendarMonthIcon fontSize="small" sx={{ mr: 1, color: "#C4975C" }} />
                                             {new Date(news.dateNews).toLocaleDateString()}
                                         </Typography>
-                                        <Typography
-                                            variant="h6"
-                                            sx={{ fontWeight: "bold", mt: 1, overflow: "hidden", WebkitLineClamp: 2, display: "-webkit-box", WebkitBoxOrient: "vertical", minHeight: "48px" }}
-                                        >
+                                        <Typography variant="h6" sx={{ fontWeight: "bold", mt: 1 }}>
                                             {news.title || "Không có tiêu đề"}
-                                        </Typography>
-                                        <Typography
-                                            variant="body2"
-                                            sx={{ color: "gray", mt: 1, overflow: "hidden", WebkitLineClamp: 3, display: "-webkit-box", WebkitBoxOrient: "vertical", minHeight: "60px" }}
-                                        >
-                                            {news.content}
                                         </Typography>
                                     </Box>
                                 </Box>
@@ -164,14 +169,33 @@ const NewsListMobi = () => {
                     </Grid>
                 )}
                 <Dialog open={Boolean(selectedNews)} onClose={() => setSelectedNews(null)} maxWidth="md" fullWidth>
-                    <DialogTitle sx={{ textAlign: "center", fontWeight: "bold", color: "#C4975C" }}>{selectedNews?.title}</DialogTitle>
+                    <DialogTitle sx={{ textAlign: "center", fontWeight: "bold", color: "#C4975C" }}>
+                        {selectedNews?.title}
+                    </DialogTitle>
                     <DialogContent>
                         {selectedNews?.images?.length > 0 && (
-                            <img src={selectedNews.images[currentImageIndex].img} alt="Tin tức" style={{ width: "100%", height: "250px", objectFit: "cover" }} />
+                            <Box sx={{ position: "relative", textAlign: "center" }}>
+                                <IconButton
+                                    sx={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", backgroundColor: "rgba(0,0,0,0.5)", color: "white" }}
+                                    onClick={handlePrevImage}
+                                >
+                                    <ArrowBackIosIcon />
+                                </IconButton>
+                                <img
+                                    src={selectedNews.images[currentImageIndex].img}
+                                    alt="Tin tức"
+                                    style={{ width: "100%", height: "250px", objectFit: "cover", borderRadius: 8 }}
+                                />
+                                <IconButton
+                                    sx={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", backgroundColor: "rgba(0,0,0,0.5)", color: "white" }}
+                                    onClick={handleNextImage}
+                                >
+                                    <ArrowForwardIosIcon />
+                                </IconButton>
+                            </Box>
                         )}
-                        <Typography variant="body1" sx={{ whiteSpace: "pre-wrap", mt: 2 }}>{selectedNews?.content}</Typography>
-                        <Typography variant="caption" sx={{ display: "block", mt: 2, color: "gray", textAlign: "center" }}>
-                            Ngày đăng: {new Date(selectedNews?.dateNews).toLocaleString()}
+                        <Typography variant="body1" sx={{ mt: 2, whiteSpace: "pre-line" }}>
+                            {selectedNews?.content || "Không có nội dung"}
                         </Typography>
                     </DialogContent>
                 </Dialog>
