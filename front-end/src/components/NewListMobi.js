@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { getAllNews } from "../service/NewService";
-import { connectWebSocketUser, disconnectWebSocket } from "../service/WebSocketService";
 import {
     Container,
     Typography,
@@ -53,14 +52,9 @@ const NewsListMobi = () => {
         };
 
         fetchNews();
-        connectWebSocketUser(() => {
-            fetchNews();
-        });
-
-        return () => {
-            disconnectWebSocket();
-        };
+        // Loại bỏ kết nối WebSocket để không làm ảnh hưởng đến nội dung
     }, [tableId]);
+
     useEffect(() => {
         let intervalId;
         if (selectedNews?.images?.length > 1) {
@@ -68,15 +62,12 @@ const NewsListMobi = () => {
                 setCurrentImageIndex((prevIndex) => (prevIndex + 1) % selectedNews.images.length);
             }, 5000);
         }
-
-        // Dọn dẹp interval khi component unmount hoặc khi selectedNews thay đổi
         return () => {
             if (intervalId) {
                 clearInterval(intervalId);
             }
         };
-    }, [selectedNews]);  // Chạy lại mỗi khi selectedNews thay đổi
-
+    }, [selectedNews]);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -84,7 +75,6 @@ const NewsListMobi = () => {
                 setVisibleNews((prev) => prev + 6);
             }
         };
-
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
@@ -204,11 +194,10 @@ const NewsListMobi = () => {
                                 </IconButton>
                             </Box>
                         )}
-                        <Typography variant="body1" sx={{ mt: 2 }}>
+                        <Typography variant="body1" sx={{ mt: 2, whiteSpace: "pre-line" }}>
                             {selectedNews?.content || "Không có nội dung"}
                         </Typography>
                     </DialogContent>
-
                 </Dialog>
             </Container>
             <Footer />
