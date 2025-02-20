@@ -1,4 +1,4 @@
-import axios from "axios";
+import  axios from "axios";
 import { API_URL_NEWS } from "../config/apiConfig";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";

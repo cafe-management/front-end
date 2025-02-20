@@ -111,7 +111,6 @@ export default function EmployeeList() {
                                 </TableBody>
                             </Table>
                         </TableContainer>
-
                         {/* Pagination */}
                         <TablePagination
                             rowsPerPageOptions={[5, 10, 25]}
