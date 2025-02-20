@@ -100,4 +100,20 @@ const changePassword = async (oldPassword, newPassword) => {
         return { success: false, message: error.response?.data?.message || "Có lỗi xảy ra" };
     }
 };
-export {getAllEmploy, createEmployee, updateEmployee, checkAccount, login, getUserInfo, changePassword};
+const forgotPassword = async (emailOrUsername) => {
+    try {
+        const response = await axios.post(`${API_URL}/login/forgot-password`,
+            { emailOrUsername },
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Lỗi khi gửi yêu cầu quên mật khẩu:", error);
+        return { success: false, message: error.response?.data?.message || "Có lỗi xảy ra" };
+    }
+};
+export {getAllEmploy, createEmployee, updateEmployee, checkAccount, login, getUserInfo, changePassword, forgotPassword};

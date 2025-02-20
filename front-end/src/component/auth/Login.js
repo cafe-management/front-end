@@ -1,11 +1,11 @@
-import React, { useEffect } from "react";
+import React, {useEffect, useState} from "react";
 import { defineAbilitiesFor } from "../../ability";
-import { Box, Button, Container, Paper, TextField, Typography } from "@mui/material";
+import {Box, Button, Container, Modal, Paper, TextField, Typography} from "@mui/material";
 import { Helmet } from "react-helmet-async";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { login } from "../../service/UserService";
+import {forgotPassword, login} from "../../service/UserService";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useAbility } from "../../Can.js"; // Đảm bảo bạn import useAbility từ Can.js
@@ -21,7 +21,8 @@ function Login() {
     });
     const navigate = useNavigate();
     const { setCurrentAbility } = useAbility();
-
+    const [openModal, setOpenModal] = useState(false);
+    const [emailOrUsername, setEmailOrUsername] = useState("");
     useEffect(() => {
         setCurrentAbility(defineAbilitiesFor(null));
         const userRole = localStorage.getItem("role");
@@ -65,6 +66,23 @@ function Login() {
             }
         }
     };
+    const handleForgotPassword = async () => {
+        if (!emailOrUsername) {
+            toast.error("Vui lòng nhập email hoặc tên tài khoản");
+            return;
+        }
+        try {
+            const response = await forgotPassword(emailOrUsername);
+            if (response.success) {
+                toast.success("Yêu cầu đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra email!");
+                setOpenModal(false);
+            } else {
+                toast.error(response.message || "Gửi yêu cầu thất bại.");
+            }
+        } catch (error) {
+            toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
+        }
+    };
 
     return (
         <>
@@ -95,6 +113,9 @@ function Login() {
                                 error={!!errors.password}
                                 helperText={errors.password?.message}
                             />
+                            <Typography sx={{ cursor: "pointer", color: "blue", textAlign: "right" }} onClick={() => setOpenModal(true)}>
+                                Quên mật khẩu?
+                            </Typography>
                             <Button type="submit" variant="contained" fullWidth sx={{ backgroundColor: "#E7B45A", color: "#000", "&:hover": { backgroundColor: "#d09e4f" } }}>
                                 Đăng nhập
                             </Button>
@@ -102,6 +123,13 @@ function Login() {
                     </Paper>
                 </Container>
             </Box>
+            <Modal open={openModal} onClose={() => setOpenModal(false)}>
+                <Box sx={{ width: 400, padding: 4, backgroundColor: "white", margin: "auto", marginTop: "10%", borderRadius: 2 }}>
+                    <Typography variant="h6" gutterBottom>Quên mật khẩu</Typography>
+                    <TextField label="Email hoặc tên tài khoản" fullWidth value={emailOrUsername} onChange={(e) => setEmailOrUsername(e.target.value)} sx={{ marginBottom: 2 }} />
+                    <Button variant="contained" fullWidth onClick={handleForgotPassword}>Gửi yêu cầu</Button>
+                </Box>
+            </Modal>
         </>
     );
 }
