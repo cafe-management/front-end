@@ -20,15 +20,17 @@ import {
     IconButton,
     Pagination,
     CardMedia,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { Helmet } from "react-helmet-async";
 import HeaderAdmin from "../component/admin/HeaderAdmin";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 
 const NewsListComponent = () => {
     const [newsList, setNewsList] = useState([]);
@@ -36,15 +38,13 @@ const NewsListComponent = () => {
     const [error, setError] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
-    const [openModal, setOpenModal] = useState(false);
-    const [selectedNews, setSelectedNews] = useState(null);
+    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const [newsToDelete, setNewsToDelete] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
         fetchNews();
-        connectWebSocketUser(() => {
-            fetchNews();
-        });
+        connectWebSocketUser(fetchNews);
         return () => {
             disconnectWebSocket();
         };
@@ -52,13 +52,14 @@ const NewsListComponent = () => {
 
     const fetchNews = async () => {
         try {
+            setLoading(true);
             const response = await getAllNews();
             let newsData = response.data || response;
             if (Array.isArray(newsData)) {
                 newsData = newsData.sort((a, b) => new Date(b.dateNews) - new Date(a.dateNews));
                 setNewsList(newsData);
             } else {
-                setError("Dữ liệu không đúng định dạng.");
+                throw new Error("Dữ liệu không đúng định dạng.");
             }
         } catch (err) {
             setError("Có lỗi xảy ra khi tải tin tức.");
@@ -76,14 +77,21 @@ const NewsListComponent = () => {
         }
     };
 
-    const handleOpenModal = (news) => {
-        setSelectedNews(news);
-        setOpenModal(true);
+    const handleOpenDeleteDialog = (news) => {
+        setNewsToDelete(news);
+        setOpenDeleteDialog(true);
     };
 
-    const handleCloseModal = () => {
-        setOpenModal(false);
-        setSelectedNews(null);
+    const handleCloseDeleteDialog = () => {
+        setOpenDeleteDialog(false);
+        setNewsToDelete(null);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (newsToDelete) {
+            await handleDelete(newsToDelete.id);
+        }
+        handleCloseDeleteDialog();
     };
 
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -105,15 +113,6 @@ const NewsListComponent = () => {
             </Container>
         );
     }
-
-    const sliderSettings = {
-        dots: true,
-        infinite: true,
-        speed: 500,
-        slidesToShow: 1,
-        slidesToScroll: 1,
-        adaptiveHeight: true,
-    };
 
     return (
         <>
@@ -159,7 +158,7 @@ const NewsListComponent = () => {
                                         )}
                                     </TableCell>
                                     <TableCell>
-                                        <Typography variant="h6" sx={{ cursor: "pointer" }} onClick={() => handleOpenModal(news)}>
+                                        <Typography variant="h6" sx={{ cursor: "pointer" }}>
                                             {news.title || "Không có tiêu đề"}
                                         </Typography>
                                     </TableCell>
@@ -168,7 +167,7 @@ const NewsListComponent = () => {
                                         <IconButton color="primary" onClick={() => navigate(`/news/edit/${news.id}`)}>
                                             <EditIcon />
                                         </IconButton>
-                                        <IconButton color="error" onClick={() => handleDelete(news.id)}>
+                                        <IconButton color="error" onClick={() => handleOpenDeleteDialog(news)}>
                                             <DeleteIcon />
                                         </IconButton>
                                     </TableCell>
@@ -177,39 +176,37 @@ const NewsListComponent = () => {
                         </TableBody>
                     </Table>
                 </TableContainer>
-                <Pagination count={Math.ceil(newsList.length / itemsPerPage)} page={currentPage} onChange={(e, value) => setCurrentPage(value)} />
 
-                <Modal open={openModal} onClose={handleCloseModal}>
-                    <Box sx={{ p: 3, backgroundColor: "white", borderRadius: 2, maxWidth: 600, mx: "auto", mt: 10 }}>
-                        {selectedNews && (
-                            <>
-                                <Typography variant="h5">{selectedNews.title}</Typography>
-                                {selectedNews.images?.length > 0 && (
-                                    <Slider {...sliderSettings}>
-                                        {selectedNews.images.map((image, index) => (
-                                            <Box key={index} sx={{ display: "flex", justifyContent: "center" }}>
-                                                <CardMedia
-                                                    component="img"
-                                                    image={image.img}
-                                                    alt={selectedNews.title}
-                                                    sx={{
-                                                        width: "100%",
-                                                        height: 300,
-                                                        objectFit: "cover",
-                                                        borderRadius: 2,
-                                                    }}
-                                                />
-                                            </Box>
-                                        ))}
-                                    </Slider>
-                                )}
-                                <Box sx={{ maxHeight: 300, overflow: "auto", mt: 2,whiteSpace: "pre-line" }}>
-                                    <Typography>{selectedNews.content}</Typography>
-                                </Box>
-                            </>
-                        )}
-                    </Box>
-                </Modal>
+                <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+                    <Pagination count={Math.ceil(newsList.length / itemsPerPage)} page={currentPage} onChange={(e, value) => setCurrentPage(value)} />
+                </Box>
+
+                <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
+                    <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1, color: "#f57c00", fontWeight: "bold" }}>
+                        <WarningAmberIcon fontSize="large" /> Xác nhận xóa
+                    </DialogTitle>
+                    <DialogContent>
+                        <Typography textAlign="center" variant="body1">
+                            Bạn có chắc chắn muốn xóa bài tin <b>{newsToDelete?.title}</b> không?
+                        </Typography>
+                    </DialogContent>
+                    <DialogActions sx={{ justifyContent: "flex-end", gap: 2, px: 3, pb: 2 }}>
+                        <Button
+                            onClick={handleCloseDeleteDialog}
+                            sx={{ backgroundColor: "#b0bec5", color: "black", '&:hover': { backgroundColor: "#90a4ae" } }}
+                        >
+                            Hủy
+                        </Button>
+                        <Button
+                            onClick={handleDeleteConfirm}
+                            color="error"
+                            variant="contained"
+                        >
+                            Xóa
+                        </Button>
+                    </DialogActions>
+
+                </Dialog>
             </Container>
         </>
     );
