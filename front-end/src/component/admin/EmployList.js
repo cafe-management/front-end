@@ -3,7 +3,6 @@ import { Box, Button, Container, Paper, Typography,Table, TableBody, TableCell, 
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import { getAllEmploy } from "../../service/UserService"; // Assuming you've defined this in the UserService file
-import { toast } from "react-toastify";
 import HeaderAdmin from "./HeaderAdmin";
 
 export default function EmployeeList() {
@@ -11,27 +10,41 @@ export default function EmployeeList() {
     const [employees, setEmployees] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
-    const [ setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
     useEffect(() => {
+        const token = localStorage.getItem("token");
         const role = localStorage.getItem("role");
-        if (role !== "admin") {
+
+        console.log("Token:", token);
+        console.log("Role:", role);
+
+        if (!token) {
+            console.warn("Không có token, điều hướng về trang đăng nhập.");
             navigate("/login");
-        }else {
-            fetchEmployees();
+            return;
         }
+
+        if (role !== "admin") {
+            console.warn("Người dùng không có quyền admin, điều hướng về trang không có quyền.");
+            navigate("/login");
+            return;
+        }
+        // Nếu có token và đúng role admin, mới gọi API
+        fetchEmployees();
     }, [navigate]);
-        const fetchEmployees = async () => {
-            setLoading(true);
-            try {
-                const data = await getAllEmploy();
-                setEmployees(data);
-            } catch (error) {
-                console.error("Lỗi khi lấy danh sách nhân viên:", error);
-                toast.error("Không thể tải danh sách nhân viên!");
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchEmployees = async () => {
+        setLoading(true);
+        try {
+            const data = await getAllEmploy();
+            console.log("Fetched employees:", data); // Kiểm tra dữ liệu từ API
+            setEmployees(data);
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách nhân viên:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -71,13 +84,9 @@ export default function EmployeeList() {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {employees.length === 0 ? (
-                                            <TableRow>
-                                                <TableCell colSpan={7} align="center">
-                                                    Không có nhân viên
-                                                </TableCell>
-                                            </TableRow>
-                                        ) :
+                                    {loading ? (
+                                        <p>Đang tải...</p>
+                                    )  :
                                         (employees.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((employee) => (
                                         <TableRow key={employee.id}>
                                             <TableCell align="center">{employee.id}</TableCell>

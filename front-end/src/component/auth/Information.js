@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, Container, Paper, TextField, Typography, Grid } from "@mui/material";
+import { Box, Button, Container, Paper, TextField, Typography, Grid, CircularProgress } from "@mui/material";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
-import {getUserInfo, updateEmployee} from "../../service/UserService";
-import {toast} from "react-toastify";
+import { getUserInfo, updateEmployee } from "../../service/UserService";
+import { toast } from "react-toastify";
 
 const themeColor = "#E7B45A";
 
@@ -11,22 +11,30 @@ export default function AccountInfo() {
     const navigate = useNavigate();
     const [userInfo, setUserInfo] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
+    const [loading, setLoading] = useState(true); // Thêm state loading
     const [editedInfo, setEditedInfo] = useState({
         phoneNumber: "",
         address: "",
     });
+
     useEffect(() => {
         const fetchUserInfo = async () => {
-            const username = localStorage.getItem("username");
-            const user = await getUserInfo();
-            if (user) {
-                setUserInfo(user);
-                setEditedInfo({
-                    phoneNumber: user.phoneNumber,
-                    address: user.address,
-                });
-            } else {
-                console.log("Không tìm thấy thông tin người dùng.");
+            setLoading(true); // Bắt đầu tải
+            try {
+                const user = await getUserInfo();
+                if (user) {
+                    setUserInfo(user);
+                    setEditedInfo({
+                        phoneNumber: user.phoneNumber || "",
+                        address: user.address || "",
+                    });
+                } else {
+                    console.log("Không tìm thấy thông tin người dùng.");
+                }
+            } catch (error) {
+                console.error("Lỗi khi lấy thông tin người dùng:", error);
+            } finally {
+                setLoading(false); // Kết thúc tải
             }
         };
 
@@ -46,13 +54,9 @@ export default function AccountInfo() {
             };
             const response = await updateEmployee(userInfo.id, updatedData);
             if (response && response.id) {
-                setUserInfo({
-                    ...userInfo,
-                    phoneNumber: editedInfo.phoneNumber,
-                    address: editedInfo.address,
-                });
+                setUserInfo(updatedData);
                 setIsEditing(false);
-                toast.success("Cập nhật thành công")
+                toast.success("Cập nhật thành công");
             } else {
                 console.error("Cập nhật thất bại:", response.message);
             }
@@ -60,9 +64,11 @@ export default function AccountInfo() {
             console.error("Lỗi khi cập nhật thông tin:", error);
         }
     };
+
     const handleBack = () => {
         navigate("/manager/sale");
     };
+
     const handleChangePassword = () => {
         navigate("/change_password");
     };
@@ -86,116 +92,38 @@ export default function AccountInfo() {
                     >
                         Thông tin tài khoản
                     </Typography>
-                    {userInfo ? (
+
+                    {/* Hiển thị loading khi đang tải dữ liệu */}
+                    {loading ? (
+                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "200px" }}>
+                            <CircularProgress sx={{ color: themeColor }} />
+                        </Box>
+                    ) : userInfo ? (
                         <Box component="form" sx={{ flexGrow: 1 }}>
-                            {/* Hiển thị thông tin người dùng */}
                             <Grid container spacing={2}>
                                 <Grid item xs={12} sm={6}>
-                                    {/* Các thông tin bên trái */}
-                                    <TextField
-                                        label="Họ và tên"
-                                        fullWidth
-                                        value={userInfo.fullName || ""}
-                                        InputProps={{ readOnly: true }}
-                                        sx={{
-                                            marginBottom: 2,
-                                            backgroundColor: isEditing ? "#f0f0f0" : "white"
-                                        }}
-                                    />
-                                    <TextField
-                                        label="Địa chỉ"
-                                        fullWidth
-                                        value={isEditing ? editedInfo.address : userInfo.address || ""}
-                                        onChange={(e) => setEditedInfo({ ...editedInfo, address: e.target.value })}
-                                        InputProps={{ readOnly: !isEditing }}
-                                        sx={{ marginBottom: 2 }}
-                                    />
-                                    <TextField
-                                        label="Số điện thoại"
-                                        fullWidth
-                                        value={isEditing ? editedInfo.phoneNumber : userInfo.phoneNumber || ""}
-                                        onChange={(e) => setEditedInfo({ ...editedInfo, phoneNumber: e.target.value })}
-                                        InputProps={{ readOnly: !isEditing }}
-                                        sx={{ marginBottom: 2 }}
-                                    />
-                                    <TextField
-                                        label="Giới tính"
-                                        fullWidth
-                                        value={userInfo.gender ? "Nam" : "Nữ"}
-                                        InputProps={{ readOnly: true }}
-                                        sx={{
-                                            marginBottom: 2,
-                                            backgroundColor: isEditing ? "#f0f0f0" : "white"
-                                        }}
-                                    />
+                                    <TextField label="Họ và tên" fullWidth value={userInfo.fullName || ""} InputProps={{ readOnly: true }} sx={{ marginBottom: 2 }} />
+                                    <TextField label="Địa chỉ" fullWidth value={isEditing ? editedInfo.address : userInfo.address || ""} onChange={(e) => setEditedInfo({ ...editedInfo, address: e.target.value })} InputProps={{ readOnly: !isEditing }} sx={{ marginBottom: 2 }} />
+                                    <TextField label="Số điện thoại" fullWidth value={isEditing ? editedInfo.phoneNumber : userInfo.phoneNumber || ""} onChange={(e) => setEditedInfo({ ...editedInfo, phoneNumber: e.target.value })} InputProps={{ readOnly: !isEditing }} sx={{ marginBottom: 2 }} />
+                                    <TextField label="Giới tính" fullWidth value={userInfo.gender ? "Nam" : "Nữ"} InputProps={{ readOnly: true }} sx={{ marginBottom: 2 }} />
                                 </Grid>
-
                                 <Grid item xs={12} sm={6}>
-                                    {/* Các thông tin bên phải */}
-                                    <TextField
-                                        label="Tên tài khoản"
-                                        fullWidth
-                                        value={userInfo.account?.userName || ""}
-                                        InputProps={{ readOnly: true }}
-                                        sx={{
-                                            marginBottom: 2,
-                                            backgroundColor: isEditing ? "#f0f0f0" : "white"
-                                        }}
-                                    />
-                                    <TextField
-                                        label="Email"
-                                        fullWidth
-                                        value={userInfo.email || ""}
-                                        InputProps={{ readOnly: true }}
-                                        sx={{
-                                            marginBottom: 2,
-                                            backgroundColor: isEditing ? "#f0f0f0" : "white"
-                                        }}
-                                    />
-                                    <TextField
-                                        label="Vị trí"
-                                        fullWidth
-                                        value={userInfo.account?.role?.nameRoles || "Chưa có thông tin"}
-                                        InputProps={{ readOnly: true }}
-                                        sx={{
-                                            marginBottom: 2,
-                                            backgroundColor: isEditing ? "#f0f0f0" : "white"
-                                        }}
-                                    />
-                                    <TextField
-                                        label="Lương"
-                                        fullWidth
-                                        value={userInfo.salary ? formatCurrency(userInfo.salary) : ""}
-                                        InputProps={{ readOnly: true }}
-                                        sx={{
-                                            marginBottom: 2,
-                                            backgroundColor: isEditing ? "#f0f0f0" : "white"
-                                        }}
-                                    />
+                                    <TextField label="Tên tài khoản" fullWidth value={userInfo.account?.userName || ""} InputProps={{ readOnly: true }} sx={{ marginBottom: 2 }} />
+                                    <TextField label="Email" fullWidth value={userInfo.email || ""} InputProps={{ readOnly: true }} sx={{ marginBottom: 2 }} />
+                                    <TextField label="Vị trí" fullWidth value={userInfo.account?.role?.nameRoles || "Chưa có thông tin"} InputProps={{ readOnly: true }} sx={{ marginBottom: 2 }} />
+                                    <TextField label="Lương" fullWidth value={userInfo.salary ? formatCurrency(userInfo.salary) : ""} InputProps={{ readOnly: true }} sx={{ marginBottom: 2 }} />
                                 </Grid>
                             </Grid>
 
                             {/* Nút bấm */}
                             <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
-                                <Button
-                                    variant="contained"
-                                    onClick={handleEdit}
-                                    sx={{ backgroundColor: themeColor, color: "#fff", "&:hover": { backgroundColor: "#C8964A" } }}
-                                >
+                                <Button variant="contained" onClick={handleEdit} sx={{ backgroundColor: themeColor, color: "#fff", "&:hover": { backgroundColor: "#C8964A" } }}>
                                     Chỉnh sửa
                                 </Button>
-                                <Button
-                                    variant="outlined"
-                                    onClick={handleBack}
-                                    sx={{ borderColor: themeColor, color: themeColor, "&:hover": { borderColor: "#C8964A", color: "#C8964A" } }}
-                                >
+                                <Button variant="outlined" onClick={handleBack} sx={{ borderColor: themeColor, color: themeColor, "&:hover": { borderColor: "#C8964A", color: "#C8964A" } }}>
                                     Quay lại
                                 </Button>
-                                <Button
-                                    variant="contained"
-                                    onClick={handleChangePassword}
-                                    sx={{ backgroundColor: themeColor, color: "#fff", "&:hover": { backgroundColor: "#C8964A" } }}
-                                >
+                                <Button variant="contained" onClick={handleChangePassword} sx={{ backgroundColor: themeColor, color: "#fff", "&:hover": { backgroundColor: "#C8964A" } }}>
                                     Đổi mật khẩu
                                 </Button>
                             </Box>

@@ -33,6 +33,7 @@ function Login() {
     const onSubmit = async (data) => {
         try {
             const result = await login(data.username, data.password);
+            console.log("D liệu: ", result);
             if (result.success) {
                 toast.success("Đăng nhập thành công");
                 const { token, role, username } = result;
@@ -45,7 +46,7 @@ function Login() {
                 if (role === "admin") {
                     navigate("/admin/list");
                 } else if (role === "employ") {
-                    navigate("/information");
+                    navigate("/manager/sale");
                 } else {
                     toast.error("Role không hợp lệ");
                 }

@@ -86,6 +86,7 @@ const updateEmployee = async (id, employee) => {
 };
 const changePassword = async (oldPassword, newPassword) => {
     console.log("Gửi request: ", { oldPassword, newPassword });
+    console.log("Token hiện tại:", localStorage.getItem("token"));
     try {
         const response = await axios.put(`${API_URL}/login/change-password`,
             { oldPassword, newPassword },
