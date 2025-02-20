@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import TableQRCode from "./TableQrCode";
 import { getTableCoffee } from "../service/TableCoffeeService";
+import {Helmet} from "react-helmet-async";
 
 const TableQRCodeList = () => {
     const [tables, setTables] = useState([]);
@@ -14,26 +15,32 @@ const TableQRCodeList = () => {
     }, []);
 
     return (
-        <div style={{ textAlign: "center", marginTop: "20px" }}>
-            <h1>Danh sách QR Code cho các bàn</h1>
-            <div
-                style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    flexWrap: 'wrap',
-                    justifyContent: 'center',
-                    gap: '20px'
-                }}
-            >
-                {tables && tables.length > 0 ? (
-                    tables.map((table) => (
-                        <TableQRCode key={table.id} table={table} />
-                    ))
-                ) : (
-                    <p>Không có dữ liệu bàn</p>
-                )}
+        <>
+            <Helmet>
+                <title>Danh sách QR Code</title>
+            </Helmet>
+            <div style={{textAlign: "center", marginTop: "20px"}}>
+                <h1>Danh sách QR Code cho các bàn</h1>
+                <div
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        flexWrap: 'wrap',
+                        justifyContent: 'center',
+                        gap: '20px'
+                    }}
+                >
+                    {tables && tables.length > 0 ? (
+                        tables.map((table) => (
+                            <TableQRCode key={table.id} table={table}/>
+                        ))
+                    ) : (
+                        <p>Không có dữ liệu bàn</p>
+                    )}
+                </div>
             </div>
-        </div>
+        </>
+
     );
 };
 

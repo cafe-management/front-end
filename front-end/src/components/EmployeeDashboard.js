@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import { styled } from "@mui/material/styles";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
@@ -47,7 +47,7 @@ const EmployeeDashBoard = () => {
     const isMenuOpen = Boolean(anchorEl);
     const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
     const isNotificationMenuOpen = Boolean(notificationAnchorEl);
-
+    const navigate = useNavigate();
     const notificationSound = useMemo(
         () =>
             new Howl({
@@ -107,7 +107,16 @@ const EmployeeDashBoard = () => {
     const handleMobileMenuOpen = (event) => {
         setMobileMoreAnchorEl(event.currentTarget);
     };
-
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        console.log("Role sau khi xóa:", localStorage.getItem("role"));
+        navigate("/login");
+    };
+    const handleAccountInfoClick = () => {
+        handleMenuClose();
+        navigate("/information");
+    };
     // Khi tắt menu thông báo, gọi API đánh dấu đã xem và cập nhật trạng thái trong state
     const handleNotificationMenuClose = async () => {
         setNotificationAnchorEl(null);
@@ -137,8 +146,8 @@ const EmployeeDashBoard = () => {
             open={isMenuOpen}
             onClose={handleMenuClose}
         >
-            <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-            <MenuItem onClick={handleMenuClose}>My account</MenuItem>
+            <MenuItem onClick={handleAccountInfoClick}>Thông Tin Cá Nhân</MenuItem>
+            <MenuItem onClick={handleLogout}>Đăng xuất </MenuItem>
         </Menu>
     );
 
@@ -162,7 +171,7 @@ const EmployeeDashBoard = () => {
                 </IconButton>
                 <p>Notifications</p>
             </MenuItem>
-            <MenuItem onClick={handleProfileMenuOpen}>
+            <MenuItem onClick={handleAccountInfoClick}>
                 <IconButton
                     size="large"
                     aria-controls={menuId}
