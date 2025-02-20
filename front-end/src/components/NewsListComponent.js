@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { getAllNews, deleteNews } from "../service/NewService";
 import { connectWebSocketUser, disconnectWebSocket } from "../service/WebSocketService";
 import {
-    Modal,
     Container,
     Table,
     TableBody,
@@ -20,6 +19,11 @@ import {
     IconButton,
     Pagination,
     CardMedia,
+    Modal,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -38,13 +42,13 @@ const NewsListComponent = () => {
     const itemsPerPage = 5;
     const [openModal, setOpenModal] = useState(false);
     const [selectedNews, setSelectedNews] = useState(null);
+    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const [newsToDelete, setNewsToDelete] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
         fetchNews();
-        connectWebSocketUser(() => {
-            fetchNews();
-        });
+        connectWebSocketUser(fetchNews);
         return () => {
             disconnectWebSocket();
         };
@@ -52,6 +56,7 @@ const NewsListComponent = () => {
 
     const fetchNews = async () => {
         try {
+            setLoading(true);
             const response = await getAllNews();
             let newsData = response.data || response;
             if (Array.isArray(newsData)) {
@@ -84,6 +89,23 @@ const NewsListComponent = () => {
     const handleCloseModal = () => {
         setOpenModal(false);
         setSelectedNews(null);
+    };
+
+    const handleOpenDeleteDialog = (news) => {
+        setNewsToDelete(news);
+        setOpenDeleteDialog(true);
+    };
+
+    const handleCloseDeleteDialog = () => {
+        setOpenDeleteDialog(false);
+        setNewsToDelete(null);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (newsToDelete) {
+            await handleDelete(newsToDelete.id);
+        }
+        handleCloseDeleteDialog();
     };
 
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -159,7 +181,11 @@ const NewsListComponent = () => {
                                         )}
                                     </TableCell>
                                     <TableCell>
-                                        <Typography variant="h6" sx={{ cursor: "pointer" }} onClick={() => handleOpenModal(news)}>
+                                        <Typography
+                                            variant="h6"
+                                            sx={{ cursor: "pointer" }}
+                                            onClick={() => handleOpenModal(news)}
+                                        >
                                             {news.title || "Không có tiêu đề"}
                                         </Typography>
                                     </TableCell>
@@ -168,7 +194,7 @@ const NewsListComponent = () => {
                                         <IconButton color="primary" onClick={() => navigate(`/news/edit/${news.id}`)}>
                                             <EditIcon />
                                         </IconButton>
-                                        <IconButton color="error" onClick={() => handleDelete(news.id)}>
+                                        <IconButton color="error" onClick={() => handleOpenDeleteDialog(news)}>
                                             <DeleteIcon />
                                         </IconButton>
                                     </TableCell>
@@ -177,13 +203,30 @@ const NewsListComponent = () => {
                         </TableBody>
                     </Table>
                 </TableContainer>
-                <Pagination count={Math.ceil(newsList.length / itemsPerPage)} page={currentPage} onChange={(e, value) => setCurrentPage(value)} />
+                <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+                    <Pagination
+                        count={Math.ceil(newsList.length / itemsPerPage)}
+                        page={currentPage}
+                        onChange={(e, value) => setCurrentPage(value)}
+                    />
+                </Box>
 
+                {/* Modal xem chi tiết tin */}
                 <Modal open={openModal} onClose={handleCloseModal}>
-                    <Box sx={{ p: 3, backgroundColor: "white", borderRadius: 2, maxWidth: 600, mx: "auto", mt: 10 }}>
+                    <Box
+                        sx={{
+                            p: 3,
+                            backgroundColor: "white",
+                            borderRadius: 2,
+                            maxWidth: 600,
+                            mx: "auto",
+                            mt: 10,
+                            outline: "none"
+                        }}
+                    >
                         {selectedNews && (
                             <>
-                                <Typography variant="h5">{selectedNews.title}</Typography>
+                                <Typography variant="h5" sx={{ mb: 2 }}>{selectedNews.title}</Typography>
                                 {selectedNews.images?.length > 0 && (
                                     <Slider {...sliderSettings}>
                                         {selectedNews.images.map((image, index) => (
@@ -203,13 +246,36 @@ const NewsListComponent = () => {
                                         ))}
                                     </Slider>
                                 )}
-                                <Box sx={{ maxHeight: 300, overflow: "auto", mt: 2,whiteSpace: "pre-line" }}>
+                                <Box sx={{ maxHeight: 300, overflow: "auto", mt: 2, whiteSpace: "pre-line" }}>
                                     <Typography>{selectedNews.content}</Typography>
+                                </Box>
+                                <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+                                    <Button variant="contained" onClick={handleCloseModal}>
+                                        Đóng
+                                    </Button>
                                 </Box>
                             </>
                         )}
                     </Box>
                 </Modal>
+
+                {/* Modal xác nhận xóa */}
+                <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
+                    <DialogTitle sx={{ fontWeight: "bold", color: "#f57c00" }}>Xác nhận xóa</DialogTitle>
+                    <DialogContent>
+                        <Typography>
+                            Bạn có chắc chắn muốn xóa bài tin <strong>{newsToDelete?.title}</strong> không?
+                        </Typography>
+                    </DialogContent>
+                    <DialogActions sx={{ justifyContent: "flex-end", gap: 2, px: 3, pb: 2 }}>
+                        <Button onClick={handleCloseDeleteDialog} sx={{ backgroundColor: "#b0bec5", color: "black", '&:hover': { backgroundColor: "#90a4ae" } }}>
+                            Hủy
+                        </Button>
+                        <Button onClick={handleDeleteConfirm} color="error" variant="contained">
+                            Xóa
+                        </Button>
+                    </DialogActions>
+                </Dialog>
             </Container>
         </>
     );
