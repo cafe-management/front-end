@@ -85,9 +85,18 @@ export default function EmployeeList() {
                                 </TableHead>
                                 <TableBody>
                                     {loading ? (
-                                        <p>Đang tải...</p>
-                                    )  :
-                                        (employees.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((employee) => (
+                                        <TableRow>
+                                            <TableCell colSpan={7} align="center">
+                                                Đang tải...
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : employees.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={7} align="center">
+                                                Không có nhân viên nào.
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : ( employees.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((employee) => (
                                         <TableRow key={employee.id}>
                                             <TableCell align="center">{employee.id}</TableCell>
                                             <TableCell align="center">{employee.fullName}</TableCell>

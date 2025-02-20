@@ -24,7 +24,7 @@ export default function ChangePassword() {
             const response = await changePassword(currentPassword, newPassword);
             if (response.status === 200) {
                 setSuccess(true);
-                setError(""); 
+                setError("");
                 setTimeout(() => {
                     navigate("/information");
                 }, 2000);
