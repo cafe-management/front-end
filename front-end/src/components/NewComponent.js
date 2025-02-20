@@ -9,7 +9,6 @@ import {
     Button,
     Box,
     Grid,
-    CircularProgress,
     Alert,
     IconButton
 } from "@mui/material";
@@ -19,11 +18,17 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import HeaderAdmin from "../component/admin/HeaderAdmin";
 import { Helmet } from "react-helmet-async";
 
+// Import react-draft-wysiwyg và draft-js
+import { EditorState, convertToRaw } from "draft-js";
+import { Editor } from "react-draft-wysiwyg";
+import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
+
 const primaryColor = "#E7B45A";
 
 const NewsCreateComponent = () => {
     const [title, setTitle] = useState("");
-    const [content, setContent] = useState("");
+    // Sử dụng EditorState của Draft.js cho nội dung
+    const [editorState, setEditorState] = useState(EditorState.createEmpty());
     const [files, setFiles] = useState([]);
     const [previews, setPreviews] = useState([]);
     const [uploading, setUploading] = useState(false);
@@ -71,12 +76,16 @@ const NewsCreateComponent = () => {
                     formData
                 );
                 const { secure_url, public_id } = cloudinaryResponse.data;
-                uploadedImages.push({ img: secure_url, public_id: public_id });
+                uploadedImages.push({ img: secure_url, public_id });
             }
+
+            // Chuyển đổi nội dung từ Draft.js sang JSON
+            const contentState = editorState.getCurrentContent();
+            const rawContent = convertToRaw(contentState);
 
             const newsData = {
                 title,
-                content,
+                content: rawContent, // hoặc chuyển đổi thành HTML nếu backend yêu cầu
                 images: uploadedImages,
             };
 
@@ -84,7 +93,7 @@ const NewsCreateComponent = () => {
 
             setMessage("✅ Tin tức đã được đăng thành công!");
             setTitle("");
-            setContent("");
+            setEditorState(EditorState.createEmpty());
             setFiles([]);
             setPreviews([]);
 
@@ -131,17 +140,31 @@ const NewsCreateComponent = () => {
                             margin="normal"
                             InputLabelProps={{ shrink: true }}
                         />
-                        <TextField
-                            label="📝 Nội dung"
-                            fullWidth
-                            multiline
-                            rows={5}
-                            value={content}
-                            onChange={(e) => setContent(e.target.value)}
-                            required
-                            margin="normal"
-                            InputLabelProps={{ shrink: true }}
-                        />
+
+                        <Box sx={{ border: "1px solid #ccc", borderRadius: 2, p: 2, minHeight: 150, mt: 2 }}>
+                            <Typography variant="subtitle1" sx={{ mb: 1, color: primaryColor }}>
+                                📝 Nội dung
+                            </Typography>
+                            <Editor
+                                editorState={editorState}
+                                onEditorStateChange={setEditorState}
+                                placeholder="Nhập nội dung tin tức..."
+                                toolbar={{
+                                    options: [
+                                        "inline",
+                                        "blockType",
+                                        "fontSize",
+                                        "fontFamily",
+                                        "colorPicker",
+                                        "list",
+                                        "textAlign",
+                                        "link",
+                                        "emoji",
+                                        "history",
+                                    ],
+                                }}
+                            />
+                        </Box>
 
                         <Box display="flex" alignItems="center" mt={2}>
                             <input
