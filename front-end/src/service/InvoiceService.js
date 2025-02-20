@@ -2,6 +2,16 @@
 import axios from "axios";
 import { API_URL_INVOICE } from "../config/apiConfig";
 
+const getAllInvoice = async ()=>{
+    try{
+        const response = await axios.get(API_URL_INVOICE);
+        return response.data;
+    }
+    catch(error){
+        console.error("Error fetching invoices:", error);
+        throw error;
+    }
+}
 
 const createInvoice = async (invoice) => {
     try {
@@ -27,5 +37,6 @@ const assignInvoiceToCart = async (invoiceId, cartId) => {
 
 export {
     createInvoice,
-    assignInvoiceToCart
+    assignInvoiceToCart,
+    getAllInvoice
 };

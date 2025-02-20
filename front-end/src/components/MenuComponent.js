@@ -34,6 +34,7 @@ import Tooltip from "@mui/material/Tooltip";
 import { Client } from '@stomp/stompjs';
 import SockJS from "sockjs-client";
 import{API_URL_SOCKET} from "../config/apiConfig";
+import Header from "../component/home/Header";
 
 
 const MenuComponent = () => {
@@ -399,161 +400,146 @@ const MenuComponent = () => {
 
     return (
         <Box sx={{ backgroundColor: "#f3f4f6", minHeight: "100vh", fontFamily: "sans-serif" }}>
-            <AppBar position="static" elevation={3} sx={{ backgroundColor: "#fff", color: "#000" }}>
-                <Toolbar sx={{ px: { xs: 2, sm: 3 } }}>
+            <Header />
+            {/* Thêm khoảng cách dưới Header */}
+            <Box sx={{ pt: { xs: 10, sm: 12 } }}>
+                <Box
+                    sx={{
+                        position: "sticky",
+                        top: 0,
+                        zIndex: 50,
+                        mb: { xs: 3, sm: 6 },
+                        backgroundColor: "#fff",
+                        pt: { xs: 2, sm: 3 },
+                        pb: { xs: 2, sm: 3 },
+                        px: { xs: 2, sm: 3 },
+                    }}
+                >
                     <Container maxWidth="md">
                         <Typography
-                            variant="h4"
-                            component="h1"
-                            align="center"
+                            variant="h6"
+                            component="h2"
                             sx={{
-                                fontWeight: "bold",
-                                flexGrow: 1,
-                                fontSize: { xs: "1.5rem", sm: "2rem", md: "2.5rem" },
+                                mb: { xs: 1, sm: 2 },
+                                fontWeight: 600,
+                                fontSize: { xs: "1.1rem", sm: "1.25rem" },
+                                textAlign: "left",
                             }}
                         >
-                            {table ? `${table.numberTable}` : "Menu"}
+                            Chọn Danh Mục
                         </Typography>
+                        <Stack
+                            direction="row"
+                            spacing={{ xs: 1, sm: 2 }}
+                            sx={{
+                                overflowX: "auto",
+                                "&::-webkit-scrollbar": { display: "none" },
+                            }}
+                        >
+                            {categories.map((category, index) => {
+                                const isActive = activeCategory?.id === category.id || (!activeCategory && index === 0);
+                                return (
+                                    <Button
+                                        key={category.id}
+                                        onClick={() => setActiveCategory(category)}
+                                        sx={{
+                                            borderRadius: "50px",
+                                            textTransform: "none",
+                                            whiteSpace: "nowrap",
+                                            px: { xs: 1, sm: 1.5 },
+                                            py: { xs: 0.5, sm: 1 },
+                                            fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                                            backgroundColor: isActive ? "#E7B45A" : "rgba(231,180,90,0.3)",
+                                            color: isActive ? "#fff" : "#E7B45A",
+                                            boxShadow: "none",
+                                            "&:hover": {
+                                                backgroundColor: isActive ? "#d6a24e" : "rgba(231,180,90,0.5)",
+                                            },
+                                        }}
+                                    >
+                                        {category.nameCategory}
+                                    </Button>
+                                );
+                            })}
+                        </Stack>
                     </Container>
-                </Toolbar>
-            </AppBar>
+                </Box>
 
-            {/* Phần chọn danh mục */}
-            <Box
-                sx={{
-                    position: "sticky",
-                    top: 0,
-                    zIndex: 50,
-                    mb: { xs: 3, sm: 6 },
-                    backgroundColor: "#fff",
-                    pt: { xs: 2, sm: 3 },
-                    pb: { xs: 2, sm: 3 },
-                    px: { xs: 2, sm: 3 },
-                }}
-            >
-                <Container maxWidth="md">
-                    <Typography
-                        variant="h6"
-                        component="h2"
-                        sx={{
-                            mb: { xs: 1, sm: 2 },
-                            fontWeight: 600,
-                            fontSize: { xs: "1.1rem", sm: "1.25rem" },
-                            textAlign: "left",
-                        }}
-                    >
-                        Chọn Danh Mục
-                    </Typography>
-                    <Stack
-                        direction="row"
-                        spacing={{ xs: 1, sm: 2 }}
-                        sx={{
-                            overflowX: "auto",
-                            "&::-webkit-scrollbar": { display: "none" },
-                        }}
-                    >
-                        {categories.map((category, index) => {
-                            const isActive = activeCategory?.id === category.id || (!activeCategory && index === 0);
-                            return (
-                                <Button
-                                    key={category.id}
-                                    onClick={() => setActiveCategory(category)}
-                                    sx={{
-                                        borderRadius: "50px",
-                                        textTransform: "none",
-                                        whiteSpace: "nowrap",
-                                        px: { xs: 1, sm: 1.5 },
-                                        py: { xs: 0.5, sm: 1 },
-                                        fontSize: { xs: "0.75rem", sm: "0.875rem" },
-                                        backgroundColor: isActive ? "#E7B45A" : "rgba(231,180,90,0.3)",
-                                        color: isActive ? "#fff" : "#E7B45A",
-                                        boxShadow: "none",
-                                        "&:hover": {
-                                            backgroundColor: isActive ? "#d6a24e" : "rgba(231,180,90,0.5)",
-                                        },
-                                    }}
-                                >
-                                    {category.nameCategory}
-                                </Button>
-                            );
-                        })}
-                    </Stack>
-                </Container>
+                {activeCategory && (
+                    <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 6 } }}>
+                        {drinks.length > 0 ? (
+                            <>
+                                <Grid container spacing={2}>
+                                    {drinks.slice(0, visibleCount).map((drink) => (
+                                        <Grid item key={drink.id} xs={6} sm={6} md={4} lg={3}>
+                                            <Card>
+                                                <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
+                                                    <Box sx={{ position: "relative" }}>
+                                                        <img
+                                                            src={getCloudinaryImageUrl(drink.imgDrinks, {
+                                                                width: 300,
+                                                                height: 300,
+                                                                crop: "fill",
+                                                            })}
+                                                            alt={drink.nameDrinks}
+                                                            style={{
+                                                                width: "100%",
+                                                                height: "auto",
+                                                                display: "block",
+                                                                borderRadius: "4px",
+                                                            }}
+                                                        />
+                                                        <IconButton
+                                                            color="primary"
+                                                            aria-label="Thêm vào giỏ hàng"
+                                                            sx={{
+                                                                position: "absolute",
+                                                                top: 8,
+                                                                right: 8,
+                                                                backgroundColor: "rgba(255,255,255,0.8)",
+                                                                "&:hover": { backgroundColor: "rgba(255,255,255,1)" },
+                                                            }}
+                                                            onClick={() => handleAddToCart(drink)}
+                                                        >
+                                                            <AddIcon />
+                                                        </IconButton>
+                                                    </Box>
+                                                    <Typography
+                                                        variant="h6"
+                                                        sx={{
+                                                            fontWeight: "bold",
+                                                            fontSize: { xs: "0.875rem", sm: "1rem" },
+                                                            mt: 1,
+                                                        }}
+                                                    >
+                                                        {drink.nameDrinks}
+                                                    </Typography>
+                                                    <Typography variant="h6" sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}>
+                                                        {formatPrice(drink.price)}
+                                                    </Typography>
+                                                </CardContent>
+                                            </Card>
+                                        </Grid>
+                                    ))}
+                                </Grid>
+                                {visibleCount < drinks.length && (
+                                    <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
+                                        {isLoading ? (
+                                            <CircularProgress />
+                                        ) : (
+                                            <div ref={sentinelRef} style={{ height: "20px" }} />
+                                        )}
+                                    </Box>
+                                )}
+                            </>
+                        ) : (
+                            <Typography variant="body1">Không có đồ uống cho danh mục này.</Typography>
+                        )}
+                    </Container>
+                )}
             </Box>
 
-            {activeCategory && (
-                <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 6 } }}>
-                    {drinks.length > 0 ? (
-                        <>
-                            <Grid container spacing={2}>
-                                {drinks.slice(0, visibleCount).map((drink) => (
-                                    <Grid item key={drink.id} xs={6} sm={6} md={4} lg={3}>
-                                        <Card>
-                                            <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
-                                                <Box sx={{ position: "relative" }}>
-                                                    <img
-                                                        src={getCloudinaryImageUrl(drink.imgDrinks, {
-                                                            width: 300,
-                                                            height: 300,
-                                                            crop: "fill",
-                                                        })}
-                                                        alt={drink.nameDrinks}
-                                                        style={{
-                                                            width: "100%",
-                                                            height: "auto",
-                                                            display: "block",
-                                                            borderRadius: "4px",
-                                                        }}
-                                                    />
-                                                    <IconButton
-                                                        color="primary"
-                                                        aria-label="Thêm vào giỏ hàng"
-                                                        sx={{
-                                                            position: "absolute",
-                                                            top: 8,
-                                                            right: 8,
-                                                            backgroundColor: "rgba(255,255,255,0.8)",
-                                                            "&:hover": { backgroundColor: "rgba(255,255,255,1)" },
-                                                        }}
-                                                        onClick={() => handleAddToCart(drink)}
-                                                    >
-                                                        <AddIcon />
-                                                    </IconButton>
-                                                </Box>
-                                                <Typography
-                                                    variant="h6"
-                                                    sx={{
-                                                        fontWeight: "bold",
-                                                        fontSize: { xs: "0.875rem", sm: "1rem" },
-                                                        mt: 1,
-                                                    }}
-                                                >
-                                                    {drink.nameDrinks}
-                                                </Typography>
-                                                <Typography variant="h6" sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}>
-                                                    {formatPrice(drink.price)}
-                                                </Typography>
-                                            </CardContent>
-                                        </Card>
-                                    </Grid>
-                                ))}
-                            </Grid>
-                            {visibleCount < drinks.length && (
-                                <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
-                                    {isLoading ? (
-                                        <CircularProgress />
-                                    ) : (
-                                        <div ref={sentinelRef} style={{ height: "20px" }} />
-                                    )}
-                                </Box>
-                            )}
-                        </>
-                    ) : (
-                        <Typography variant="body1">Không có đồ uống cho danh mục này.</Typography>
-                    )}
-                </Container>
-            )}
-
+            {/* Phần nút giỏ hàng, đánh giá, thanh toán... */}
             <Box
                 sx={{
                     position: "fixed",
@@ -600,7 +586,7 @@ const MenuComponent = () => {
                 {orderPlaced && (
                     <Tooltip title="Thanh toán">
                         <IconButton
-                            onClick={handlePaymentNotification} // Gọi hàm gửi thông báo qua WebSocket
+                            onClick={handlePaymentNotification}
                             sx={{
                                 bgcolor: "#4caf50",
                                 color: "white",

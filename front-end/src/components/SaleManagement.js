@@ -22,7 +22,7 @@ import {
 } from "@mui/material";
 import { getTableCoffee, updateTableCoffeeStatus } from "../service/TableCoffeeService";
 import { getCartByTableId } from "../service/CartService";
-import { createInvoice, assignInvoiceToCart } from "../service/InvoiceService"; // Import thêm assignInvoiceToCart
+import { createInvoice, assignInvoiceToCart } from "../service/InvoiceService";
 import { toast } from "react-toastify";
 
 const SaleManagement = () => {
@@ -48,12 +48,14 @@ const SaleManagement = () => {
     }, []);
 
     // Khi bàn được chọn, lấy danh sách đơn hàng (carts) theo table id
+    // (Chỉ chạy khi bàn được chọn lần đầu)
     useEffect(() => {
         const fetchCart = async () => {
             if (selectedTable) {
                 try {
                     const cartsData = await getCartByTableId(selectedTable.id);
-                    setCarts(cartsData);
+                    const filteredCarts = cartsData.filter(cart => cart.invoice_id === null);
+                    setCarts(filteredCarts);
                 } catch (err) {
                     console.error("Lỗi khi lấy thông tin cart:", err);
                     setCarts([]);
@@ -63,6 +65,32 @@ const SaleManagement = () => {
             }
         };
         fetchCart();
+    }, [selectedTable]);
+
+    // Polling tự động cập nhật lại dữ liệu (bàn và đơn hàng) khi có thay đổi
+    useEffect(() => {
+        if (selectedTable) {
+            const interval = setInterval(() => {
+                const refreshData = async () => {
+                    try {
+                        // Làm mới danh sách đơn hàng của bàn được chọn
+                        const cartsData = await getCartByTableId(selectedTable.id);
+                        const filteredCarts = cartsData.filter(cart => cart.invoice_id === null);
+                        setCarts(filteredCarts);
+                        // Làm mới thông tin bàn để cập nhật trạng thái mới
+                        const tablesData = await getTableCoffee();
+                        const updatedTable = tablesData.find(table => table.id === selectedTable.id);
+                        if (updatedTable) {
+                            setSelectedTable(updatedTable);
+                        }
+                    } catch (error) {
+                        console.error("Lỗi làm mới dữ liệu:", error);
+                    }
+                };
+                refreshData();
+            }, 3000); // Polling mỗi 3 giây
+            return () => clearInterval(interval);
+        }
     }, [selectedTable]);
 
     // Tự động xoá cảnh báo sau 3 giây
@@ -109,9 +137,8 @@ const SaleManagement = () => {
                 statusTable: 0,
                 token: null,
             });
-            await fetchTables();
+            // Cập nhật trực tiếp state của bàn được chọn
             setSelectedTable(updatedTable);
-            setWarning("");
             toast.success("Bàn đã cập nhật về trạng thái không có người ngồi");
         } catch (error) {
             console.error("Lỗi cập nhật bàn:", error);
@@ -126,9 +153,7 @@ const SaleManagement = () => {
                 statusTable: 2,
                 token: null,
             });
-            await fetchTables();
             setSelectedTable(updatedTable);
-            setWarning("");
             toast.warning("Bàn đã cập nhập về trạng thái bảo trì");
         } catch (error) {
             console.error("Lỗi cập nhật bàn:", error);
@@ -151,7 +176,6 @@ const SaleManagement = () => {
         }
 
         try {
-            // Tạo mã hóa đơn (có thể cải tiến cách tạo mã)
             const codeInvoice = `INV-${Date.now()}`;
             const invoicePayload = {
                 codeInvoice,
@@ -159,26 +183,23 @@ const SaleManagement = () => {
                 datePayment: new Date().toISOString(),
                 statusOrder: true, // Đã thanh toán
                 totalAmount: overallTotal,
-                carts, // Nếu API cần danh sách cart kèm theo invoice
+                carts,
+                user: { id: localStorage.getItem("userId") }
             };
 
-            // Tạo hóa đơn trên server
             const createdInvoice = await createInvoice(invoicePayload);
             console.log("Invoice created:", createdInvoice);
             toast.success(
                 `Thanh toán thành công. Tổng tiền: ${overallTotal.toLocaleString()} đ`
             );
 
-            // Sau khi tạo hóa đơn thành công, gán mã invoice cho từng cart
-            // Giả sử createdInvoice có thuộc tính id
             const invoiceId = createdInvoice.id;
             const assignPromises = carts.map((cart) =>
                 assignInvoiceToCart(invoiceId, cart.id)
             );
-            // Chờ tất cả các request gán invoice hoàn tất
             await Promise.all(assignPromises);
 
-            // Sau khi gán invoice cho các cart, reset danh sách carts
+            // Sau khi thanh toán, reset danh sách carts
             setCarts([]);
         } catch (err) {
             console.error("Error processing payment", err);
@@ -189,6 +210,7 @@ const SaleManagement = () => {
         style: 'currency',
         currency: 'VND'
     });
+
     return (
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             <Typography variant="h4" gutterBottom align="center">

@@ -19,7 +19,6 @@ import { Howl } from "howler";
 import { getAllNotifications, markAllNotificationsAsSeen } from "../service/NotificationService";
 import { API_URL_SOCKET } from "../config/apiConfig";
 
-// Import react-toastify
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -68,7 +67,7 @@ const EmployeeDashBoard = () => {
                     // Giả sử thông báo mới nhận chưa được đọc (seen: false)
                     setNotifications((prev) => [{ ...notification, seen: false }, ...prev]);
                     notificationSound.play();
-                    toast.info("Có thông báo mới!", {
+                    toast.info(notification.content, {
                         position: "bottom-right",
                         autoClose: 5000,
                         hideProgressBar: false,
@@ -112,6 +111,7 @@ const EmployeeDashBoard = () => {
         localStorage.removeItem("role");
         console.log("Role sau khi xóa:", localStorage.getItem("role"));
         navigate("/login");
+
     };
     const handleAccountInfoClick = () => {
         handleMenuClose();
@@ -122,7 +122,6 @@ const EmployeeDashBoard = () => {
         setNotificationAnchorEl(null);
         try {
             await markAllNotificationsAsSeen();
-            // Cập nhật trạng thái "seen" cho tất cả các thông báo
             setNotifications((prev) =>
                 prev.map((notif) => ({ ...notif, seen: true }))
             );

@@ -5,7 +5,7 @@ import { Helmet } from "react-helmet-async";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import {forgotPassword, login} from "../../service/UserService";
+import {forgotPassword, getUserInfo, login} from "../../service/UserService";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useAbility } from "../../Can.js"; // Đảm bảo bạn import useAbility từ Can.js
@@ -37,7 +37,7 @@ function Login() {
             console.log("D liệu: ", result);
             if (result.success) {
                 toast.success("Đăng nhập thành công");
-                const { token, role, username } = result;
+                const { token, role, username} = result;
                 localStorage.setItem("token", token);      // Lưu JWT token
                 localStorage.setItem("role", role);         // Lưu role của người dùng
                 localStorage.setItem("username", username);
@@ -47,7 +47,12 @@ function Login() {
                 if (role === "admin") {
                     navigate("/admin/list");
                 } else if (role === "employ") {
+                    const userInfo = await getUserInfo();
+                    if (userInfo && userInfo.id) {
+                        localStorage.setItem("userId", userInfo.id);
+                    }
                     navigate("/manager/sale");
+                    console.log("role:",localStorage.getItem('userId'));
                 } else {
                     toast.error("Role không hợp lệ");
                 }
