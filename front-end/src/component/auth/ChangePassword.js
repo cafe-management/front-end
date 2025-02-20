@@ -22,11 +22,14 @@ export default function ChangePassword() {
         }
         try {
             const response = await changePassword(currentPassword, newPassword);
-            if (response.success) {
+            if (response.status === 200) {
                 setSuccess(true);
-                setError(""); // Reset lỗi nếu thành công
+                setError(""); 
+                setTimeout(() => {
+                    navigate("/information");
+                }, 2000);
             } else {
-                setError(response.message || "Đổi mật khẩu thất bại.");
+                setError(response.data || "Đổi mật khẩu thất bại.");
             }
         } catch (error) {
             setError("Lỗi khi thay đổi mật khẩu. Vui lòng thử lại.");

@@ -85,7 +85,6 @@ const updateEmployee = async (id, employee) => {
     }
 };
 const changePassword = async (oldPassword, newPassword) => {
-    console.log("Gửi request: ", { oldPassword, newPassword });
     console.log("Token hiện tại:", localStorage.getItem("token"));
     try {
         const response = await axios.put(`${API_URL}/login/change-password`,
@@ -95,7 +94,7 @@ const changePassword = async (oldPassword, newPassword) => {
             }
         );
         console.log("Response từ backend:", response);
-        return response.data;
+        return response;
     } catch (error) {
         console.error("Lỗi khi thay đổi mật khẩu:", error);
         return { success: false, message: error.response?.data?.message || "Có lỗi xảy ra" };
