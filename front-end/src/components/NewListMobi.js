@@ -198,6 +198,7 @@ const NewsListMobi = () => {
                             {selectedNews?.content || "Không có nội dung"}
                         </Typography>
                     </DialogContent>
+
                 </Dialog>
             </Container>
             <Footer />
