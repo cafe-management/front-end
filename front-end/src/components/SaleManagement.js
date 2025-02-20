@@ -24,6 +24,7 @@ import { getTableCoffee, updateTableCoffeeStatus } from "../service/TableCoffeeS
 import { getCartByTableId } from "../service/CartService";
 import { createInvoice, assignInvoiceToCart } from "../service/InvoiceService";
 import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const SaleManagement = () => {
     const [tables, setTables] = useState([]);
@@ -47,14 +48,12 @@ const SaleManagement = () => {
         fetchTables();
     }, []);
 
-    // Khi bàn được chọn, lấy danh sách đơn hàng (carts) theo table id
-    // (Chỉ chạy khi bàn được chọn lần đầu)
     useEffect(() => {
         const fetchCart = async () => {
             if (selectedTable) {
                 try {
                     const cartsData = await getCartByTableId(selectedTable.id);
-                    const filteredCarts = cartsData.filter(cart => cart.invoice_id === null);
+                    const filteredCarts = cartsData.filter((cart) => cart.invoice === null);
                     setCarts(filteredCarts);
                 } catch (err) {
                     console.error("Lỗi khi lấy thông tin cart:", err);
@@ -75,11 +74,11 @@ const SaleManagement = () => {
                     try {
                         // Làm mới danh sách đơn hàng của bàn được chọn
                         const cartsData = await getCartByTableId(selectedTable.id);
-                        const filteredCarts = cartsData.filter(cart => cart.invoice_id === null);
+                        const filteredCarts = cartsData.filter((cart) => cart.invoice === null);
                         setCarts(filteredCarts);
                         // Làm mới thông tin bàn để cập nhật trạng thái mới
                         const tablesData = await getTableCoffee();
-                        const updatedTable = tablesData.find(table => table.id === selectedTable.id);
+                        const updatedTable = tablesData.find((table) => table.id === selectedTable.id);
                         if (updatedTable) {
                             setSelectedTable(updatedTable);
                         }
@@ -184,7 +183,7 @@ const SaleManagement = () => {
                 statusOrder: true, // Đã thanh toán
                 totalAmount: overallTotal,
                 carts,
-                user: { id: localStorage.getItem("userId") }
+                user: { id: localStorage.getItem("userId") },
             };
 
             const createdInvoice = await createInvoice(invoicePayload);
@@ -206,9 +205,9 @@ const SaleManagement = () => {
         }
     };
 
-    const formatter = new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND'
+    const formatter = new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
     });
 
     return (
@@ -232,20 +231,30 @@ const SaleManagement = () => {
                                             key={table.id}
                                             divider
                                             button
-                                            selected={selectedTable && selectedTable.id === table.id}
+                                            selected={
+                                                selectedTable && selectedTable.id === table.id
+                                            }
                                             onClick={() => handleSelectTable(table)}
-                                            sx={{ "&.Mui-selected": { backgroundColor: "#e0f7fa" } }}
+                                            sx={{
+                                                "&.Mui-selected": { backgroundColor: "#e0f7fa" },
+                                            }}
                                         >
                                             <ListItemText
                                                 primary={`Bàn số: ${table.numberTable}`}
-                                                secondary={`Trạng thái: ${getStatusText(table.statusTable)}`}
+                                                secondary={`Trạng thái: ${getStatusText(
+                                                    table.statusTable
+                                                )}`}
                                             />
                                         </ListItem>
                                     ))}
                                 </List>
                             ) : (
                                 !error && (
-                                    <Box display="flex" justifyContent="center" alignItems="center">
+                                    <Box
+                                        display="flex"
+                                        justifyContent="center"
+                                        alignItems="center"
+                                    >
                                         <CircularProgress />
                                     </Box>
                                 )
@@ -275,7 +284,9 @@ const SaleManagement = () => {
                                             <TableRow>
                                                 <TableCell>{selectedTable.id}</TableCell>
                                                 <TableCell>{selectedTable.numberTable}</TableCell>
-                                                <TableCell>{getStatusText(selectedTable.statusTable)}</TableCell>
+                                                <TableCell>
+                                                    {getStatusText(selectedTable.statusTable)}
+                                                </TableCell>
                                             </TableRow>
                                         </TableBody>
                                     </Table>
@@ -285,10 +296,18 @@ const SaleManagement = () => {
                                         </Alert>
                                     )}
                                     <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
-                                        <Button variant="contained" color="primary" onClick={handleResetStatus}>
+                                        <Button
+                                            variant="contained"
+                                            color="primary"
+                                            onClick={handleResetStatus}
+                                        >
                                             Đặt lại trạng thái
                                         </Button>
-                                        <Button variant="contained" color="warning" onClick={handleMaintenanceStatus}>
+                                        <Button
+                                            variant="contained"
+                                            color="warning"
+                                            onClick={handleMaintenanceStatus}
+                                        >
                                             Bảo trì
                                         </Button>
                                     </Stack>
