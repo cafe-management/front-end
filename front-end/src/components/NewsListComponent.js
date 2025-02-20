@@ -18,43 +18,47 @@ import {
     Button,
     Paper,
     IconButton,
-    Snackbar,
     Pagination,
     CardMedia,
-    Grid
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import CloseIcon from "@mui/icons-material/Close";
-import {Helmet} from "react-helmet-async";
+import { Helmet } from "react-helmet-async";
 import HeaderAdmin from "../component/admin/HeaderAdmin";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 const NewsListComponent = () => {
     const [newsList, setNewsList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [notification, setNotification] = useState({ open: false, message: "" });
-
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [showDetailModal, setShowDetailModal] = useState(false);
-    const [selectedNews, setSelectedNews] = useState(null);
-
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
-
+    const [openModal, setOpenModal] = useState(false);
+    const [selectedNews, setSelectedNews] = useState(null);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        fetchNews();
+        connectWebSocketUser(() => {
+            fetchNews();
+        });
+        return () => {
+            disconnectWebSocket();
+        };
+    }, []);
 
     const fetchNews = async () => {
         try {
             const response = await getAllNews();
-            let newsData = response.data ? response.data : response;
-
+            let newsData = response.data || response;
             if (Array.isArray(newsData)) {
                 newsData = newsData.sort((a, b) => new Date(b.dateNews) - new Date(a.dateNews));
                 setNewsList(newsData);
             } else {
-                setError("Dữ liệu trả về không đúng định dạng.");
+                setError("Dữ liệu không đúng định dạng.");
             }
         } catch (err) {
             setError("Có lỗi xảy ra khi tải tin tức.");
@@ -63,52 +67,22 @@ const NewsListComponent = () => {
         }
     };
 
-    useEffect(() => {
-        const userRole = localStorage.getItem("role"); // Hoặc lấy từ context nếu có
-        if (userRole !== "admin") {
-            navigate("/login"); // Điều hướng về trang đăng nhập nếu không phải admin
-        } else {
-            fetchNews();
-            connectWebSocketUser(() => {
-                setNotification({ open: true, message: "🆕 Tin tức mới đã được cập nhật!" });
-                fetchNews();
-            });
+    const handleDelete = async (id) => {
+        try {
+            await deleteNews(id);
+            setNewsList((prev) => prev.filter((news) => news.id !== id));
+        } catch (err) {
+            alert("Xóa bài tin thất bại.");
         }
+    };
 
-        return () => {
-            disconnectWebSocket();
-        };
-    }, []);
-
-    const handleShowDeleteModal = (news) => {
+    const handleOpenModal = (news) => {
         setSelectedNews(news);
-        setShowDeleteModal(true);
+        setOpenModal(true);
     };
 
-    const handleCloseDeleteModal = () => {
-        setShowDeleteModal(false);
-        setSelectedNews(null);
-    };
-
-    const handleDeleteConfirm = async () => {
-        if (selectedNews) {
-            try {
-                await deleteNews(selectedNews.id);
-                setNewsList((prevNews) => prevNews.filter((news) => news.id !== selectedNews.id));
-            } catch (err) {
-                alert("Xóa bài tin thất bại.");
-            }
-        }
-        handleCloseDeleteModal();
-    };
-
-    const handleShowDetailModal = (news) => {
-        setSelectedNews(news);
-        setShowDetailModal(true);
-    };
-
-    const handleCloseDetailModal = () => {
-        setShowDetailModal(false);
+    const handleCloseModal = () => {
+        setOpenModal(false);
         setSelectedNews(null);
     };
 
@@ -131,111 +105,112 @@ const NewsListComponent = () => {
             </Container>
         );
     }
+
+    const sliderSettings = {
+        dots: true,
+        infinite: true,
+        speed: 500,
+        slidesToShow: 1,
+        slidesToScroll: 1,
+        adaptiveHeight: true,
+    };
+
     return (
         <>
             <Helmet>
                 <title>Quản lý tin tức</title>
             </Helmet>
-            <HeaderAdmin/>
-        <Container maxWidth="lg" sx={{ mt: 10 }}>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                    📰 Danh sách tin tức
-                </Typography>
-                <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    sx={{ backgroundColor: "#1976D2", "&:hover": { backgroundColor: "#1565C0" } }}
-                    onClick={() => navigate("/news/create")}
-                >
-                    Thêm bài mới
-                </Button>
-            </Box>
-
-            <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell align="center">Hình ảnh</TableCell>
-                            <TableCell>Tiêu đề</TableCell>
-                            <TableCell>Ngày đăng</TableCell>
-                            <TableCell align="center">Hành động</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {currentNewsList.map((news) => (
-                            <TableRow key={news.id} sx={{ "&:hover": { backgroundColor: "#f5f5f5" } }}>
-                                <TableCell align="center">
-                                    {news.images?.length > 0 ? (
-                                        <img src={news.images[0].img} alt={news.title} style={{ width: 80, height: 80, borderRadius: 8 }} />
-                                    ) : (
-                                        <Typography color="textSecondary">Không có ảnh</Typography>
-                                    )}
-                                </TableCell>
-                                <TableCell>
-                                    <Typography
-                                        variant="h6"
-                                        sx={{
-                                            textDecoration: "none",
-                                            color: "black",
-                                            fontWeight: "bold",
-                                            "&:hover": { color: "#1976D2", cursor: "pointer" }
-                                        }}
-                                        onClick={() => handleShowDetailModal(news)}
-                                    >
-                                        {news.title || "Không có tiêu đề"}
-                                    </Typography>
-                                </TableCell>
-
-                                <TableCell>{new Date(news.dateNews).toLocaleString()}</TableCell>
-                                <TableCell align="center">
-                                    <IconButton color="primary" onClick={() => navigate(`/news/edit/${news.id}`)}>
-                                        <EditIcon />
-                                    </IconButton>
-                                    <IconButton color="error" onClick={() => handleShowDeleteModal(news)}>
-                                        <DeleteIcon />
-                                    </IconButton>
-                                </TableCell>
+            <HeaderAdmin />
+            <Container maxWidth="lg" sx={{ mt: 10 }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+                    <Typography variant="h4" sx={{ fontWeight: "bold" }}>📰 Danh sách tin tức</Typography>
+                    <Button
+                        variant="contained"
+                        sx={{ backgroundColor: "#FFC107", color: "black", '&:hover': { backgroundColor: "#FFA000" } }}
+                        startIcon={<AddIcon />}
+                        onClick={() => navigate("/news/create")}
+                    >
+                        Thêm bài mới
+                    </Button>
+                </Box>
+                <TableContainer component={Paper} sx={{ borderRadius: 2, overflow: "hidden" }}>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell align="center">Hình ảnh</TableCell>
+                                <TableCell>Tiêu đề</TableCell>
+                                <TableCell>Ngày đăng</TableCell>
+                                <TableCell align="center">Hành động</TableCell>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+                        </TableHead>
+                        <TableBody>
+                            {currentNewsList.map((news) => (
+                                <TableRow key={news.id}>
+                                    <TableCell align="center">
+                                        {news.images?.length > 0 ? (
+                                            <CardMedia
+                                                component="img"
+                                                image={news.images[0].img}
+                                                alt={news.title}
+                                                sx={{ width: 80, height: 80, objectFit: "cover", borderRadius: 1 }}
+                                            />
+                                        ) : (
+                                            "Không có ảnh"
+                                        )}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Typography variant="h6" sx={{ cursor: "pointer" }} onClick={() => handleOpenModal(news)}>
+                                            {news.title || "Không có tiêu đề"}
+                                        </Typography>
+                                    </TableCell>
+                                    <TableCell>{new Date(news.dateNews).toLocaleString()}</TableCell>
+                                    <TableCell align="center">
+                                        <IconButton color="primary" onClick={() => navigate(`/news/edit/${news.id}`)}>
+                                            <EditIcon />
+                                        </IconButton>
+                                        <IconButton color="error" onClick={() => handleDelete(news.id)}>
+                                            <DeleteIcon />
+                                        </IconButton>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+                <Pagination count={Math.ceil(newsList.length / itemsPerPage)} page={currentPage} onChange={(e, value) => setCurrentPage(value)} />
 
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-                <Pagination count={Math.ceil(newsList.length / itemsPerPage)} page={currentPage} onChange={(event, value) => setCurrentPage(value)} color="primary" />
-            </Box>
-
-            <Snackbar open={notification.open} autoHideDuration={4000} onClose={() => setNotification({ open: false, message: "" })} message={notification.message} />
-
-            {/* Detail Modal */}
-            <Modal open={showDetailModal} onClose={handleCloseDetailModal}>
-                <Box sx={{ p: 4, bgcolor: "background.paper", borderRadius: 2, width: "50%", margin: "auto", mt: 10, maxHeight: "80vh", overflowY: "auto" }}>
-                    <Typography variant="h5">{selectedNews?.title}</Typography>
-                    <Typography variant="caption" color="textSecondary">🕒 {new Date(selectedNews?.dateNews).toLocaleString()}</Typography>
-                    <Grid container spacing={2} sx={{ mt: 2, overflowX: "auto" }}>
-                        {selectedNews?.images?.map((img, index) => (
-                            <Grid item xs={4} key={index}>
-                                <CardMedia component="img" height="150" image={img.img} alt="News Image" sx={{ borderRadius: 2, objectFit: "contain" }} />
-                            </Grid>
-                        ))}
-                    </Grid>
-                    <Typography variant="body1" sx={{ mt: 2 }}>{selectedNews?.content}</Typography>
-                    <Button onClick={handleCloseDetailModal} sx={{ mt: 2 }} startIcon={<CloseIcon />}>Đóng</Button>
-                </Box>
-            </Modal>
-
-            <Modal open={showDeleteModal} onClose={handleCloseDeleteModal}>
-                <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', p: 4, borderRadius: 2 }}>
-                    <Typography variant="h6">⚠️ Xác nhận xóa</Typography>
-                    <Typography sx={{ mt: 2 }}>Bạn có chắc chắn muốn xóa bài tin "{selectedNews?.title}" không?</Typography>
-                    <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
-                        <Button variant="contained" color="secondary" onClick={handleCloseDeleteModal}>Hủy</Button>
-                        <Button variant="contained" color="error" sx={{ ml: 2 }} onClick={handleDeleteConfirm}>Xóa</Button>
+                <Modal open={openModal} onClose={handleCloseModal}>
+                    <Box sx={{ p: 3, backgroundColor: "white", borderRadius: 2, maxWidth: 600, mx: "auto", mt: 10 }}>
+                        {selectedNews && (
+                            <>
+                                <Typography variant="h5">{selectedNews.title}</Typography>
+                                {selectedNews.images?.length > 0 && (
+                                    <Slider {...sliderSettings}>
+                                        {selectedNews.images.map((image, index) => (
+                                            <Box key={index} sx={{ display: "flex", justifyContent: "center" }}>
+                                                <CardMedia
+                                                    component="img"
+                                                    image={image.img}
+                                                    alt={selectedNews.title}
+                                                    sx={{
+                                                        width: "100%",
+                                                        height: 300,
+                                                        objectFit: "cover",
+                                                        borderRadius: 2,
+                                                    }}
+                                                />
+                                            </Box>
+                                        ))}
+                                    </Slider>
+                                )}
+                                <Box sx={{ maxHeight: 300, overflow: "auto", mt: 2 }}>
+                                    <Typography>{selectedNews.content}</Typography>
+                                </Box>
+                            </>
+                        )}
                     </Box>
-                </Box>
-            </Modal>
-        </Container>
+                </Modal>
+            </Container>
         </>
     );
 };
