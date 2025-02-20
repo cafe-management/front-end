@@ -21,6 +21,7 @@ import DashBoardFeedback from "./Navbar/DashBoardFeedBack";
 import EmployeeDashBoard from "./components/EmployeeDashboard";
 import DashBoardSale from "./Navbar/DashBoardSale";
 import NewsListMobi from "./components/NewListMobi";
+import InvoiceComponent from "./components/InvoiceComponent";
 function App() {
 
     return (
@@ -45,6 +46,7 @@ function App() {
                     <Route path="/news/create" element={<NewComponent />} />
                     <Route path="/news/edit/:id" element={<NewsUpdateComponent />} />
                     <Route path="/home/news" element={<NewsListMobi/>}/>
+                    <Route path="/invoice" element={<InvoiceComponent/>} />
                 </Routes>
             </BrowserRouter>
             <ToastContainer/>
