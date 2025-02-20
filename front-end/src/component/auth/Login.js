@@ -46,7 +46,7 @@ function Login() {
                 if (role === "admin") {
                     navigate("/admin/list");
                 } else if (role === "employ") {
-                    navigate("/information");
+                    navigate("/manager/sale");
                 } else {
                     toast.error("Role không hợp lệ");
                 }
