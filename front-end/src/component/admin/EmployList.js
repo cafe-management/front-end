@@ -11,7 +11,7 @@ export default function EmployeeList() {
     const [employees, setEmployees] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
-    const [ setLoading] = useState(true);
+    const [ loading, setLoading] = useState(true);
     useEffect(() => {
         const role = localStorage.getItem("role");
         if (role !== "admin") {
@@ -71,12 +71,8 @@ export default function EmployeeList() {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {employees.length === 0 ? (
-                                            <TableRow>
-                                                <TableCell colSpan={7} align="center">
-                                                    Không có nhân viên
-                                                </TableCell>
-                                            </TableRow>
+                                    {loading ? (
+                                            <p>Loading</p>
                                         ) :
                                         (employees.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((employee) => (
                                         <TableRow key={employee.id}>

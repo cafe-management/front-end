@@ -6,9 +6,6 @@ import {BrowserRouter, Route, Routes} from "react-router-dom";
 import MenuComponent from "./components/MenuComponent";
 import AboutUs from "./component/home/Introduction";
 import TableQRCodeList from "./components/TableQRCodeList";
-import EmployeeDashboard from "./components/EmployeeDashboard";
-import FeedBackManagement from "./components/FeedBackManagement";
-import SaleManagement from "./components/SaleManagement";
 import Login from "./component/auth/Login";
 import Register from "./component/auth/Register";
 import EmployList from "./component/admin/EmployList";
@@ -16,22 +13,16 @@ import {ToastContainer} from "react-toastify";
 import AccountInfo from "./component/auth/Information";
 import ChangePassword from "./component/auth/ChangePassword";
 import {HelmetProvider} from "react-helmet-async";
-import NewsCreateComponent from "./components/NewComponent";
 import {AbilityProvider} from "./Can";
-import Navbar from "./components/EmployeeDashboard";
 import NewsListComponent from "./components/NewsListComponent";
 import NewsUpdateComponent from "./components/NewsUpdateComponent";
 import NewComponent from "./components/NewComponent";
 import DashBoardFeedback from "./Navbar/DashBoardFeedBack";
 import EmployeeDashBoard from "./components/EmployeeDashboard";
 import DashBoardSale from "./Navbar/DashBoardSale";
-import {Ability} from "@casl/ability";
-import {useState} from "react";
-import { AbilityContext } from "./Can";
 import NewsListMobi from "./components/NewListMobi";
-const ability = new Ability([]);
 function App() {
-    const [currentAbility, setCurrentAbility] = useState(ability);
+
     return (
         <HelmetProvider>
         <div className="App">
