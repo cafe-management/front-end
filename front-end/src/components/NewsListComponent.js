@@ -203,7 +203,7 @@ const NewsListComponent = () => {
                                         ))}
                                     </Slider>
                                 )}
-                                <Box sx={{ maxHeight: 300, overflow: "auto", mt: 2 }}>
+                                <Box sx={{ maxHeight: 300, overflow: "auto", mt: 2,whiteSpace: "pre-line" }}>
                                     <Typography>{selectedNews.content}</Typography>
                                 </Box>
                             </>
