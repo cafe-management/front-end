@@ -94,7 +94,7 @@ const changePassword = async (oldPassword, newPassword) => {
             }
         );
         console.log("Response từ backend:", response);
-        return response.data;
+        return response;
     } catch (error) {
         console.error("Lỗi khi thay đổi mật khẩu:", error);
         return { success: false, message: error.response?.data?.message || "Có lỗi xảy ra" };

@@ -24,7 +24,10 @@ export default function ChangePassword() {
             const response = await changePassword(currentPassword, newPassword);
             if (response.status === 200) {
                 setSuccess(true);
-                setError(""); // Reset lỗi nếu thành công
+                setError(""); 
+                setTimeout(() => {
+                    navigate("/information");
+                }, 2000);
             } else {
                 setError(response.data || "Đổi mật khẩu thất bại.");
             }
