@@ -155,8 +155,15 @@ const NewsListComponent = () => {
                         mb: 3,
                     }}
                 >
-                    <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                        📰 Danh sách tin tức
+                    <Typography
+                        variant="h5"
+                        sx={{
+                            fontWeight: "bold",
+                            flexGrow: 1,
+                            textAlign: "center",
+                        }}
+                    >
+                        Danh sách tin tức
                     </Typography>
                     <Button
                         variant="contained"
@@ -165,7 +172,6 @@ const NewsListComponent = () => {
                             color: "black",
                             "&:hover": { backgroundColor: "#FFA000" },
                         }}
-                        startIcon={<AddIcon />}
                         onClick={() => navigate("/news/create")}
                     >
                         Thêm bài mới
@@ -211,22 +217,33 @@ const NewsListComponent = () => {
                                         </Typography>
                                     </TableCell>
                                     <TableCell>
-                                        {new Date(news.dateNews).toLocaleString()}
+                                        {new Date(news.dateNews).toLocaleString("vi-VN", { hour12: false })}
                                     </TableCell>
                                     <TableCell align="center">
-                                        <IconButton
-                                            color="primary"
-                                            onClick={() => navigate(`/news/edit/${news.id}`)}
-                                        >
-                                            <EditIcon />
-                                        </IconButton>
-                                        <IconButton
-                                            color="error"
-                                            onClick={() => handleOpenDeleteDialog(news)}
-                                        >
-                                            <DeleteIcon />
-                                        </IconButton>
+                                        <Box display="flex" justifyContent="center" gap={1}>
+                                            <Button
+                                                variant="contained"
+                                                color="primary"
+                                                size="small"
+                                                onClick={() => navigate(`/news/edit/${news.id}`)}
+                                                sx={{ fontSize: '0.875rem' }}  // Giảm kích thước font nếu cần
+                                            >
+                                               sửa
+                                            </Button>
+                                            <Button
+                                                variant="contained"
+                                                color="error"
+                                                size="small"  // Giảm kích thước nút
+                                                onClick={() => handleOpenDeleteDialog(news)}
+                                                sx={{ fontSize: '0.875rem' }}  // Giảm kích thước font nếu cần
+                                            >
+                                                Xóa
+                                            </Button>
+                                        </Box>
                                     </TableCell>
+
+
+
                                 </TableRow>
                             ))}
                         </TableBody>
