@@ -28,10 +28,15 @@ function EmployeeManagementHeader() {
         navigate("/chart");
     }
 
+    const handleGotoDrink =()=>{
+        navigate("/admin/menu");
+    }
+
     const isEmployeeListActive = location.pathname === "/admin/list";
     const isAddEmployeeActive = location.pathname === "/admin/register";
     const isNewsListActive = location.pathname === "/news";
     const isChartActive = location.pathname === "/chart";
+    const isDrinkActive = location.pathname === "/admin/menu";
     return (
         <AppBar  position="fixed" sx={{ backgroundColor: "#333",width: "100%", boxShadow: "none" }}>
             <Toolbar sx={{ display: "flex", justifyContent: "flex-end", width: "100%", maxWidth: "1200px", margin: "0 auto" }}>
@@ -108,6 +113,24 @@ function EmployeeManagementHeader() {
                         onClick={handleGotoChart}
                     >
                         Quản lý Danh Thu
+                    </Button>
+                    <Button
+                        color={isDrinkActive ? "primary" : "inherit"} // Đổi màu nếu đang ở trang thêm nhân viên
+                        sx={{
+                            fontWeight: "bold",
+                            padding: "8px 16px",
+                            backgroundColor: isDrinkActive ? "#E7B45A" : "transparent",
+                            color: isDrinkActive ? "#fff" : "white",
+                            boxShadow: isDrinkActive ? "0px 4px 10px rgba(231, 180, 90, 0.6)" : "none",
+                            "&:hover": {
+                                backgroundColor: "#E7B45A",
+                                color: "#fff",
+                                boxShadow: "0px 6px 12px rgba(231, 180, 90, 0.8)",
+                            },
+                        }}
+                        onClick={handleGotoDrink}
+                    >
+                        Quản lý Đồ Uống
                     </Button>
                     <Button
                         color="inherit"
