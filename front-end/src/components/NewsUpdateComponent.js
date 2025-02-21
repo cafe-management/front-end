@@ -141,9 +141,9 @@ const NewsUpdateComponent = () => {
             setNewImagePreviews([]);
 
             // Chuyển hướng sau vài giây
-            // setTimeout(() => {
-            //     navigate("/news");
-            // }, 2000);
+            setTimeout(() => {
+                navigate("/news");
+            }, 2000);
         } catch (err) {
             console.error("Error updating news:", err);
             setError("Cập nhật bài tin thất bại.");
