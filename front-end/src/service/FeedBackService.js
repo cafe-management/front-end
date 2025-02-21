@@ -3,16 +3,17 @@ import{API_URL_FEEDBACK} from "../config/apiConfig";
 
 const API_URL = API_URL_FEEDBACK;
 
-const getFeedback = async ()=>{
-    try{
-        const response = await axios.get(API_URL);
+const getFeedback = async (page = 0, size = 10) => {
+    try {
+        const response = await axios.get(API_URL, {
+            params: { page, size }
+        });
         return response.data;
-    }
-    catch(error){
+    } catch (error) {
         console.error("Error fetching feedback:", error);
         throw error;
     }
-}
+};
 
 const getFeedbackById = async (id)=>{
     try{
@@ -57,14 +58,16 @@ const deleteFeedback = async (id) => {
     }
 };
 
-const searchFeedbackByDate = async (date) => {
+const searchFeedbackByDate = async (date, page = 0, size = 10) => {
     try {
-        const response = await axios.get(`${API_URL}/search?date=${date}`);
+        const response = await axios.get(`${API_URL}/search`, {
+            params: { date, page, size }
+        });
         return response.data;
     } catch (error) {
         console.error("Error searching feedback by date:", error);
         throw error;
     }
-}
+};
 
 export { getFeedback, getFeedbackById, createFeedback, updateFeedback, deleteFeedback,searchFeedbackByDate};
