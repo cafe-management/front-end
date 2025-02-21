@@ -42,3 +42,10 @@ export const uploadImageToCloudinary = async (imageFile) => {
         throw error;
     }
 };
+
+export const uploadImageAndGetUrl = async (imageFile, options = {}) => {
+    // Upload ảnh và nhận về public_id
+    const publicId = await uploadImageToCloudinary(imageFile);
+    // Sử dụng hàm getCloudinaryImageUrl để chuyển đổi public_id thành URL (có thể áp dụng các tùy chọn chuyển đổi nếu cần)
+    return getCloudinaryImageUrl(publicId, options);
+};

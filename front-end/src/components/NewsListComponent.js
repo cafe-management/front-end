@@ -172,6 +172,7 @@ const NewsListComponent = () => {
                             color: "black",
                             "&:hover": { backgroundColor: "#FFA000" },
                         }}
+                        startIcon={<AddIcon />}
                         onClick={() => navigate("/news/create")}
                     >
                         Thêm bài mới
@@ -217,7 +218,7 @@ const NewsListComponent = () => {
                                         </Typography>
                                     </TableCell>
                                     <TableCell>
-                                        {new Date(news.dateNews).toLocaleString("vi-VN", { hour12: false })}
+                                        {new Date(news.dateNews).toLocaleString()}
                                     </TableCell>
                                     <TableCell align="center">
                                         <Box display="flex" justifyContent="center" gap={1}>
