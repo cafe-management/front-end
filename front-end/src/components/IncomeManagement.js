@@ -10,9 +10,9 @@ import {
     Grid,
     ToggleButton,
     ToggleButtonGroup,
-    Grow
+    Grow,
 } from "@mui/material";
-import { Bar, Pie } from "react-chartjs-2";
+import { Bar } from "react-chartjs-2";
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -23,6 +23,7 @@ import {
     Tooltip,
     Legend,
 } from "chart.js";
+import HeaderAdmin from "../component/admin/HeaderAdmin";
 
 // Đăng ký các thành phần của ChartJS
 ChartJS.register(
@@ -36,15 +37,14 @@ ChartJS.register(
 );
 
 const IncomeManagement = () => {
-    // Các state và logic như cũ...
     const [invoices, setInvoices] = useState([]);
     const [error, setError] = useState(null);
-    const [chartType, setChartType] = useState("bar");
     const [timeFrame, setTimeFrame] = useState("week");
     const [revenueByDay, setRevenueByDay] = useState(0);
     const [revenueByWeek, setRevenueByWeek] = useState(0);
     const [revenueByMonth, setRevenueByMonth] = useState(0);
     const [revenueByYear, setRevenueByYear] = useState(0);
+    const [totalRevenue, setTotalRevenue] = useState(0);
 
     const currencyFormatter = new Intl.NumberFormat("vi-VN", {
         style: "currency",
@@ -56,7 +56,11 @@ const IncomeManagement = () => {
             try {
                 const data = await getAllInvoice();
                 setInvoices(data);
-                let dayTotal = 0, weekTotal = 0, monthTotal = 0, yearTotal = 0;
+                let dayTotal = 0,
+                    weekTotal = 0,
+                    monthTotal = 0,
+                    yearTotal = 0,
+                    total = 0;
                 const now = new Date();
                 const todayStr = now.toDateString();
                 const weekStart = new Date(now);
@@ -67,6 +71,7 @@ const IncomeManagement = () => {
                 data.forEach((invoice) => {
                     const invoiceDate = new Date(invoice.dateCreate);
                     const amount = parseFloat(invoice.totalAmount) || 0;
+                    total += amount;
                     if (invoiceDate.toDateString() === todayStr) {
                         dayTotal += amount;
                     }
@@ -87,6 +92,7 @@ const IncomeManagement = () => {
                 setRevenueByWeek(weekTotal);
                 setRevenueByMonth(monthTotal);
                 setRevenueByYear(yearTotal);
+                setTotalRevenue(total);
             } catch (err) {
                 console.error("Lỗi khi lấy dữ liệu hóa đơn:", err);
                 setError(err);
@@ -96,9 +102,8 @@ const IncomeManagement = () => {
         fetchInvoices();
     }, []);
 
-    // Hàm tổng hợp dữ liệu cho biểu đồ
+    // Hàm tổng hợp dữ liệu cho biểu đồ cột
     const getChartData = (timeFrame) => {
-        // Logic tính dữ liệu cho biểu đồ như cũ...
         const now = new Date();
         let labels = [];
         let dataPoints = [];
@@ -198,12 +203,6 @@ const IncomeManagement = () => {
         },
     };
 
-    const handleChartTypeChange = (event, newType) => {
-        if (newType !== null) {
-            setChartType(newType);
-        }
-    };
-
     const handleTimeFrameChange = (event, newTimeFrame) => {
         if (newTimeFrame !== null) {
             setTimeFrame(newTimeFrame);
@@ -211,141 +210,150 @@ const IncomeManagement = () => {
     };
 
     return (
-        <Container maxWidth="lg" sx={{ mt: 4 }}>
-            <Typography variant="h4" align="center" gutterBottom>
-                Quản Lý Doanh Thu
-            </Typography>
-            {error ? (
-                <Alert severity="error">Lỗi: {error.message}</Alert>
-            ) : (
-                <Box sx={{ mt: 2 }}>
-                    <Grid container spacing={4}>
-                        {/* Các Card hiển thị tổng doanh thu */}
-                        <Grid item xs={12} md={4}>
-                            <Grid container spacing={2} direction="column">
-                                <Grow in timeout={500}>
-                                    <Grid item>
-                                        <Card sx={{ transition: "transform 0.3s", "&:hover": { transform: "scale(1.03)" } }}>
-                                            <CardContent>
-                                                <Typography variant="h6" align="center">
-                                                    Hôm Nay
-                                                </Typography>
-                                                <Typography variant="body1" align="center">
-                                                    {currencyFormatter.format(revenueByDay)}
-                                                </Typography>
-                                            </CardContent>
-                                        </Card>
-                                    </Grid>
-                                </Grow>
-                                <Grow in timeout={600}>
-                                    <Grid item>
-                                        <Card sx={{ transition: "transform 0.3s", "&:hover": { transform: "scale(1.03)" } }}>
-                                            <CardContent>
-                                                <Typography variant="h6" align="center">
-                                                    Tuần Này
-                                                </Typography>
-                                                <Typography variant="body1" align="center">
-                                                    {currencyFormatter.format(revenueByWeek)}
-                                                </Typography>
-                                            </CardContent>
-                                        </Card>
-                                    </Grid>
-                                </Grow>
-                                <Grow in timeout={700}>
-                                    <Grid item>
-                                        <Card sx={{ transition: "transform 0.3s", "&:hover": { transform: "scale(1.03)" } }}>
-                                            <CardContent>
-                                                <Typography variant="h6" align="center">
-                                                    Tháng Này
-                                                </Typography>
-                                                <Typography variant="body1" align="center">
-                                                    {currencyFormatter.format(revenueByMonth)}
-                                                </Typography>
-                                            </CardContent>
-                                        </Card>
-                                    </Grid>
-                                </Grow>
-                                <Grow in timeout={800}>
-                                    <Grid item>
-                                        <Card sx={{ transition: "transform 0.3s", "&:hover": { transform: "scale(1.03)" } }}>
-                                            <CardContent>
-                                                <Typography variant="h6" align="center">
-                                                    Năm Này
-                                                </Typography>
-                                                <Typography variant="body1" align="center">
-                                                    {currencyFormatter.format(revenueByYear)}
-                                                </Typography>
-                                            </CardContent>
-                                        </Card>
-                                    </Grid>
-                                </Grow>
+        <>
+            <HeaderAdmin />
+            <Container maxWidth="lg" sx={{ mt: "80px" }}>
+                <Typography variant="h4" align="center" gutterBottom>
+                    Quản Lý Doanh Thu
+                </Typography>
+                {error ? (
+                    <Alert severity="error">Lỗi: {error.message}</Alert>
+                ) : (
+                    <Box sx={{ mt: 2 }}>
+                        <Grid container spacing={4}>
+                            {/* Các Card hiển thị tổng doanh thu */}
+                            <Grid item xs={12} md={4}>
+                                <Grid container spacing={2} direction="column">
+                                    <Grow in timeout={400}>
+                                        <Grid item>
+                                            <Card
+                                                sx={{
+                                                    transition: "transform 0.3s",
+                                                    "&:hover": { transform: "scale(1.03)" },
+                                                }}
+                                            >
+                                                <CardContent>
+                                                    <Typography variant="h6" align="center">
+                                                        Tổng Doanh Thu
+                                                    </Typography>
+                                                    <Typography variant="body1" align="center">
+                                                        {currencyFormatter.format(totalRevenue)}
+                                                    </Typography>
+                                                </CardContent>
+                                            </Card>
+                                        </Grid>
+                                    </Grow>
+                                    <Grow in timeout={500}>
+                                        <Grid item>
+                                            <Card
+                                                sx={{
+                                                    transition: "transform 0.3s",
+                                                    "&:hover": { transform: "scale(1.03)" },
+                                                }}
+                                            >
+                                                <CardContent>
+                                                    <Typography variant="h6" align="center">
+                                                        Hôm Nay
+                                                    </Typography>
+                                                    <Typography variant="body1" align="center">
+                                                        {currencyFormatter.format(revenueByDay)}
+                                                    </Typography>
+                                                </CardContent>
+                                            </Card>
+                                        </Grid>
+                                    </Grow>
+                                    <Grow in timeout={600}>
+                                        <Grid item>
+                                            <Card
+                                                sx={{
+                                                    transition: "transform 0.3s",
+                                                    "&:hover": { transform: "scale(1.03)" },
+                                                }}
+                                            >
+                                                <CardContent>
+                                                    <Typography variant="h6" align="center">
+                                                        Tuần Này
+                                                    </Typography>
+                                                    <Typography variant="body1" align="center">
+                                                        {currencyFormatter.format(revenueByWeek)}
+                                                    </Typography>
+                                                </CardContent>
+                                            </Card>
+                                        </Grid>
+                                    </Grow>
+                                    <Grow in timeout={700}>
+                                        <Grid item>
+                                            <Card
+                                                sx={{
+                                                    transition: "transform 0.3s",
+                                                    "&:hover": { transform: "scale(1.03)" },
+                                                }}
+                                            >
+                                                <CardContent>
+                                                    <Typography variant="h6" align="center">
+                                                        Tháng Này
+                                                    </Typography>
+                                                    <Typography variant="body1" align="center">
+                                                        {currencyFormatter.format(revenueByMonth)}
+                                                    </Typography>
+                                                </CardContent>
+                                            </Card>
+                                        </Grid>
+                                    </Grow>
+                                    <Grow in timeout={800}>
+                                        <Grid item>
+                                            <Card
+                                                sx={{
+                                                    transition: "transform 0.3s",
+                                                    "&:hover": { transform: "scale(1.03)" },
+                                                }}
+                                            >
+                                                <CardContent>
+                                                    <Typography variant="h6" align="center">
+                                                        Năm Này
+                                                    </Typography>
+                                                    <Typography variant="body1" align="center">
+                                                        {currencyFormatter.format(revenueByYear)}
+                                                    </Typography>
+                                                </CardContent>
+                                            </Card>
+                                        </Grid>
+                                    </Grow>
+                                </Grid>
+                            </Grid>
+
+                            {/* Cột chứa biểu đồ và toggle chọn thời gian */}
+                            <Grid item xs={12} md={8}>
+                                <Box sx={{ mb: 2, textAlign: "center" }}>
+                                    <ToggleButtonGroup
+                                        value={timeFrame}
+                                        exclusive
+                                        onChange={handleTimeFrameChange}
+                                        aria-label="time frame"
+                                    >
+                                        <ToggleButton value="day" aria-label="day">
+                                            Ngày
+                                        </ToggleButton>
+                                        <ToggleButton value="week" aria-label="week">
+                                            Tuần
+                                        </ToggleButton>
+                                        <ToggleButton value="month" aria-label="month">
+                                            Tháng
+                                        </ToggleButton>
+                                        <ToggleButton value="year" aria-label="year">
+                                            Năm
+                                        </ToggleButton>
+                                    </ToggleButtonGroup>
+                                </Box>
+                                <Box>
+                                    <Bar data={chartData} options={barOptions} />
+                                </Box>
                             </Grid>
                         </Grid>
-
-                        {/* Cột chứa biểu đồ và các toggle chọn */}
-                        <Grid item xs={12} md={8}>
-                            <Box sx={{ mb: 2, textAlign: "center" }}>
-                                <ToggleButtonGroup
-                                    value={chartType}
-                                    exclusive
-                                    onChange={handleChartTypeChange}
-                                    aria-label="chart type"
-                                    sx={{ mr: 2 }}
-                                >
-                                    <ToggleButton value="bar" aria-label="bar chart">
-                                        Biểu đồ cột
-                                    </ToggleButton>
-                                    <ToggleButton value="pie" aria-label="pie chart">
-                                        Biểu đồ tròn
-                                    </ToggleButton>
-                                </ToggleButtonGroup>
-                                <ToggleButtonGroup
-                                    value={timeFrame}
-                                    exclusive
-                                    onChange={handleTimeFrameChange}
-                                    aria-label="time frame"
-                                >
-                                    <ToggleButton value="day" aria-label="day">
-                                        Ngày
-                                    </ToggleButton>
-                                    <ToggleButton value="week" aria-label="week">
-                                        Tuần
-                                    </ToggleButton>
-                                    <ToggleButton value="month" aria-label="month">
-                                        Tháng
-                                    </ToggleButton>
-                                    <ToggleButton value="year" aria-label="year">
-                                        Năm
-                                    </ToggleButton>
-                                </ToggleButtonGroup>
-                            </Box>
-                            <Box>
-                                {chartType === "bar" ? (
-                                    <Bar data={chartData} options={barOptions} />
-                                ) : (
-                                    <Box sx={{ width: 400, height: 400, margin: "0 auto" }}>
-                                        <Pie
-                                            data={chartData}
-                                            options={{
-                                                maintainAspectRatio: false,
-                                                responsive: true,
-                                                plugins: {
-                                                    legend: { position: "top" },
-                                                    title: {
-                                                        display: true,
-                                                        text: `Biểu đồ doanh thu theo ${timeFrame}`,
-                                                    },
-                                                },
-                                            }}
-                                        />
-                                    </Box>
-                                )}
-                            </Box>
-                        </Grid>
-                    </Grid>
-                </Box>
-            )}
-        </Container>
+                    </Box>
+                )}
+            </Container>
+        </>
     );
 };
 
