@@ -1,4 +1,6 @@
 const cloudName = "drszapjl6";
+const uploadPreset = "test_cloundinary"; // Make sure this is your actual preset
+
 export const getCloudinaryImageUrl = (publicId, options = {}) => {
     let transformation = "";
     if (options.width) {
@@ -17,3 +19,26 @@ export const getCloudinaryImageUrl = (publicId, options = {}) => {
     return `https://res.cloudinary.com/${cloudName}/image/upload/${transformationPart}${publicId}`;
 };
 
+
+export const uploadImageToCloudinary = async (imageFile) => {
+    const formData = new FormData();
+    formData.append("file", imageFile);
+    formData.append("upload_preset", uploadPreset);
+
+    try {
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+            method: "POST",
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error("Image upload failed");
+        }
+
+        const data = await response.json();
+        return data.public_id; // Return the publicId of the uploaded image
+    } catch (error) {
+        console.error("Error uploading image to Cloudinary:", error);
+        throw error;
+    }
+};
