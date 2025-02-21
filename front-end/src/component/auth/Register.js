@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { useAbility } from "../../Can";  // Import CASL
+import { useAbility } from "../../Can";
 import { checkAccount, createEmployee } from "../../service/UserService";
 import { toast } from "react-toastify";
 import HeaderAdmin from "../admin/HeaderAdmin";

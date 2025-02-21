@@ -1,5 +1,5 @@
 export const API_URL = "http://localhost:8080/api";
-export const BASE_URL = "http://192.168.1.28:8080/api";
+export const BASE_URL = "http://10.10.8.75:8080/api";
 
 export const API_URL_CART_ITEM = `${BASE_URL}/cartItems`;
 export const API_URL_CART=`${BASE_URL}/carts`;
