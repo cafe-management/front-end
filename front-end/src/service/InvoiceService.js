@@ -2,16 +2,17 @@
 import axios from "axios";
 import { API_URL_INVOICE } from "../config/apiConfig";
 
-const getAllInvoice = async ()=>{
-    try{
-        const response = await axios.get(API_URL_INVOICE);
+const getAllInvoice = async (page = 0, size = 5) => {
+    try {
+        const response = await axios.get(API_URL_INVOICE, {
+            params: { page, size }
+        });
         return response.data;
-    }
-    catch(error){
+    } catch (error) {
         console.error("Error fetching invoices:", error);
         throw error;
     }
-}
+};
 
 const createInvoice = async (invoice) => {
     try {

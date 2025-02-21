@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { getAllInvoice } from "../service/InvoiceService";
 import {
     Box,
@@ -20,12 +20,15 @@ import {
     Typography,
     TextField,
     InputAdornment,
-    Button
+    Button,
+    Pagination,
 } from "@mui/material";
 import PrintIcon from "@mui/icons-material/Print";
 import InfoIcon from "@mui/icons-material/Info";
 import SearchIcon from "@mui/icons-material/Search";
 import dayjs from "dayjs";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const formatter = new Intl.NumberFormat("vi-VN", {
     style: "currency",
@@ -33,18 +36,44 @@ const formatter = new Intl.NumberFormat("vi-VN", {
 });
 
 const InvoiceComponent = () => {
+    // State phân trang
+    const [page, setPage] = useState(0);
+    const [size] = useState(5);
+    const [totalPages, setTotalPages] = useState(0);
+
+    // State dữ liệu và loading
     const [invoices, setInvoices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // State Dialog chi tiết hóa đơn
     const [openDetail, setOpenDetail] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState(null);
+
+    // State tìm kiếm theo người tạo
     const [searchCreator, setSearchCreator] = useState("");
 
+    // Ref dùng để tham chiếu nội dung cần chuyển PDF
+    const printRef = useRef();
+
+    // Fetch invoices (với API không có phân trang)
     useEffect(() => {
         const fetchInvoices = async () => {
+            setLoading(true);
             try {
-                const data = await getAllInvoice();
-                setInvoices(data);
+                const data = await getAllInvoice(page, size);
+                if (data && data.content) {
+                    // Nếu API trả về đối tượng phân trang
+                    setInvoices(data.content);
+                    setTotalPages(data.totalPages || 0);
+                } else if (Array.isArray(data)) {
+                    // Nếu API trả về mảng, tính số trang trên client
+                    setInvoices(data);
+                    setTotalPages(Math.ceil(data.length / size));
+                } else {
+                    setInvoices([]);
+                    setTotalPages(0);
+                }
             } catch (err) {
                 setError(err);
             } finally {
@@ -53,7 +82,7 @@ const InvoiceComponent = () => {
         };
 
         fetchInvoices();
-    }, []);
+    }, [page, size]);
 
     // Lọc hóa đơn theo tên người tạo
     const filteredInvoices = invoices.filter((invoice) =>
@@ -62,8 +91,15 @@ const InvoiceComponent = () => {
             : false
     );
 
+    // Tính phân trang cho mảng đã lọc
+    const paginatedInvoices = filteredInvoices.slice(
+        page * size,
+        page * size + size
+    );
+
     const handlePrintInvoice = (invoice) => {
-        console.log("In hóa đơn giấy:", invoice);
+        setSelectedInvoice(invoice);
+        setOpenDetail(true);
     };
 
     const handleOpenDetail = (invoice) => {
@@ -74,6 +110,26 @@ const InvoiceComponent = () => {
     const handleCloseDetail = () => {
         setOpenDetail(false);
         setSelectedInvoice(null);
+    };
+
+    // Hàm xuất PDF dựa trên nội dung hiển thị trong Dialog
+    const handleExportPDF = () => {
+        if (!printRef.current) return;
+        const scale = 2;
+        html2canvas(printRef.current, { scale: scale }).then((canvas) => {
+            const effectiveWidth = canvas.width / scale;
+            const effectiveHeight = canvas.height / scale;
+            const mmWidth = effectiveWidth * 0.264583;
+            const mmHeight = effectiveHeight * 0.264583;
+            const pdf = new jsPDF({
+                orientation: mmWidth > mmHeight ? "l" : "p",
+                unit: "mm",
+                format: [mmWidth, mmHeight],
+            });
+            const imgData = canvas.toDataURL("image/png");
+            pdf.addImage(imgData, "PNG", 0, 0, mmWidth, mmHeight);
+            pdf.save(`invoice_${selectedInvoice?.codeInvoice || "invoice"}.pdf`);
+        });
     };
 
     if (loading) {
@@ -94,28 +150,26 @@ const InvoiceComponent = () => {
 
     return (
         <Box mx={2} my={4}>
-            {/* Tiêu đề ở giữa */}
             <Typography variant="h4" align="center" gutterBottom>
                 Danh Sách Hóa Đơn
             </Typography>
 
-            {/* Ô tìm kiếm nằm bên phải */}
+            {/* Ô tìm kiếm */}
             <Box display="flex" justifyContent="flex-end" mb={3}>
                 <TextField
                     label="Tìm theo người tạo"
                     variant="outlined"
                     size="small"
                     value={searchCreator}
-                    onChange={(e) => setSearchCreator(e.target.value)}
+                    onChange={(e) => {
+                        setSearchCreator(e.target.value);
+                        // Khi tìm kiếm, reset trang về 0 để tránh trường hợp trang hiện tại không có dữ liệu
+                        setPage(0);
+                    }}
                     InputProps={{
                         endAdornment: (
                             <InputAdornment position="end">
-                                <IconButton
-                                    onClick={() => {
-                                        /* Nếu cần logic tìm kiếm thêm, xử lý tại đây */
-                                    }}
-                                    sx={{ color: "#E7B45A" }}
-                                >
+                                <IconButton sx={{ color: "#E7B45A" }}>
                                     <SearchIcon />
                                 </IconButton>
                             </InputAdornment>
@@ -124,7 +178,11 @@ const InvoiceComponent = () => {
                 />
             </Box>
 
-            <TableContainer component={Paper} elevation={3} sx={{ maxWidth: "100%", margin: "auto" }}>
+            <TableContainer
+                component={Paper}
+                elevation={3}
+                sx={{ maxWidth: "100%", margin: "auto" }}
+            >
                 <Table>
                     <TableHead>
                         <TableRow>
@@ -155,18 +213,19 @@ const InvoiceComponent = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredInvoices.length === 0 ? (
+                        {paginatedInvoices.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={8} align="center">
                                     Không tìm thấy hóa đơn nào
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            filteredInvoices.map((invoice, index) => (
+                            paginatedInvoices.map((invoice, index) => (
                                 <TableRow
                                     key={invoice.id}
                                     sx={{
-                                        backgroundColor: index % 2 === 0 ? "action.hover" : "background.paper",
+                                        backgroundColor:
+                                            index % 2 === 0 ? "action.hover" : "background.paper",
                                     }}
                                 >
                                     <TableCell align="center">{invoice.codeInvoice}</TableCell>
@@ -181,20 +240,30 @@ const InvoiceComponent = () => {
                                     <TableCell align="center">
                                         {invoice.statusOrder ? "Đã hoàn thành" : "Chưa hoàn thành"}
                                     </TableCell>
-                                    <TableCell align="center">{formatter.format(invoice.totalAmount)}</TableCell>
                                     <TableCell align="center">
-                                        {invoice.user && invoice.user.fullName ? invoice.user.fullName : "N/A"}
+                                        {formatter.format(invoice.totalAmount)}
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        {invoice.user && invoice.user.fullName
+                                            ? invoice.user.fullName
+                                            : "N/A"}
                                     </TableCell>
                                     <TableCell align="center">
                                         <Tooltip title="In Hóa Đơn Giấy">
-                                            <IconButton color="primary" onClick={() => handlePrintInvoice(invoice)}>
+                                            <IconButton
+                                                color="primary"
+                                                onClick={() => handlePrintInvoice(invoice)}
+                                            >
                                                 <PrintIcon />
                                             </IconButton>
                                         </Tooltip>
                                     </TableCell>
                                     <TableCell align="center">
                                         <Tooltip title="Xem Chi Tiết">
-                                            <IconButton color="primary" onClick={() => handleOpenDetail(invoice)}>
+                                            <IconButton
+                                                color="primary"
+                                                onClick={() => handleOpenDetail(invoice)}
+                                            >
                                                 <InfoIcon />
                                             </IconButton>
                                         </Tooltip>
@@ -206,13 +275,26 @@ const InvoiceComponent = () => {
                 </Table>
             </TableContainer>
 
+            {/* Pagination */}
+            {totalPages > 1 && (
+                <Box display="flex" justifyContent="center" mt={2}>
+                    <Pagination
+                        count={totalPages}
+                        page={page + 1}
+                        onChange={(event, value) => setPage(value - 1)}
+                        color="primary"
+                    />
+                </Box>
+            )}
+
             {/* Dialog chi tiết hóa đơn */}
             <Dialog open={openDetail} onClose={handleCloseDetail} fullWidth maxWidth="sm">
-                <DialogTitle sx={{ textAlign: "center", fontWeight: "bold" }}>HÓA ĐƠN</DialogTitle>
-                <DialogContent dividers>
+                <DialogTitle sx={{ textAlign: "center", fontWeight: "bold" }}>
+                    HÓA ĐƠN
+                </DialogTitle>
+                <DialogContent dividers ref={printRef}>
                     {selectedInvoice && (
                         <Box>
-                            {/* Header cửa hàng */}
                             <Box sx={{ textAlign: "center", mb: 2 }}>
                                 <Typography variant="h6" fontWeight="bold">
                                     Dana Coffee
@@ -222,7 +304,6 @@ const InvoiceComponent = () => {
                                 </Typography>
                                 <Typography variant="body2">SĐT: 0123 456 789</Typography>
                             </Box>
-                            {/* Thông tin hóa đơn căn chỉnh 2 cột */}
                             <Box sx={{ mb: 2, px: 1 }}>
                                 <Grid container spacing={1}>
                                     <Grid item xs={12} sm={6}>
@@ -260,7 +341,6 @@ const InvoiceComponent = () => {
                                 </Grid>
                             </Box>
 
-                            {/* Danh sách món ăn */}
                             <TableContainer component={Paper} sx={{ mb: 2 }}>
                                 <Table size="small">
                                     <TableHead>
@@ -306,7 +386,6 @@ const InvoiceComponent = () => {
                                 </Table>
                             </TableContainer>
 
-                            {/* Tổng kết */}
                             <Box sx={{ display: "flex", justifyContent: "flex-end", pr: 1, mb: 1 }}>
                                 <Typography variant="body2" fontWeight="bold">
                                     Tổng Cộng: {formatter.format(selectedInvoice.totalAmount)}
@@ -319,6 +398,9 @@ const InvoiceComponent = () => {
                     )}
                 </DialogContent>
                 <DialogActions>
+                    <Button onClick={handleExportPDF} variant="contained" color="primary">
+                        Xuất PDF
+                    </Button>
                     <Button onClick={handleCloseDetail} color="primary">
                         Đóng
                     </Button>

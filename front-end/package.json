@@ -20,6 +20,8 @@
     "draft-js": "^0.11.7",
     "formik": "^2.4.6",
     "howler": "^2.2.4",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.0",
     "moment": "^2.30.1",
     "qrcode": "^1.5.4",
     "qrcode.react": "^4.2.0",
