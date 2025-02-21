@@ -9,7 +9,6 @@ import TableQRCodeList from "./components/TableQRCodeList";
 import Login from "./component/auth/Login";
 import Register from "./component/auth/Register";
 import EmployList from "./component/admin/EmployList";
-import {ToastContainer} from "react-toastify";
 import AccountInfo from "./component/auth/Information";
 import ChangePassword from "./component/auth/ChangePassword";
 import {HelmetProvider} from "react-helmet-async";
@@ -25,6 +24,7 @@ import DashBoardInvoice from "./Navbar/DashBoardInvoice";
 import IncomeManagement from "./components/IncomeManagement";
 import DrinksManagement from "./components/DrinksManagement";
 import ResetPassword from "./component/auth/ResetPassword";
+import AddDrinkComponent from "./components/AddDrinkComponent";
 function App() {
 
     return (
@@ -45,7 +45,6 @@ function App() {
                     <Route path="/home/introduction" element={<AboutUs />} />
                     <Route path="/information" element={<AccountInfo />} />
                     <Route path="change_password" element={<ChangePassword/>}></Route>
-                    <Route path="/verify" element={<ResetPassword />} />
                     <Route path="/news" element={<NewsListComponent />} />
                     <Route path="/news/create" element={<NewComponent />} />
                     <Route path="/news/edit/:id" element={<NewsUpdateComponent />} />
@@ -53,12 +52,14 @@ function App() {
                     <Route path="admin/menu" element={<DrinksManagement/>}/>
                     <Route path="/manager/invoice" element={<DashBoardInvoice/>} />
                     <Route path="/chart" element={<IncomeManagement/>}/>
+                    <Route path="/drink/create" element={<AddDrinkComponent/>} />
                 </Routes>
             </BrowserRouter>
-            <ToastContainer/>
+
             </AbilityProvider>
         </div>
         </HelmetProvider>
+
     );
 }
 
