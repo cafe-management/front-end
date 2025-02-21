@@ -61,7 +61,9 @@ const IncomeManagement = () => {
         const fetchInvoices = async () => {
             try {
                 const data = await getAllInvoice();
-                setInvoices(data);
+                // Trích xuất mảng hóa đơn từ thuộc tính content của đối tượng trả về
+                const invoicesArray = data.content || [];
+                setInvoices(invoicesArray);
                 let dayTotal = 0,
                     weekTotal = 0,
                     monthTotal = 0,
@@ -74,7 +76,7 @@ const IncomeManagement = () => {
                 const weekEnd = new Date(weekStart);
                 weekEnd.setDate(weekStart.getDate() + 6);
 
-                data.forEach((invoice) => {
+                invoicesArray.forEach((invoice) => {
                     const invoiceDate = new Date(invoice.dateCreate);
                     const amount = parseFloat(invoice.totalAmount) || 0;
                     total += amount;
@@ -107,7 +109,6 @@ const IncomeManagement = () => {
 
         fetchInvoices();
     }, []);
-
     // Hàm tổng hợp dữ liệu cho biểu đồ theo khoảng thời gian hiện tại
     const getChartData = (timeFrame) => {
         const now = new Date();

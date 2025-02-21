@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getNewsById, updateNews } from "../service/NewService";
+import {uploadImageAndGetUrl} from "../service/CloudinaryService";
 import {
     Container,
     TextField,
@@ -11,16 +12,15 @@ import {
     Alert,
     IconButton,
 } from "@mui/material";
-import { Helmet } from "react-helmet-async";
-import HeaderAdmin from "../component/admin/HeaderAdmin";
-import { uploadImageToCloudinary } from "../service/CloudinaryService";
 import DeleteIcon from "@mui/icons-material/Delete";
+import HeaderAdmin from "../component/admin/HeaderAdmin";
+import { Helmet } from "react-helmet-async";
 
 const NewsUpdateComponent = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    // State của bài tin
+    // State cho tin tức, trạng thái, thông báo lỗi/thành công và dữ liệu form
     const [news, setNews] = useState(null);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
@@ -29,15 +29,14 @@ const NewsUpdateComponent = () => {
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
 
-    // Ảnh cũ: lưu dưới dạng mảng các đối tượng { id, img }
+    // State cho danh sách ảnh cũ (đã có trong DB) và ảnh mới (chưa upload)
     const [oldImages, setOldImages] = useState([]);
-    // Ảnh mới: lưu danh sách file và URL preview tương ứng
     const [newImages, setNewImages] = useState([]);
     const [newImagePreviews, setNewImagePreviews] = useState([]);
 
     const fileInputRef = useRef(null);
 
-    // Kiểm tra quyền truy cập (admin)
+    // Kiểm tra quyền admin khi component load
     useEffect(() => {
         const userRole = localStorage.getItem("role");
         if (userRole !== "admin") {
@@ -45,7 +44,7 @@ const NewsUpdateComponent = () => {
         }
     }, [navigate]);
 
-    // Lấy dữ liệu bài tin theo id
+    // Lấy dữ liệu tin tức theo id
     useEffect(() => {
         const fetchNews = async () => {
             try {
@@ -54,49 +53,45 @@ const NewsUpdateComponent = () => {
                 setTitle(data.title);
                 setContent(data.content);
                 if (data.images && data.images.length > 0) {
-                    // Lưu ảnh cũ theo dạng: { id, img } (dùng luôn trường img từ API)
-                    const imagesArr = data.images.map(({ id, img }) => ({ id, img }));
-                    setOldImages(imagesArr);
+                    // Lưu trữ ảnh cũ dưới dạng mảng các đối tượng { id, img }
+                    setOldImages(data.images);
                 }
             } catch (err) {
-                console.error("Lỗi tải bài tin:", err);
+                console.error("Error fetching news:", err);
                 setError("Có lỗi xảy ra khi tải bài tin.");
             } finally {
                 setLoading(false);
             }
         };
-
         fetchNews();
     }, [id]);
 
-    // Xử lý chọn nhiều ảnh mới
+    // Xử lý chọn ảnh mới
     const handleImageChange = (e) => {
         if (e.target.files && e.target.files.length > 0) {
             const filesArray = Array.from(e.target.files);
             setNewImages((prev) => [...prev, ...filesArray]);
             const previews = filesArray.map((file) => URL.createObjectURL(file));
             setNewImagePreviews((prev) => [...prev, ...previews]);
+            // Reset input file để cho phép chọn lại cùng file nếu cần
             if (fileInputRef.current) {
                 fileInputRef.current.value = "";
             }
         }
     };
 
-    // Xoá ảnh cũ theo index
+    // Xoá ảnh cũ khỏi danh sách nếu người dùng không muốn cập nhật nữa
     const handleRemoveOldImage = (index) => {
-        const updated = oldImages.filter((_, i) => i !== index);
-        setOldImages(updated);
+        setOldImages((prev) => prev.filter((_, i) => i !== index));
     };
 
-    // Xoá ảnh mới (chưa upload) theo index
+    // Xoá ảnh mới (chưa upload)
     const handleRemoveNewImage = (index) => {
-        const updatedFiles = newImages.filter((_, i) => i !== index);
-        const updatedPreviews = newImagePreviews.filter((_, i) => i !== index);
-        setNewImages(updatedFiles);
-        setNewImagePreviews(updatedPreviews);
+        setNewImages((prev) => prev.filter((_, i) => i !== index));
+        setNewImagePreviews((prev) => prev.filter((_, i) => i !== index));
     };
 
-    // Xử lý submit cập nhật bài tin
+    // Xử lý submit cập nhật tin tức
     const handleSubmit = async (e) => {
         e.preventDefault();
         setUpdating(true);
@@ -105,59 +100,52 @@ const NewsUpdateComponent = () => {
 
         try {
             let uploadedNewImageUrls = [];
+            console.log("newImages:", newImages);
             if (newImages.length > 0) {
                 const uploadPromises = newImages.map(async (image) => {
-                    const result = await uploadImageToCloudinary(image);
-                    if (result && result.secure_url) {
-                        return result.secure_url;
-                    }
-                    return null;
+                    const url = await uploadImageAndGetUrl(image);
+                    console.log("Upload result:", url);
+                    return url;
                 });
-                uploadedNewImageUrls = (await Promise.all(uploadPromises)).filter(
-                    (url) => url !== null
-                );
+                uploadedNewImageUrls = (await Promise.all(uploadPromises)).filter((url) => url !== null);
+                console.log("Uploaded new image URLs:", uploadedNewImageUrls);
             }
 
+            // Gộp danh sách ảnh: ảnh cũ (đã có id) và ảnh mới upload (chỉ có trường img)
             const combinedImages = [
-                ...oldImages.map((img) => ({ id: img.id, img: img.img })),
+                ...oldImages,
                 ...uploadedNewImageUrls.map((url) => ({ img: url })),
             ];
 
-
+            // Chuẩn bị payload cập nhật
             const newsDetails = {
                 id: news.id,
                 title,
                 content,
-                dateNews: news.dateNews,
+                dateNews: news.dateNews, // Giữ nguyên ngày đăng ban đầu
                 images: combinedImages,
             };
 
             console.log("Payload cập nhật:", newsDetails);
             await updateNews(id, newsDetails);
             setMessage("Bài tin đã được cập nhật thành công!");
-// Sau update, gọi lại API để lấy dữ liệu mới
+            console.log("Payload cập nhật:", newsDetails);
+            // Sau khi cập nhật, gọi lại API để lấy dữ liệu mới
             const updatedData = await getNewsById(id);
             setNews(updatedData);
             setTitle(updatedData.title);
             setContent(updatedData.content);
+            setOldImages(updatedData.images || []);
 
-// Kiểm tra nếu updatedData.images có giá trị thì cập nhật
-            if (Array.isArray(updatedData.images) && updatedData.images.length > 0) {
-                setOldImages(updatedData.images.map(({ id, img }) => ({ id, img })));
-            } else {
-                setOldImages([]); // Đảm bảo oldImages không bị lỗi nếu không có ảnh nào
-            }
-
-// Xóa ảnh mới đã upload để tránh lưu lại ảnh cũ trong state
             setNewImages([]);
             setNewImagePreviews([]);
 
-            setTimeout(() => {
-                navigate("/news");
-            }, 2000);
-
+            // Chuyển hướng sau vài giây
+            // setTimeout(() => {
+            //     navigate("/news");
+            // }, 2000);
         } catch (err) {
-            console.error("Lỗi cập nhật bài tin:", err);
+            console.error("Error updating news:", err);
             setError("Cập nhật bài tin thất bại.");
         } finally {
             setUpdating(false);
@@ -169,14 +157,6 @@ const NewsUpdateComponent = () => {
             <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
                 <CircularProgress />
             </Box>
-        );
-    }
-
-    if (error && !news) {
-        return (
-            <Container maxWidth="md" sx={{ mt: 4 }}>
-                <Alert severity="error">{error}</Alert>
-            </Container>
         );
     }
 
@@ -251,10 +231,12 @@ const NewsUpdateComponent = () => {
                         </Box>
                     )}
 
-                    {/* Hiển thị danh sách preview ảnh mới với nút xoá */}
+                    {/* Hiển thị danh sách ảnh mới đã chọn với nút xoá */}
                     {newImagePreviews.length > 0 && (
                         <Box sx={{ my: 2 }}>
-                            <Typography variant="subtitle1">Ảnh mới chọn:</Typography>
+                            <Typography variant="subtitle1">
+                                Ảnh mới đã chọn:
+                            </Typography>
                             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mt: 1 }}>
                                 {newImagePreviews.map((preview, index) => (
                                     <Box key={index} position="relative">
