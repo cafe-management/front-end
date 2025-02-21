@@ -2,10 +2,13 @@ import React, { useState, useEffect } from "react";
 import {
     Container, Typography, CardMedia, Button, Box, Paper, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Pagination, Dialog, DialogActions, DialogContent, DialogTitle, TextField, List, ListItem, ListItemText, Select, MenuItem, InputLabel, FormControl
 } from "@mui/material";
-import { getDrinks, deleteDrink, updateDrink } from "../service/DrinkService";
+import { getDrinks, deleteDrink, updateDrink,addDrinks } from "../service/DrinkService";
 import { getCloudinaryImageUrl, uploadImageToCloudinary } from "../service/CloudinaryService";
 import { getCategories } from "../service/CategoryService";
 import HeaderAdmin from "../component/admin/HeaderAdmin";
+import {useNavigate} from "react-router-dom";
+import {toast, ToastContainer} from "react-toastify";
+
 
 
 const DrinksManagement = () => {
@@ -18,6 +21,7 @@ const DrinksManagement = () => {
     const [imageFile, setImageFile] = useState(null);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [deleteDrinkId, setDeleteDrinkId] = useState(null);
+    const  navigate = useNavigate();
 
     const itemsPerPage = 10;
 
@@ -41,6 +45,12 @@ const DrinksManagement = () => {
         setSelectedCategory(category);
         setCurrentPage(1);
     };
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat("vi-VN", {
+            style: "currency",
+            currency: "VND",
+        }).format(price);
+    };
 
     const filteredDrinks = selectedCategory === "All" ? drinks : drinks.filter(drink => drink.category.nameCategory === selectedCategory);
 
@@ -57,8 +67,9 @@ const DrinksManagement = () => {
             await deleteDrink(deleteDrinkId);
             setDrinks(drinks.filter(drink => drink.id !== deleteDrinkId));
             setOpenDeleteDialog(false);
+            toast.success("Xóa món ăn thành công!");
         } catch (error) {
-            console.error("Error deleting drink:", error);
+            toast.error("Lỗi khi xóa món ăn!");
         }
     };
 
@@ -94,8 +105,9 @@ const DrinksManagement = () => {
             await updateDrink(selectedDrink);
             setDrinks(drinks.map(drink => (drink.id === selectedDrink.id ? selectedDrink : drink)));
             handleCloseDialog();
+            toast.success("Cập nhật món ăn thành công!");
         } catch (error) {
-            console.error("Error updating drink:", error);
+            toast.error("Lỗi khi cập nhật món ăn!");
         }
     };
 
@@ -109,6 +121,7 @@ const DrinksManagement = () => {
     return (
         <>
             <HeaderAdmin />
+            <ToastContainer position="top-right" autoClose={3000} />
             <Container maxWidth="lg" sx={{ mt: 4, pt: 4 }}>
                 <Grid container spacing={3} alignItems="stretch">
                     {/* Danh mục */}
@@ -117,6 +130,7 @@ const DrinksManagement = () => {
                             <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2, textAlign: "center", color: "#C4975C" }}>
                                 Danh Mục
                             </Typography>
+
                             <List>
                                 {categories.map((category, index) => (
                                     <ListItem
@@ -147,20 +161,25 @@ const DrinksManagement = () => {
 
                     {/* Danh sách món ăn */}
                     <Grid item xs={12} sm={8}>
-                        <Typography
-                            variant="h5"
-                            sx={{
-                                fontWeight: "bold",
-                                color: "#C4975C",
-                                mb: 3,
-                                textAlign: "center",
-                                width: "100%",
-                                display: "block",
-                                marginTop: "40px",
-                            }}
-                        >
-                            Quản Lý Món Ăn
-                        </Typography>
+                        <Box display="flex" justifyContent="center" alignItems="center" mb={2}>
+                            <Typography variant="h5" sx={{ fontWeight: "bold", color: "#C4975C", textAlign: "center" }}>
+                                Quản Lý Món Ăn
+                            </Typography>
+                        </Box>
+                        <Box display="flex" justifyContent="flex-end" mb={2}>
+                            <Button
+                                variant="contained"
+                                sx={{
+                                    backgroundColor: "#E7B45A",  // Màu vàng chính
+                                    color: "white",  // Màu chữ trắng để dễ đọc
+                                    "&:hover": { backgroundColor: "#D1A750" }  // Màu tối hơn khi hover
+                                }}
+                                onClick={() => navigate("/drink/create")}
+                            >
+                                Thêm Món Mới
+                            </Button>
+                        </Box>
+
 
                         <TableContainer component={Paper} sx={{ maxHeight: "500px", overflowY: "auto" }}>
                             <Table aria-label="drinks table">
@@ -190,7 +209,7 @@ const DrinksManagement = () => {
                                                 />
                                             </TableCell>
                                             <TableCell>{drink.nameDrinks}</TableCell>
-                                            <TableCell>{drink.price} VND</TableCell>
+                                            <TableCell>{formatPrice(drink.price)} VND</TableCell>
                                             <TableCell>
                                                 <Box display="flex" gap={1}>
                                                     <Button
@@ -282,13 +301,16 @@ const DrinksManagement = () => {
                                             setSelectedDrink({ ...selectedDrink, category: selectedCategory });
                                         }}
                                     >
-                                        {categories.map((category, index) => (
-                                            <MenuItem key={index} value={category.nameCategory}>
-                                                {category.nameCategory}
-                                            </MenuItem>
-                                        ))}
+                                        {categories
+                                            .filter(category => category.nameCategory !== "All") // Loại bỏ danh mục "All"
+                                            .map((category, index) => (
+                                                <MenuItem key={index} value={category.nameCategory}>
+                                                    {category.nameCategory}
+                                                </MenuItem>
+                                            ))}
                                     </Select>
                                 </FormControl>
+
 
                                 {imageFile && (
                                     <Typography variant="body1" sx={{ mb: 2 }}>Ảnh Mới:</Typography>
