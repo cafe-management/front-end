@@ -11,6 +11,8 @@ import {
     ToggleButton,
     ToggleButtonGroup,
     Grow,
+    Button,
+    TextField,
 } from "@mui/material";
 import { Bar } from "react-chartjs-2";
 import {
@@ -45,6 +47,10 @@ const IncomeManagement = () => {
     const [revenueByMonth, setRevenueByMonth] = useState(0);
     const [revenueByYear, setRevenueByYear] = useState(0);
     const [totalRevenue, setTotalRevenue] = useState(0);
+    const [isComparing, setIsComparing] = useState(false);
+    // State cho khoảng tùy chỉnh
+    const [customStartDate, setCustomStartDate] = useState("");
+    const [customEndDate, setCustomEndDate] = useState("");
 
     const currencyFormatter = new Intl.NumberFormat("vi-VN", {
         style: "currency",
@@ -101,11 +107,13 @@ const IncomeManagement = () => {
 
         fetchInvoices();
     }, []);
-    // Hàm tổng hợp dữ liệu cho biểu đồ cột
+
+    // Hàm tổng hợp dữ liệu cho biểu đồ theo khoảng thời gian hiện tại
     const getChartData = (timeFrame) => {
         const now = new Date();
         let labels = [];
         let dataPoints = [];
+
         if (timeFrame === "day") {
             labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
             dataPoints = Array(24).fill(0);
@@ -172,12 +180,175 @@ const IncomeManagement = () => {
                     dataPoints[m] += parseFloat(invoice.totalAmount) || 0;
                 }
             });
+        } else if (timeFrame === "custom") {
+            if (!customStartDate || !customEndDate) {
+                return { labels: [], datasets: [] };
+            }
+            const startDate = new Date(customStartDate + "T00:00:00");
+            const endDate = new Date(customEndDate + "T00:00:00");
+            const timeDiff = endDate.getTime() - startDate.getTime();
+            if (timeDiff < 0) {
+                return { labels: [], datasets: [] };
+            }
+            const daysCount = Math.floor(timeDiff / (1000 * 3600 * 24)) + 1;
+            labels = [];
+            dataPoints = Array(daysCount).fill(0);
+            for (let i = 0; i < daysCount; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                labels.push(date.toLocaleDateString());
+            }
+            invoices.forEach((invoice) => {
+                const invoiceDate = new Date(invoice.dateCreate);
+                if (invoiceDate >= startDate && invoiceDate <= endDate) {
+                    const diffDays = Math.floor(
+                        (invoiceDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24)
+                    );
+                    if (diffDays >= 0 && diffDays < daysCount) {
+                        dataPoints[diffDays] += parseFloat(invoice.totalAmount) || 0;
+                    }
+                }
+            });
         }
+
         return {
             labels,
             datasets: [
                 {
-                    label: "Doanh thu",
+                    label: "Doanh thu hiện tại",
+                    data: dataPoints,
+                    backgroundColor: dataPoints.map(
+                        () => "#" + Math.floor(Math.random() * 16777215).toString(16)
+                    ),
+                },
+            ],
+        };
+    };
+
+    // Hàm tổng hợp dữ liệu cho biểu đồ so sánh
+    const getComparisonChartData = (timeFrame) => {
+        const now = new Date();
+        let labels = [];
+        let dataPoints = [];
+
+        if (timeFrame === "day") {
+            const yesterday = new Date(now);
+            yesterday.setDate(now.getDate() - 1);
+            labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+            dataPoints = Array(24).fill(0);
+            invoices.forEach((invoice) => {
+                const invoiceDate = new Date(invoice.dateCreate);
+                if (invoiceDate.toDateString() === yesterday.toDateString()) {
+                    const hour = invoiceDate.getHours();
+                    dataPoints[hour] += parseFloat(invoice.totalAmount) || 0;
+                }
+            });
+        } else if (timeFrame === "week") {
+            const days = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+            labels = days;
+            dataPoints = Array(7).fill(0);
+            const lastWeekStart = new Date(now);
+            lastWeekStart.setDate(now.getDate() - now.getDay() - 7);
+            const lastWeekEnd = new Date(lastWeekStart);
+            lastWeekEnd.setDate(lastWeekStart.getDate() + 6);
+            invoices.forEach((invoice) => {
+                const invoiceDate = new Date(invoice.dateCreate);
+                if (invoiceDate >= lastWeekStart && invoiceDate <= lastWeekEnd) {
+                    const dayIndex = invoiceDate.getDay();
+                    dataPoints[dayIndex] += parseFloat(invoice.totalAmount) || 0;
+                }
+            });
+        } else if (timeFrame === "month") {
+            const year = now.getFullYear();
+            let month = now.getMonth() - 1;
+            if (month < 0) {
+                month = 11;
+            }
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            labels = Array.from({ length: daysInMonth }, (_, i) => `${i + 1}`);
+            dataPoints = Array(daysInMonth).fill(0);
+            invoices.forEach((invoice) => {
+                const invoiceDate = new Date(invoice.dateCreate);
+                if (
+                    invoiceDate.getMonth() === month &&
+                    invoiceDate.getFullYear() === year
+                ) {
+                    const day = invoiceDate.getDate();
+                    dataPoints[day - 1] += parseFloat(invoice.totalAmount) || 0;
+                }
+            });
+        } else if (timeFrame === "year") {
+            const monthNames = [
+                "Tháng 1",
+                "Tháng 2",
+                "Tháng 3",
+                "Tháng 4",
+                "Tháng 5",
+                "Tháng 6",
+                "Tháng 7",
+                "Tháng 8",
+                "Tháng 9",
+                "Tháng 10",
+                "Tháng 11",
+                "Tháng 12",
+            ];
+            labels = monthNames;
+            dataPoints = Array(12).fill(0);
+            const lastYear = now.getFullYear() - 1;
+            invoices.forEach((invoice) => {
+                const invoiceDate = new Date(invoice.dateCreate);
+                if (invoiceDate.getFullYear() === lastYear) {
+                    const m = invoiceDate.getMonth();
+                    dataPoints[m] += parseFloat(invoice.totalAmount) || 0;
+                }
+            });
+        } else if (timeFrame === "custom") {
+            if (!customStartDate || !customEndDate) {
+                return { labels: [], datasets: [] };
+            }
+            const startDate = new Date(customStartDate + "T00:00:00");
+            const endDate = new Date(customEndDate + "T00:00:00");
+            const timeDiff = endDate.getTime() - startDate.getTime();
+            if (timeDiff < 0) {
+                return { labels: [], datasets: [] };
+            }
+            const daysCount = Math.floor(timeDiff / (1000 * 3600 * 24)) + 1;
+            const comparisonEndDate = new Date(startDate);
+            comparisonEndDate.setDate(startDate.getDate() - 1);
+            const comparisonStartDate = new Date(comparisonEndDate);
+            comparisonStartDate.setDate(
+                comparisonEndDate.getDate() - daysCount + 1
+            );
+
+            labels = [];
+            dataPoints = Array(daysCount).fill(0);
+            for (let i = 0; i < daysCount; i++) {
+                const date = new Date(comparisonStartDate);
+                date.setDate(comparisonStartDate.getDate() + i);
+                labels.push(date.toLocaleDateString());
+            }
+            invoices.forEach((invoice) => {
+                const invoiceDate = new Date(invoice.dateCreate);
+                if (
+                    invoiceDate >= comparisonStartDate &&
+                    invoiceDate <= comparisonEndDate
+                ) {
+                    const diffDays = Math.floor(
+                        (invoiceDate.getTime() - comparisonStartDate.getTime()) /
+                        (1000 * 3600 * 24)
+                    );
+                    if (diffDays >= 0 && diffDays < daysCount) {
+                        dataPoints[diffDays] += parseFloat(invoice.totalAmount) || 0;
+                    }
+                }
+            });
+        }
+
+        return {
+            labels,
+            datasets: [
+                {
+                    label: "Doanh thu so sánh",
                     data: dataPoints,
                     backgroundColor: dataPoints.map(
                         () => "#" + Math.floor(Math.random() * 16777215).toString(16)
@@ -188,9 +359,11 @@ const IncomeManagement = () => {
     };
 
     const chartData = getChartData(timeFrame);
+    const comparisonChartData = getComparisonChartData(timeFrame);
 
     const barOptions = {
         responsive: true,
+        maintainAspectRatio: false, // Cho phép biểu đồ chiếm đầy container
         plugins: {
             legend: {
                 position: "top",
@@ -321,7 +494,7 @@ const IncomeManagement = () => {
                                 </Grid>
                             </Grid>
 
-                            {/* Cột chứa biểu đồ và toggle chọn thời gian */}
+                            {/* Cột chứa biểu đồ, toggle thời gian và input chọn ngày nếu chọn custom */}
                             <Grid item xs={12} md={8}>
                                 <Box sx={{ mb: 2, textAlign: "center" }}>
                                     <ToggleButtonGroup
@@ -342,11 +515,68 @@ const IncomeManagement = () => {
                                         <ToggleButton value="year" aria-label="year">
                                             Năm
                                         </ToggleButton>
+                                        <ToggleButton value="custom" aria-label="custom">
+                                            Tùy chỉnh
+                                        </ToggleButton>
                                     </ToggleButtonGroup>
                                 </Box>
-                                <Box>
-                                    <Bar data={chartData} options={barOptions} />
+                                {timeFrame === "custom" && (
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+                                            justifyContent: "center",
+                                            gap: 2,
+                                            mb: 2,
+                                        }}
+                                    >
+                                        <TextField
+                                            type="date"
+                                            label="Ngày bắt đầu"
+                                            InputLabelProps={{ shrink: true }}
+                                            value={customStartDate}
+                                            onChange={(e) => setCustomStartDate(e.target.value)}
+                                        />
+                                        <TextField
+                                            type="date"
+                                            label="Ngày kết thúc"
+                                            InputLabelProps={{ shrink: true }}
+                                            value={customEndDate}
+                                            onChange={(e) => setCustomEndDate(e.target.value)}
+                                        />
+                                    </Box>
+                                )}
+                                <Box sx={{ textAlign: "center", mb: 2 }}>
+                                    <Button
+                                        variant="contained"
+                                        onClick={() => setIsComparing(!isComparing)}
+                                    >
+                                        {isComparing ? "Ẩn so sánh" : "So sánh"}
+                                    </Button>
                                 </Box>
+                                {isComparing ? (
+                                    <Grid container spacing={2}>
+                                        <Grid item xs={12} md={6}>
+                                            <Typography variant="h6" align="center" gutterBottom>
+                                                Biểu đồ doanh thu theo {timeFrame}
+                                            </Typography>
+                                            <Box sx={{ height: 400 }}>
+                                                <Bar data={chartData} options={barOptions} />
+                                            </Box>
+                                        </Grid>
+                                        <Grid item xs={12} md={6}>
+                                            <Typography variant="h6" align="center" gutterBottom>
+                                                Biểu đồ so sánh theo {timeFrame}
+                                            </Typography>
+                                            <Box sx={{ height: 400 }}>
+                                                <Bar data={comparisonChartData} options={barOptions} />
+                                            </Box>
+                                        </Grid>
+                                    </Grid>
+                                ) : (
+                                    <Box sx={{ mb: 4, height: 400 }}>
+                                        <Bar data={chartData} options={barOptions} />
+                                    </Box>
+                                )}
                             </Grid>
                         </Grid>
                     </Box>
