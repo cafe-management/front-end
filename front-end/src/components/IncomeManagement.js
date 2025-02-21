@@ -101,7 +101,6 @@ const IncomeManagement = () => {
 
         fetchInvoices();
     }, []);
-
     // Hàm tổng hợp dữ liệu cho biểu đồ cột
     const getChartData = (timeFrame) => {
         const now = new Date();

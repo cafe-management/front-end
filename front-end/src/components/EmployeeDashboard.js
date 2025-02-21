@@ -156,7 +156,7 @@ const EmployeeDashBoard = () => {
         >
             {notifications.length === 0 ? (
                 <MenuItem onClick={handleNotificationMenuClose} sx={{ py: 1 }}>
-                    No notifications
+                    Không có thông báo
                 </MenuItem>
             ) : (
                 notifications.map((notif, index) => (
@@ -200,19 +200,19 @@ const EmployeeDashBoard = () => {
                             sx={getButtonStyle("/manager/feedback")}
                             onClick={() => navigate("/manager/feedback")}
                         >
-                            Feedback
+                            Phản hồi
                         </Button>
                         <Button
                             sx={getButtonStyle("/manager/sale")}
                             onClick={() => navigate("/manager/sale")}
                         >
-                            Sale
+                            Bàn và đơn hàng
                         </Button>
                         <Button
                             sx={getButtonStyle("/manager/invoice")}
                             onClick={() => navigate("/manager/invoice")}
                         >
-                            Invoices
+                            Hóa đơn
                         </Button>
                         <IconButton onClick={handleNotificationMenuOpen} sx={{ color: "white" }}>
                             <Badge

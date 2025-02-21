@@ -87,7 +87,7 @@ const FeedBackManagement = () => {
     return (
         <Box mx={2} my={4}>
             <Typography variant="h4" align="center" gutterBottom>
-                Danh sách Feedback
+                Danh sách Feedbacks
             </Typography>
 
             <Box

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, Container, Paper, TextField, Typography, Grid, CircularProgress } from "@mui/material";
+import { Box, Button, Container, Paper, TextField, Typography, Grid, CircularProgress, MenuItem, Select, FormControl, InputLabel } from "@mui/material";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import { getUserInfo, updateEmployee } from "../../service/UserService";
@@ -11,15 +11,16 @@ export default function AccountInfo() {
     const navigate = useNavigate();
     const [userInfo, setUserInfo] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
-    const [loading, setLoading] = useState(true); // Thêm state loading
+    const [loading, setLoading] = useState(true);
     const [editedInfo, setEditedInfo] = useState({
         phoneNumber: "",
         address: "",
+        gender: "",
     });
 
     useEffect(() => {
         const fetchUserInfo = async () => {
-            setLoading(true); // Bắt đầu tải
+            setLoading(true);
             try {
                 const user = await getUserInfo();
                 if (user) {
@@ -27,6 +28,7 @@ export default function AccountInfo() {
                     setEditedInfo({
                         phoneNumber: user.phoneNumber || "",
                         address: user.address || "",
+                        gender: "",
                     });
                 } else {
                     console.log("Không tìm thấy thông tin người dùng.");
@@ -34,39 +36,34 @@ export default function AccountInfo() {
             } catch (error) {
                 console.error("Lỗi khi lấy thông tin người dùng:", error);
             } finally {
-                setLoading(false); // Kết thúc tải
+                setLoading(false);
             }
         };
 
         fetchUserInfo();
-    }, [navigate]);
+    }, []);
 
-    const handleEdit = () => {
-        setIsEditing(true);
-    };
-
-    const handleUpdate = async () => {
-        try {
-            const updatedData = {
-                ...userInfo,
-                phoneNumber: editedInfo.phoneNumber,
-                address: editedInfo.address,
-            };
-            const response = await updateEmployee(userInfo.id, updatedData);
-            if (response && response.id) {
-                setUserInfo(updatedData);
-                setIsEditing(false);
-                toast.success("Cập nhật thành công");
-            } else {
-                console.error("Cập nhật thất bại:", response.message);
+    const handleEditOrUpdate = async () => {
+        if (isEditing) {
+            try {
+                const updatedData = {
+                    ...userInfo,
+                    phoneNumber: editedInfo.phoneNumber,
+                    address: editedInfo.address,
+                    gender: editedInfo.gender !== "" ? editedInfo.gender : userInfo.gender,
+                };
+                const response = await updateEmployee(userInfo.id, updatedData);
+                if (response && response.id) {
+                    setUserInfo(updatedData);
+                    toast.success("Cập nhật thành công");
+                } else {
+                    console.error("Cập nhật thất bại:", response.message);
+                }
+            } catch (error) {
+                console.error("Lỗi khi cập nhật thông tin:", error);
             }
-        } catch (error) {
-            console.error("Lỗi khi cập nhật thông tin:", error);
         }
-    };
-
-    const handleBack = () => {
-        navigate("/manager/sale");
+        setIsEditing(!isEditing);
     };
 
     const handleChangePassword = () => {
@@ -93,7 +90,6 @@ export default function AccountInfo() {
                         Thông tin tài khoản
                     </Typography>
 
-                    {/* Hiển thị loading khi đang tải dữ liệu */}
                     {loading ? (
                         <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "200px" }}>
                             <CircularProgress sx={{ color: themeColor }} />
@@ -102,38 +98,91 @@ export default function AccountInfo() {
                         <Box component="form" sx={{ flexGrow: 1 }}>
                             <Grid container spacing={2}>
                                 <Grid item xs={12} sm={6}>
-                                    <TextField label="Họ và tên" fullWidth value={userInfo.fullName || ""} InputProps={{ readOnly: true }} sx={{ marginBottom: 2 }} />
-                                    <TextField label="Địa chỉ" fullWidth value={isEditing ? editedInfo.address : userInfo.address || ""} onChange={(e) => setEditedInfo({ ...editedInfo, address: e.target.value })} InputProps={{ readOnly: !isEditing }} sx={{ marginBottom: 2 }} />
-                                    <TextField label="Số điện thoại" fullWidth value={isEditing ? editedInfo.phoneNumber : userInfo.phoneNumber || ""} onChange={(e) => setEditedInfo({ ...editedInfo, phoneNumber: e.target.value })} InputProps={{ readOnly: !isEditing }} sx={{ marginBottom: 2 }} />
-                                    <TextField label="Giới tính" fullWidth value={userInfo.gender ? "Nam" : "Nữ"} InputProps={{ readOnly: true }} sx={{ marginBottom: 2 }} />
+                                    <TextField
+                                        label="Họ và tên"
+                                        fullWidth
+                                        value={userInfo.fullName || ""}
+                                        InputProps={{ readOnly: true, style: { backgroundColor: isEditing ? "#f0f0f0" : "white" } }}
+                                        sx={{ marginBottom: 2 }}
+                                    />
+                                    <TextField
+                                        label="Địa chỉ"
+                                        fullWidth
+                                        value={isEditing ? editedInfo.address : userInfo.address || ""}
+                                        onChange={(e) => setEditedInfo({ ...editedInfo, address: e.target.value })}
+                                        InputProps={{ readOnly: !isEditing, style: { backgroundColor: "white" } }}
+                                        sx={{ marginBottom: 2 }}
+                                    />
+                                    <TextField
+                                        label="Số điện thoại"
+                                        fullWidth
+                                        value={isEditing ? editedInfo.phoneNumber : userInfo.phoneNumber || ""}
+                                        onChange={(e) => setEditedInfo({ ...editedInfo, phoneNumber: e.target.value })}
+                                        InputProps={{ readOnly: !isEditing, style: { backgroundColor: "white" } }}
+                                        sx={{ marginBottom: 2 }}
+                                    />
+
+                                    {isEditing ? (
+                                        <FormControl fullWidth sx={{ marginBottom: 2 }}>
+                                            <InputLabel>Giới tính</InputLabel>
+                                            <Select
+                                                value={editedInfo.gender !== "" ? editedInfo.gender : userInfo.gender}
+                                                onChange={(e) => setEditedInfo({ ...editedInfo, gender: e.target.value })}
+                                            >
+                                                <MenuItem value={true}>Nam</MenuItem>
+                                                <MenuItem value={false}>Nữ</MenuItem>
+                                            </Select>
+                                        </FormControl>
+                                    ) : (
+                                        <TextField
+                                            label="Giới tính"
+                                            fullWidth
+                                            value={userInfo.gender ? "Nam" : "Nữ"}
+                                            InputProps={{ readOnly: true, style: { backgroundColor: isEditing ? "#f0f0f0" : "white" } }}
+                                            sx={{ marginBottom: 2 }}
+                                        />
+                                    )}
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
-                                    <TextField label="Tên tài khoản" fullWidth value={userInfo.account?.userName || ""} InputProps={{ readOnly: true }} sx={{ marginBottom: 2 }} />
-                                    <TextField label="Email" fullWidth value={userInfo.email || ""} InputProps={{ readOnly: true }} sx={{ marginBottom: 2 }} />
-                                    <TextField label="Vị trí" fullWidth value={userInfo.account?.role?.nameRoles || "Chưa có thông tin"} InputProps={{ readOnly: true }} sx={{ marginBottom: 2 }} />
-                                    <TextField label="Lương" fullWidth value={userInfo.salary ? formatCurrency(userInfo.salary) : ""} InputProps={{ readOnly: true }} sx={{ marginBottom: 2 }} />
+                                    <TextField
+                                        label="Tên tài khoản"
+                                        fullWidth
+                                        value={userInfo.account?.userName || ""}
+                                        InputProps={{ readOnly: true, style: { backgroundColor: isEditing ? "#f0f0f0" : "white" } }}
+                                        sx={{ marginBottom: 2 }}
+                                    />
+                                    <TextField
+                                        label="Email"
+                                        fullWidth
+                                        value={userInfo.email || ""}
+                                        InputProps={{ readOnly: true, style: { backgroundColor: isEditing ? "#f0f0f0" : "white" } }}
+                                        sx={{ marginBottom: 2 }}
+                                    />
+                                    <TextField
+                                        label="Vị trí"
+                                        fullWidth
+                                        value={userInfo.account?.role?.nameRoles || "Chưa có thông tin"}
+                                        InputProps={{ readOnly: true, style: { backgroundColor: isEditing ? "#f0f0f0" : "white" } }}
+                                        sx={{ marginBottom: 2 }}
+                                    />
+                                    <TextField
+                                        label="Lương"
+                                        fullWidth
+                                        value={userInfo.salary ? formatCurrency(userInfo.salary) : ""}
+                                        InputProps={{ readOnly: true, style: { backgroundColor: isEditing ? "#f0f0f0" : "white" } }}
+                                        sx={{ marginBottom: 2 }}
+                                    />
                                 </Grid>
                             </Grid>
 
-                            {/* Nút bấm */}
                             <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
-                                <Button variant="contained" onClick={handleEdit} sx={{ backgroundColor: themeColor, color: "#fff", "&:hover": { backgroundColor: "#C8964A" } }}>
-                                    Chỉnh sửa
-                                </Button>
-                                <Button variant="outlined" onClick={handleBack} sx={{ borderColor: themeColor, color: themeColor, "&:hover": { borderColor: "#C8964A", color: "#C8964A" } }}>
-                                    Quay lại
+                                <Button variant="contained" onClick={handleEditOrUpdate} sx={{ backgroundColor: themeColor, color: "#fff", "&:hover": { backgroundColor: "#C8964A" } }}>
+                                    {isEditing ? "Cập nhật" : "Chỉnh sửa"}
                                 </Button>
                                 <Button variant="contained" onClick={handleChangePassword} sx={{ backgroundColor: themeColor, color: "#fff", "&:hover": { backgroundColor: "#C8964A" } }}>
                                     Đổi mật khẩu
                                 </Button>
                             </Box>
-                            {isEditing && (
-                                <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
-                                    <Button variant="contained" onClick={handleUpdate} sx={{ backgroundColor: themeColor, color: "#fff", "&:hover": { backgroundColor: "#C8964A" } }}>
-                                        Cập nhật
-                                    </Button>
-                                </Box>
-                            )}
                         </Box>
                     ) : (
                         <Typography variant="h6" align="center" sx={{ color: "red" }}>
