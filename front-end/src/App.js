@@ -50,7 +50,7 @@ function App() {
                     <Route path="/news/create" element={<NewComponent />} />
                     <Route path="/news/edit/:id" element={<NewsUpdateComponent />} />
                     <Route path="/home/news" element={<NewsListMobi/>}/>
-                    <Route path="home/menu" element={<DrinksManagement/>}/>
+                    <Route path="admin/menu" element={<DrinksManagement/>}/>
                     <Route path="/manager/invoice" element={<DashBoardInvoice/>} />
                     <Route path="/chart" element={<IncomeManagement/>}/>
                 </Routes>

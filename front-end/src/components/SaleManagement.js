@@ -25,7 +25,9 @@ import { getCartByTableId } from "../service/CartService";
 import { createInvoice, assignInvoiceToCart } from "../service/InvoiceService";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import moment from 'moment';
 
+const nowLocal = moment().utcOffset(7).format()
 const SaleManagement = () => {
     const [tables, setTables] = useState([]);
     const [error, setError] = useState(null);
@@ -178,8 +180,8 @@ const SaleManagement = () => {
             const codeInvoice = `INV-${Date.now()}`;
             const invoicePayload = {
                 codeInvoice,
-                dateCreate: new Date().toISOString(),
-                datePayment: new Date().toISOString(),
+                dateCreate: nowLocal,
+                datePayment: nowLocal,
                 statusOrder: true, // Đã thanh toán
                 totalAmount: overallTotal,
                 carts,

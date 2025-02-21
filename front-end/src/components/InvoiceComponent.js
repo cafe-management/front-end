@@ -114,9 +114,7 @@ const InvoiceComponent = () => {
                                     onClick={() => {
                                         /* Nếu cần logic tìm kiếm thêm, xử lý tại đây */
                                     }}
-                                    sx={{
-                                        color: "#E7B45A",
-                                    }}
+                                    sx={{ color: "#E7B45A" }}
                                 >
                                     <SearchIcon />
                                 </IconButton>
@@ -185,9 +183,7 @@ const InvoiceComponent = () => {
                                     </TableCell>
                                     <TableCell align="center">{formatter.format(invoice.totalAmount)}</TableCell>
                                     <TableCell align="center">
-                                        {invoice.user && invoice.user.fullName
-                                            ? invoice.user.fullName
-                                            : "N/A"}
+                                        {invoice.user && invoice.user.fullName ? invoice.user.fullName : "N/A"}
                                     </TableCell>
                                     <TableCell align="center">
                                         <Tooltip title="In Hóa Đơn Giấy">
@@ -211,13 +207,13 @@ const InvoiceComponent = () => {
             </TableContainer>
 
             {/* Dialog chi tiết hóa đơn */}
-            <Dialog open={openDetail} onClose={handleCloseDetail} fullWidth maxWidth="md">
+            <Dialog open={openDetail} onClose={handleCloseDetail} fullWidth maxWidth="sm">
                 <DialogTitle sx={{ textAlign: "center", fontWeight: "bold" }}>HÓA ĐƠN</DialogTitle>
                 <DialogContent dividers>
                     {selectedInvoice && (
                         <Box>
                             {/* Header cửa hàng */}
-                            <Box sx={{ textAlign: "center", mb: 3 }}>
+                            <Box sx={{ textAlign: "center", mb: 2 }}>
                                 <Typography variant="h6" fontWeight="bold">
                                     Dana Coffee
                                 </Typography>
@@ -226,33 +222,38 @@ const InvoiceComponent = () => {
                                 </Typography>
                                 <Typography variant="body2">SĐT: 0123 456 789</Typography>
                             </Box>
-                            {/* Thông tin hóa đơn */}
-                            <Box sx={{ mb: 3, px: 2 }}>
-                                <Grid container spacing={2}>
-                                    <Grid item xs={12} sm={4}>
-                                        <Typography variant="body1">
+                            {/* Thông tin hóa đơn căn chỉnh 2 cột */}
+                            <Box sx={{ mb: 2, px: 1 }}>
+                                <Grid container spacing={1}>
+                                    <Grid item xs={12} sm={6}>
+                                        <Typography variant="body2">
                                             <strong>Mã Hóa Đơn:</strong> {selectedInvoice.codeInvoice}
                                         </Typography>
-                                    </Grid>
-                                    <Grid item xs={12} sm={4}>
-                                        <Typography variant="body1">
+                                        <Typography variant="body2">
                                             <strong>Ngày Tạo:</strong>{" "}
                                             {dayjs(selectedInvoice.dateCreate).format("DD/MM/YYYY HH:mm")}
                                         </Typography>
+                                        <Typography variant="body2">
+                                            <strong>Email:</strong>{" "}
+                                            {selectedInvoice.user && selectedInvoice.user.email
+                                                ? selectedInvoice.user.email
+                                                : "N/A"}
+                                        </Typography>
                                     </Grid>
-                                    <Grid item xs={12} sm={4}>
-                                        <Typography variant="body1">
+                                    <Grid item xs={12} sm={6} sx={{ textAlign: "right" }}>
+                                        <Typography variant="body2">
                                             <strong>Người Tạo:</strong>{" "}
                                             {selectedInvoice.user && selectedInvoice.user.fullName
                                                 ? selectedInvoice.user.fullName
                                                 : "N/A"}
                                         </Typography>
-                                    </Grid>
-                                    <Grid item xs={12}>
-                                        <Typography variant="body1">
-                                            <strong>Email:</strong>{" "}
-                                            {selectedInvoice.user && selectedInvoice.user.email
-                                                ? selectedInvoice.user.email
+                                        <Typography variant="body2">
+                                            <strong>Số Bàn:</strong>{" "}
+                                            {selectedInvoice.carts &&
+                                            selectedInvoice.carts.length > 0 &&
+                                            selectedInvoice.carts[0].table &&
+                                            selectedInvoice.carts[0].table.numberTable
+                                                ? selectedInvoice.carts[0].table.numberTable
                                                 : "N/A"}
                                         </Typography>
                                     </Grid>
@@ -260,7 +261,7 @@ const InvoiceComponent = () => {
                             </Box>
 
                             {/* Danh sách món ăn */}
-                            <TableContainer component={Paper} sx={{ mb: 3 }}>
+                            <TableContainer component={Paper} sx={{ mb: 2 }}>
                                 <Table size="small">
                                     <TableHead>
                                         <TableRow>
@@ -306,8 +307,8 @@ const InvoiceComponent = () => {
                             </TableContainer>
 
                             {/* Tổng kết */}
-                            <Box sx={{ display: "flex", justifyContent: "flex-end", pr: 2, mb: 1 }}>
-                                <Typography variant="body1" fontWeight="bold">
+                            <Box sx={{ display: "flex", justifyContent: "flex-end", pr: 1, mb: 1 }}>
+                                <Typography variant="body2" fontWeight="bold">
                                     Tổng Cộng: {formatter.format(selectedInvoice.totalAmount)}
                                 </Typography>
                             </Box>

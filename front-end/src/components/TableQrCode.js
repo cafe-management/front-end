@@ -2,7 +2,7 @@ import React from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
 
 const TableQRCode = ({ table }) => {
-    const menuUrl = `http://192.168.1.28:3000/home?tableId=${table.id}`;
+    const menuUrl = `http://10.10.8.75:3000/home?tableId=${table.id}`;
 
     return (
         <div style={{ textAlign: "center", marginTop: "20px" }}>

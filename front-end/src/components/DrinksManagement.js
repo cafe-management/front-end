@@ -113,7 +113,7 @@ const DrinksManagement = () => {
                 <Grid container spacing={3} alignItems="stretch">
                     {/* Danh mục */}
                     <Grid item xs={12} sm={3} sx={{ display: "flex", flexDirection: "column" }}>
-                        <Paper sx={{ p: 6, borderRadius: "10px", boxShadow: 10, height: "100%" }}>
+                        <Paper sx={{ p: 6, borderRadius: "10px", boxShadow: 10, height: "500px" }}>
                             <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2, textAlign: "center", color: "#C4975C" }}>
                                 Danh Mục
                             </Typography>
