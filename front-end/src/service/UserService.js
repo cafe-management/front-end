@@ -1,14 +1,21 @@
 import axios from "axios";
 import {API_URL} from "../config/apiConfig";
 const token = localStorage.getItem("token");
-const authHeaders = {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json"
-}
+// const authHeaders = {
+//     Authorization: `Bearer ${token}`,
+//     "Content-Type": "application/json"
+// }
+const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+    return {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+    };
+};
 const getAllEmploy = async () => {
     try {
         const result = await axios.get(`${API_URL}/admin`, {
-            headers: authHeaders,
+            headers: getAuthHeaders(),
         });
         return result.data;
     } catch (error) {
@@ -22,7 +29,7 @@ const createEmployee = async (employee) => {
     console.log("Dữ liệu gửi lên backend json", JSON.stringify(employee, null, 2));
     try {
         const result = await axios.post(`${API_URL}/admin`, employee, {
-            headers: authHeaders,
+            headers: getAuthHeaders(),
         });
         console.log("Dữ liệu từ API: ", result);
         return result.data;
@@ -34,7 +41,7 @@ const createEmployee = async (employee) => {
 const checkAccount = async (email, username) => {
     try {
         const response = await axios.get(API_URL + "/admin/check_account", {
-            headers: authHeaders,
+            headers: getAuthHeaders(),
             params: {email, username }
         })
         return response.data;
@@ -45,12 +52,16 @@ const checkAccount = async (email, username) => {
 }
 const login = async (username, password) => {
     console.log("Dữ liệu gửi đến backend: ", { username, password });
+    console.log("Dữ liệu gửi đến backend:", JSON.stringify({ username, password }, null, 2));
+
     try {
         const response = await axios.post(`${API_URL}/login`, { username, password }, {
             headers: {
                 "Content-Type": "application/json",
             }
         });
+        console.log("Dữ liệu gửi đến backend:", JSON.stringify({ username, password }, null, 2));
+
         return response.data;
     } catch (error) {
         console.error("Lỗi khi đăng nhập:", error);
@@ -62,7 +73,7 @@ const getUserInfo = async () => {
     const username = localStorage.getItem("username");
     try {
         const response = await axios.get(`${API_URL}/information`, {
-            headers: authHeaders,
+            headers: getAuthHeaders(),
             params: { username }
         });
         return response.data;
@@ -75,7 +86,7 @@ const getUserInfo = async () => {
 const updateEmployee = async (id, employee) => {
     try {
         const result = await axios.put(`${API_URL}/${id}`, employee, {
-            headers: authHeaders,
+            headers: getAuthHeaders(),
         });
         return result.data;
 
@@ -85,12 +96,19 @@ const updateEmployee = async (id, employee) => {
     }
 };
 const changePassword = async (oldPassword, newPassword) => {
-    console.log("Token hiện tại:", localStorage.getItem("token"));
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        console.error("🚫 Không tìm thấy token trong localStorage!");
+        return { success: false, message: "Bạn chưa đăng nhập." };
+    }
+
+    console.log("🔍 Token gửi lên:", token);
     try {
         const response = await axios.put(`${API_URL}/login/change-password`,
             { oldPassword, newPassword },
             {
-                headers: authHeaders,
+                headers: getAuthHeaders(),
             }
         );
         console.log("Response từ backend:", response);
