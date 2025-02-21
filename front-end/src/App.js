@@ -24,7 +24,6 @@ import NewsListMobi from "./components/NewListMobi";
 import DashBoardInvoice from "./Navbar/DashBoardInvoice";
 import IncomeManagement from "./components/IncomeManagement";
 import DrinksManagement from "./components/DrinksManagement";
-import {ToastContainer} from "react-toastify";
 import ResetPassword from "./component/auth/ResetPassword";
 function App() {
 
