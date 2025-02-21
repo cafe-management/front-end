@@ -21,6 +21,10 @@ import DashBoardFeedback from "./Navbar/DashBoardFeedBack";
 import EmployeeDashBoard from "./components/EmployeeDashboard";
 import DashBoardSale from "./Navbar/DashBoardSale";
 import NewsListMobi from "./components/NewListMobi";
+import DashBoardInvoice from "./Navbar/DashBoardInvoice";
+import IncomeManagement from "./components/IncomeManagement";
+import DrinksManagement from "./components/DrinksManagement";
+import {ToastContainer} from "react-toastify";
 import ResetPassword from "./component/auth/ResetPassword";
 function App() {
 
@@ -47,6 +51,9 @@ function App() {
                     <Route path="/news/create" element={<NewComponent />} />
                     <Route path="/news/edit/:id" element={<NewsUpdateComponent />} />
                     <Route path="/home/news" element={<NewsListMobi/>}/>
+                    <Route path="home/menu" element={<DrinksManagement/>}/>
+                    <Route path="/manager/invoice" element={<DashBoardInvoice/>} />
+                    <Route path="/chart" element={<IncomeManagement/>}/>
                 </Routes>
             </BrowserRouter>
             <ToastContainer/>

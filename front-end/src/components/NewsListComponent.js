@@ -23,7 +23,7 @@ import {
     Dialog,
     DialogTitle,
     DialogContent,
-    DialogActions
+    DialogActions,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -49,6 +49,7 @@ const NewsListComponent = () => {
     useEffect(() => {
         fetchNews();
         connectWebSocketUser(fetchNews);
+
         return () => {
             disconnectWebSocket();
         };
@@ -60,7 +61,9 @@ const NewsListComponent = () => {
             const response = await getAllNews();
             let newsData = response.data || response;
             if (Array.isArray(newsData)) {
-                newsData = newsData.sort((a, b) => new Date(b.dateNews) - new Date(a.dateNews));
+                newsData = newsData.sort(
+                    (a, b) => new Date(b.dateNews) - new Date(a.dateNews)
+                );
                 setNewsList(newsData);
             } else {
                 setError("Dữ liệu không đúng định dạng.");
@@ -144,11 +147,24 @@ const NewsListComponent = () => {
             </Helmet>
             <HeaderAdmin />
             <Container maxWidth="lg" sx={{ mt: 10 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                    <Typography variant="h4" sx={{ fontWeight: "bold" }}>📰 Danh sách tin tức</Typography>
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        mb: 3,
+                    }}
+                >
+                    <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+                        📰 Danh sách tin tức
+                    </Typography>
                     <Button
                         variant="contained"
-                        sx={{ backgroundColor: "#FFC107", color: "black", '&:hover': { backgroundColor: "#FFA000" } }}
+                        sx={{
+                            backgroundColor: "#FFC107",
+                            color: "black",
+                            "&:hover": { backgroundColor: "#FFA000" },
+                        }}
                         startIcon={<AddIcon />}
                         onClick={() => navigate("/news/create")}
                     >
@@ -174,7 +190,12 @@ const NewsListComponent = () => {
                                                 component="img"
                                                 image={news.images[0].img}
                                                 alt={news.title}
-                                                sx={{ width: 80, height: 80, objectFit: "cover", borderRadius: 1 }}
+                                                sx={{
+                                                    width: 80,
+                                                    height: 80,
+                                                    objectFit: "cover",
+                                                    borderRadius: 1,
+                                                }}
                                             />
                                         ) : (
                                             "Không có ảnh"
@@ -189,12 +210,20 @@ const NewsListComponent = () => {
                                             {news.title || "Không có tiêu đề"}
                                         </Typography>
                                     </TableCell>
-                                    <TableCell>{new Date(news.dateNews).toLocaleString()}</TableCell>
+                                    <TableCell>
+                                        {new Date(news.dateNews).toLocaleString()}
+                                    </TableCell>
                                     <TableCell align="center">
-                                        <IconButton color="primary" onClick={() => navigate(`/news/edit/${news.id}`)}>
+                                        <IconButton
+                                            color="primary"
+                                            onClick={() => navigate(`/news/edit/${news.id}`)}
+                                        >
                                             <EditIcon />
                                         </IconButton>
-                                        <IconButton color="error" onClick={() => handleOpenDeleteDialog(news)}>
+                                        <IconButton
+                                            color="error"
+                                            onClick={() => handleOpenDeleteDialog(news)}
+                                        >
                                             <DeleteIcon />
                                         </IconButton>
                                     </TableCell>
@@ -221,16 +250,21 @@ const NewsListComponent = () => {
                             maxWidth: 600,
                             mx: "auto",
                             mt: 10,
-                            outline: "none"
+                            outline: "none",
                         }}
                     >
                         {selectedNews && (
                             <>
-                                <Typography variant="h5" sx={{ mb: 2 }}>{selectedNews.title}</Typography>
+                                <Typography variant="h5" sx={{ mb: 2 }}>
+                                    {selectedNews.title}
+                                </Typography>
                                 {selectedNews.images?.length > 0 && (
                                     <Slider {...sliderSettings}>
                                         {selectedNews.images.map((image, index) => (
-                                            <Box key={index} sx={{ display: "flex", justifyContent: "center" }}>
+                                            <Box
+                                                key={index}
+                                                sx={{ display: "flex", justifyContent: "center" }}
+                                            >
                                                 <CardMedia
                                                     component="img"
                                                     image={image.img}
@@ -246,7 +280,14 @@ const NewsListComponent = () => {
                                         ))}
                                     </Slider>
                                 )}
-                                <Box sx={{ maxHeight: 300, overflow: "auto", mt: 2, whiteSpace: "pre-line" }}>
+                                <Box
+                                    sx={{
+                                        maxHeight: 300,
+                                        overflow: "auto",
+                                        mt: 2,
+                                        whiteSpace: "pre-line",
+                                    }}
+                                >
                                     <Typography>{selectedNews.content}</Typography>
                                 </Box>
                                 <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
@@ -259,19 +300,40 @@ const NewsListComponent = () => {
                     </Box>
                 </Modal>
 
-                {/* Modal xác nhận xóa */}
+                {/* Dialog xác nhận xóa */}
                 <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
-                    <DialogTitle sx={{ fontWeight: "bold", color: "#f57c00" }}>Xác nhận xóa</DialogTitle>
+                    <DialogTitle sx={{ fontWeight: "bold", color: "#f57c00" }}>
+                        Xác nhận xóa
+                    </DialogTitle>
                     <DialogContent>
                         <Typography>
-                            Bạn có chắc chắn muốn xóa bài tin <strong>{newsToDelete?.title}</strong> không?
+                            Bạn có chắc chắn muốn xóa bài tin{" "}
+                            <strong>{newsToDelete?.title}</strong> không?
                         </Typography>
                     </DialogContent>
-                    <DialogActions sx={{ justifyContent: "flex-end", gap: 2, px: 3, pb: 2 }}>
-                        <Button onClick={handleCloseDeleteDialog} sx={{ backgroundColor: "#b0bec5", color: "black", '&:hover': { backgroundColor: "#90a4ae" } }}>
+                    <DialogActions
+                        sx={{
+                            justifyContent: "flex-end",
+                            gap: 2,
+                            px: 3,
+                            pb: 2,
+                        }}
+                    >
+                        <Button
+                            onClick={handleCloseDeleteDialog}
+                            sx={{
+                                backgroundColor: "#b0bec5",
+                                color: "black",
+                                "&:hover": { backgroundColor: "#90a4ae" },
+                            }}
+                        >
                             Hủy
                         </Button>
-                        <Button onClick={handleDeleteConfirm} color="error" variant="contained">
+                        <Button
+                            onClick={handleDeleteConfirm}
+                            color="error"
+                            variant="contained"
+                        >
                             Xóa
                         </Button>
                     </DialogActions>

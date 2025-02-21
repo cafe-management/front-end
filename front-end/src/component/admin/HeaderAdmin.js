@@ -1,5 +1,5 @@
 import React from "react";
-import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
+import { AppBar, Toolbar, Button, Box } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
 import {useAbility} from "../../Can";
 import {defineAbilitiesFor} from "../../ability";
@@ -23,9 +23,15 @@ function EmployeeManagementHeader() {
     const handleGoToListNew = () => {
         navigate("/news");
     };
+
+    const handleGotoChart = ()=>{
+        navigate("/chart");
+    }
+
     const isEmployeeListActive = location.pathname === "/admin/list";
     const isAddEmployeeActive = location.pathname === "/admin/register";
     const isNewsListActive = location.pathname === "/news";
+    const isChartActive = location.pathname === "/chart";
     return (
         <AppBar  position="fixed" sx={{ backgroundColor: "#333",width: "100%", boxShadow: "none" }}>
             <Toolbar sx={{ display: "flex", justifyContent: "flex-end", width: "100%", maxWidth: "1200px", margin: "0 auto" }}>
@@ -84,6 +90,24 @@ function EmployeeManagementHeader() {
                         onClick={handleGoToListNew}
                     >
                         Quản lý tin tức
+                    </Button>
+                    <Button
+                        color={isChartActive ? "primary" : "inherit"} // Đổi màu nếu đang ở trang thêm nhân viên
+                        sx={{
+                            fontWeight: "bold",
+                            padding: "8px 16px",
+                            backgroundColor: isChartActive ? "#E7B45A" : "transparent",
+                            color: isChartActive ? "#fff" : "white",
+                            boxShadow: isChartActive ? "0px 4px 10px rgba(231, 180, 90, 0.6)" : "none",
+                            "&:hover": {
+                                backgroundColor: "#E7B45A",
+                                color: "#fff",
+                                boxShadow: "0px 6px 12px rgba(231, 180, 90, 0.8)",
+                            },
+                        }}
+                        onClick={handleGotoChart}
+                    >
+                        Quản lý Danh Thu
                     </Button>
                     <Button
                         color="inherit"
