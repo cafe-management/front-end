@@ -1,5 +1,5 @@
 const cloudName = "drszapjl6";
-const uploadPreset = "test_cloundinary"; // Make sure this is your actual preset
+const uploadPreset = "test_cloundinary";
 
 export const getCloudinaryImageUrl = (publicId, options = {}) => {
     let transformation = "";

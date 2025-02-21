@@ -147,7 +147,7 @@ const DrinkCreateComponent = () => {
 
             <Container maxWidth="md" sx={{ mt: 10 }}>
                 <Paper elevation={3} sx={{ p: 4, borderRadius: 3, border: `1px solid ${primaryColor}` }}>
-                    <Typography variant="h4" gutterBottom sx={{ color: primaryColor, fontWeight: "bold", textAlign: "center" }}>
+                    <Typography variant="h4" gutterBottom sx={{ color: "black", fontWeight: "bold", textAlign: "center" }}>
                         Thêm Món Mới
                     </Typography>
 
