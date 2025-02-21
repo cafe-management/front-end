@@ -42,7 +42,6 @@ function Login() {
                 localStorage.setItem("role", role);         // Lưu role của người dùng
                 localStorage.setItem("username", username);
                 setCurrentAbility(defineAbilitiesFor(role));
-                localStorage.setItem("role", role);
                 console.log("role:", role);
                 if (role === "admin") {
                     navigate("/admin/list");
@@ -73,22 +72,23 @@ function Login() {
     };
     const handleForgotPassword = async () => {
         if (!emailOrUsername) {
-            toast.error("Vui lòng nhập email hoặc tên tài khoản");
-            return;
+        toast.error("Vui lòng nhập email hoặc tên tài khoản");
+        return;
+    }
+    try {
+        const response = await forgotPassword(emailOrUsername);
+        if (response.success) {
+            toast.success("Yêu cầu đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra email!");
+            localStorage.setItem("emailOrUsername", emailOrUsername);
+            navigate("/verify")
+            setOpenModal(false);
+        } else {
+            toast.error(response.message || "Gửi yêu cầu thất bại.");
         }
-        try {
-            const response = await forgotPassword(emailOrUsername);
-            if (response.success) {
-                toast.success("Yêu cầu đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra email!");
-                setOpenModal(false);
-            } else {
-                toast.error(response.message || "Gửi yêu cầu thất bại.");
-            }
-        } catch (error) {
-            toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
-        }
-    };
-
+    } catch (error) {
+        toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
+    }
+};
     return (
         <>
             <Helmet>

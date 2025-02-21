@@ -116,4 +116,37 @@ const forgotPassword = async (emailOrUsername) => {
         return { success: false, message: error.response?.data?.message || "Có lỗi xảy ra" };
     }
 };
-export {getAllEmploy, createEmployee, updateEmployee, checkAccount, login, getUserInfo, changePassword, forgotPassword};
+const verifyOtp = async (emailOrUsername, otp) =>{
+    console.log("Dữ liệu gửi lên:", { emailOrUsername, otp });
+    try {
+        const response = await axios.post(
+            `${API_URL}/login/verify-otp`,
+            { emailOrUsername, otp }, // ✅ Đúng định dạng DTO
+            {
+                headers: { "Content-Type": "application/json" },
+                withCredentials: true
+            }
+        );
+        console.log("Dữ liệu API trả về: ", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Lỗi khi xác thực OTP: ", error);
+        return { success: false, message: error.response?.data?.message || "Có lỗi xảy ra" };
+    }
+};
+const resetPassword = async (emailOrUsername, otp, newPassword) => {
+    console.log("Email or User", emailOrUsername, otp, newPassword);
+    try{
+        const response = await axios.put(`${API_URL}/login/reset-password`,
+            {emailOrUsername, otp, newPassword},
+            {
+                headers: {"Content-Type": "application/json"}
+            }
+            );
+        return response.data;
+    }catch(error){
+        console.error("Lỗi khi đặt lại mật khẩu", error);
+        return {success: false, message: error.response?.data?.message || "Có lỗi xảy ra"}
+    }
+}
+export {getAllEmploy, createEmployee, updateEmployee, checkAccount, login, getUserInfo, changePassword, forgotPassword, verifyOtp, resetPassword};
