@@ -2,14 +2,12 @@ import React, { useState, useEffect } from "react";
 import {
     Container, Typography, CardMedia, Button, Box, Paper, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Pagination, Dialog, DialogActions, DialogContent, DialogTitle, TextField, List, ListItem, ListItemText, Select, MenuItem, InputLabel, FormControl
 } from "@mui/material";
-import { getDrinks, deleteDrink, updateDrink,addDrinks } from "../service/DrinkService";
+import { getDrinks, deleteDrink, updateDrink } from "../service/DrinkService";
 import { getCloudinaryImageUrl, uploadImageToCloudinary } from "../service/CloudinaryService";
 import { getCategories } from "../service/CategoryService";
 import HeaderAdmin from "../component/admin/HeaderAdmin";
-import {useNavigate} from "react-router-dom";
-import {toast, ToastContainer} from "react-toastify";
-
-
+import { useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
 
 const DrinksManagement = () => {
     const [drinks, setDrinks] = useState([]);
@@ -21,9 +19,9 @@ const DrinksManagement = () => {
     const [imageFile, setImageFile] = useState(null);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [deleteDrinkId, setDeleteDrinkId] = useState(null);
-    const  navigate = useNavigate();
+    const navigate = useNavigate();
 
-    const itemsPerPage = 100;
+    const itemsPerPage = 4;
 
     useEffect(() => {
         const fetchData = async () => {
@@ -40,11 +38,11 @@ const DrinksManagement = () => {
         fetchData();
     }, []);
 
-
     const handleCategoryChange = (category) => {
         setSelectedCategory(category);
         setCurrentPage(1);
     };
+
     const formatPrice = (price) => {
         return new Intl.NumberFormat("vi-VN", {
             style: "currency",
@@ -123,139 +121,104 @@ const DrinksManagement = () => {
             <HeaderAdmin />
             <ToastContainer position="top-right" autoClose={3000} />
             <Container maxWidth="lg" sx={{ mt: 4, pt: 4 }}>
-                <Grid container spacing={3} alignItems="stretch">
-                    {/* Danh mục */}
-                    <Grid item xs={12} sm={3} sx={{ display: "flex", flexDirection: "column" }}>
-                        <Paper sx={{ p: 6, borderRadius: "10px", boxShadow: 10, height: "500px" }}>
-                            <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2, textAlign: "center", color: "#C4975C" }}>
-                                Danh Mục
-                            </Typography>
+                <Grid item xs={12} sm={8}>
+                    <Box display="flex" justifyContent="center" alignItems="center" mb={2}>
+                        <Typography variant="h5" sx={{ fontWeight: "bold", color: "balck", textAlign: "center" }}>
+                            Quản Lý Món Ăn
+                        </Typography>
+                    </Box>
+                    <Box display="flex" justifyContent="flex-end" mb={2}>
+                        <Button
+                            variant="contained"
+                            sx={{
+                                backgroundColor: "#E7B45A",
+                                color: "black",
+                                "&:hover": {
+                                    backgroundColor: "#D1A750"
+                                }
+                            }}
+                            onClick={() => navigate("/drink/create")}
+                        >
+                            Thêm Món Mới
+                        </Button>
+                    </Box>
 
-                            <List>
-                                {categories.map((category, index) => (
-                                    <ListItem
-                                        button
-                                        key={index}
-                                        selected={selectedCategory === category.nameCategory}
-                                        onClick={() => handleCategoryChange(category.nameCategory)}
-                                        sx={{
-                                            py: 1,
-                                            px: 2,
-                                            borderRadius: "6px",
-                                            "&.Mui-selected": {
-                                                backgroundColor: "#C4975C",
-                                                color: "white",
-                                            },
-                                            "&:hover": {
-                                                backgroundColor: "#E3B778",
-                                                color: "white",
-                                            },
-                                        }}
-                                    >
-                                        <ListItemText primary={category.nameCategory} sx={{ fontSize: "1rem" }} />
-                                    </ListItem>
-                                ))}
-                            </List>
-                        </Paper>
-                    </Grid>
-
-                    {/* Danh sách món ăn */}
-                    <Grid item xs={12} sm={8}>
-                        <Box display="flex" justifyContent="center" alignItems="center" mb={2}>
-                            <Typography variant="h5" sx={{ fontWeight: "bold", color: "#C4975C", textAlign: "center" }}>
-                                Quản Lý Món Ăn
-                            </Typography>
-                        </Box>
-                        <Box display="flex" justifyContent="flex-end" mb={2}>
-                            <Button
-                                variant="contained"
-                                sx={{
-                                    backgroundColor: "#E7B45A",  // Màu vàng chính
-                                    color: "white",  // Màu chữ trắng để dễ đọc
-                                    "&:hover": { backgroundColor: "#D1A750" }  // Màu tối hơn khi hover
-                                }}
-                                onClick={() => navigate("/drink/create")}
-                            >
-                                Thêm Món Mới
-                            </Button>
-                        </Box>
-
-
-                        <TableContainer component={Paper} sx={{ maxHeight: "500px", overflowY: "auto" }}>
-                            <Table aria-label="drinks table">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Ảnh</TableCell>
-                                        <TableCell>Tên Món</TableCell>
-                                        <TableCell>Giá</TableCell>
-                                        <TableCell>Hành Động</TableCell>
+                    <TableContainer component={Paper} sx={{ maxHeight: "500px", overflowY: "auto" }}>
+                        <Table aria-label="drinks table">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Ảnh</TableCell>
+                                    <TableCell>Tên Món</TableCell>
+                                    <TableCell>Giá</TableCell>
+                                    <TableCell>Loại Món</TableCell> {/* New Column */}
+                                    <TableCell>Hành Động</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {currentDrinks.length > 0 ? currentDrinks.map((drink) => (
+                                    <TableRow key={drink.id}>
+                                        <TableCell>
+                                            <CardMedia
+                                                component="img"
+                                                image={getCloudinaryImageUrl(drink.imgDrinks)}
+                                                alt={drink.nameDrinks}
+                                                sx={{
+                                                    width: 70,
+                                                    height: 70,
+                                                    objectFit: "cover",
+                                                    borderRadius: "8px",
+                                                    border: "1px solid #C4975C",
+                                                }}
+                                            />
+                                        </TableCell>
+                                        <TableCell>{drink.nameDrinks}</TableCell>
+                                        <TableCell>{formatPrice(drink.price)} VND</TableCell>
+                                        <TableCell>{drink.category ? drink.category.nameCategory : "Chưa có loại"}</TableCell> {/* Displaying category */}
+                                        <TableCell>
+                                            <Box display="flex" gap={1}>
+                                                <Button
+                                                    variant="contained"
+                                                    color="primary"  // Đổi từ 'warning' thành 'primary' để sử dụng màu xanh
+                                                    size="small"
+                                                    onClick={() => handleOpenDialog(drink)}
+                                                >
+                                                    Sửa
+                                                </Button>
+                                                <Button
+                                                    variant="contained"
+                                                    color="error"
+                                                    size="small"
+                                                    onClick={() => handleOpenDeleteDialog(drink.id)}
+                                                >
+                                                    Xóa
+                                                </Button>
+                                            </Box>
+                                        </TableCell>
                                     </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {currentDrinks.length > 0 ? currentDrinks.map((drink) => (
-                                        <TableRow key={drink.id}>
-                                            <TableCell>
-                                                <CardMedia
-                                                    component="img"
-                                                    image={getCloudinaryImageUrl(drink.imgDrinks)}
-                                                    alt={drink.nameDrinks}
-                                                    sx={{
-                                                        width: 70,
-                                                        height: 70,
-                                                        objectFit: "cover",
-                                                        borderRadius: "8px",
-                                                        border: "1px solid #C4975C",
-                                                    }}
-                                                />
-                                            </TableCell>
-                                            <TableCell>{drink.nameDrinks}</TableCell>
-                                            <TableCell>{formatPrice(drink.price)} VND</TableCell>
-                                            <TableCell>
-                                                <Box display="flex" gap={1}>
-                                                    <Button
-                                                        variant="contained"
-                                                        color="warning"
-                                                        size="small"
-                                                        onClick={() => handleOpenDialog(drink)}
-                                                    >
-                                                        Sửa
-                                                    </Button>
-                                                    <Button
-                                                        variant="contained"
-                                                        color="error"
-                                                        size="small"
-                                                        onClick={() => handleOpenDeleteDialog(drink.id)}
-                                                    >
-                                                        Xóa
-                                                    </Button>
-                                                </Box>
-                                            </TableCell>
-                                        </TableRow>
-                                    )) : (
-                                        <TableRow>
-                                            <TableCell colSpan={4} align="center">
-                                                <Typography variant="body1" sx={{ color: "#C4975C" }}>
-                                                    Không có món nào
-                                                </Typography>
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
+                                )) : (
+                                    <TableRow>
+                                        <TableCell colSpan={5} align="center">
+                                            <Typography variant="body1" sx={{ color: "#C4975C" }}>
+                                                Không có món nào
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
 
-                        <Box display="flex" justifyContent="center" mt={2}>
-                            <Pagination
-                                count={Math.ceil(filteredDrinks.length / itemsPerPage)}
-                                page={currentPage}
-                                onChange={handleChangePage}
-                                color="primary"
-                                size="medium"
-                            />
-                        </Box>
-                    </Grid>
+
+                    <Box display="flex" justifyContent="center" mt={2}>
+                        <Pagination
+                            count={Math.ceil(filteredDrinks.length / itemsPerPage)}
+                            page={currentPage}
+                            onChange={handleChangePage}
+                            color="primary"
+                            size="medium"
+                        />
+                    </Box>
                 </Grid>
-
 
                 <Dialog open={openDialog} onClose={handleCloseDialog}>
                     <DialogTitle>Chỉnh Sửa Món</DialogTitle>
@@ -310,7 +273,6 @@ const DrinksManagement = () => {
                                             ))}
                                     </Select>
                                 </FormControl>
-
 
                                 {imageFile && (
                                     <Typography variant="body1" sx={{ mb: 2 }}>Ảnh Mới:</Typography>
