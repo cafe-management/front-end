@@ -23,7 +23,7 @@ const DrinksManagement = () => {
     const [deleteDrinkId, setDeleteDrinkId] = useState(null);
     const  navigate = useNavigate();
 
-    const itemsPerPage = 10;
+    const itemsPerPage = 100;
 
     useEffect(() => {
         const fetchData = async () => {
