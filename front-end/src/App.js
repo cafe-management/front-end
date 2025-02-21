@@ -21,6 +21,7 @@ import DashBoardFeedback from "./Navbar/DashBoardFeedBack";
 import EmployeeDashBoard from "./components/EmployeeDashboard";
 import DashBoardSale from "./Navbar/DashBoardSale";
 import NewsListMobi from "./components/NewListMobi";
+import ResetPassword from "./component/auth/ResetPassword";
 function App() {
 
     return (
@@ -41,6 +42,7 @@ function App() {
                     <Route path="/home/introduction" element={<AboutUs />} />
                     <Route path="/information" element={<AccountInfo />} />
                     <Route path="change_password" element={<ChangePassword/>}></Route>
+                    <Route path="/verify" element={<ResetPassword />} />
                     <Route path="/news" element={<NewsListComponent />} />
                     <Route path="/news/create" element={<NewComponent />} />
                     <Route path="/news/edit/:id" element={<NewsUpdateComponent />} />
