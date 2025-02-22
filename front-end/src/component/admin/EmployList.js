@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import { getAllEmploy } from "../../service/UserService"; // Assuming you've defined this in the UserService file
 import HeaderAdmin from "./HeaderAdmin";
+import {ToastContainer} from "react-toastify";
 
 export default function EmployeeList() {
     const navigate = useNavigate();
@@ -131,7 +132,7 @@ export default function EmployeeList() {
                                     color: "#000",
                                     "&:hover": { backgroundColor: "#d09e4f" }
                                 }}
-                                onClick={() => navigate("/admins/register")}
+                                onClick={() => navigate("/admin/register")}
                             >
                                 Thêm nhân viên
                             </Button>
@@ -139,6 +140,7 @@ export default function EmployeeList() {
                     </Paper>
                 </Container>
             </Box>
+            <ToastContainer/>
         </>
     );
 }

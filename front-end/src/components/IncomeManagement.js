@@ -57,6 +57,15 @@ const IncomeManagement = () => {
         currency: "VND",
     });
 
+    // Ánh xạ timeFrame sang tiếng Việt
+    const timeFrameMap = {
+        day: "ngày",
+        week: "tuần",
+        month: "tháng",
+        year: "năm",
+        custom: "tùy chỉnh",
+    };
+
     useEffect(() => {
         const fetchInvoices = async () => {
             try {
@@ -109,6 +118,7 @@ const IncomeManagement = () => {
 
         fetchInvoices();
     }, []);
+
     // Hàm tổng hợp dữ liệu cho biểu đồ theo khoảng thời gian hiện tại
     const getChartData = (timeFrame) => {
         const now = new Date();
@@ -371,7 +381,8 @@ const IncomeManagement = () => {
             },
             title: {
                 display: true,
-                text: `Biểu đồ doanh thu theo ${timeFrame}`,
+                // Sử dụng timeFrameMap để hiển thị tiêu đề theo tiếng Việt
+                text: `Biểu đồ doanh thu theo ${timeFrameMap[timeFrame]}`,
             },
         },
     };
@@ -561,7 +572,7 @@ const IncomeManagement = () => {
                                     <Grid container spacing={2}>
                                         <Grid item xs={12} md={6}>
                                             <Typography variant="h6" align="center" gutterBottom>
-                                                Biểu đồ doanh thu theo {timeFrame}
+                                                Biểu đồ doanh thu theo {timeFrameMap[timeFrame]}
                                             </Typography>
                                             <Box sx={{ height: 400 }}>
                                                 <Bar data={chartData} options={barOptions} />
@@ -569,7 +580,7 @@ const IncomeManagement = () => {
                                         </Grid>
                                         <Grid item xs={12} md={6}>
                                             <Typography variant="h6" align="center" gutterBottom>
-                                                Biểu đồ so sánh theo {timeFrame}
+                                                Biểu đồ so sánh theo {timeFrameMap[timeFrame]}
                                             </Typography>
                                             <Box sx={{ height: 400 }}>
                                                 <Bar data={comparisonChartData} options={barOptions} />
