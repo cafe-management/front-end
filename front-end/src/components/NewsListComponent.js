@@ -4,42 +4,39 @@ import { getAllNews, deleteNews } from "../service/NewService";
 import { connectWebSocketUser, disconnectWebSocket } from "../service/WebSocketService";
 import {
     Container,
+    Typography,
+    CardMedia,
+    Button,
+    Box,
+    Paper,
+    Grid,
     Table,
     TableBody,
     TableCell,
     TableContainer,
     TableHead,
     TableRow,
-    Typography,
-    CircularProgress,
-    Box,
-    Alert,
-    Button,
-    Paper,
-    IconButton,
     Pagination,
-    CardMedia,
-    Modal,
     Dialog,
-    DialogTitle,
-    DialogContent,
     DialogActions,
+    DialogContent,
+    DialogTitle,
+    Modal,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
 import { Helmet } from "react-helmet-async";
 import HeaderAdmin from "../component/admin/HeaderAdmin";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import { toast, ToastContainer } from "react-toastify";
 
 const NewsListComponent = () => {
     const [newsList, setNewsList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5;
+    const itemsPerPage = 4;
     const [openModal, setOpenModal] = useState(false);
     const [selectedNews, setSelectedNews] = useState(null);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -49,7 +46,6 @@ const NewsListComponent = () => {
     useEffect(() => {
         fetchNews();
         connectWebSocketUser(fetchNews);
-
         return () => {
             disconnectWebSocket();
         };
@@ -79,8 +75,9 @@ const NewsListComponent = () => {
         try {
             await deleteNews(id);
             setNewsList((prev) => prev.filter((news) => news.id !== id));
+            toast.success("Xóa tin tức thành công!");
         } catch (err) {
-            alert("Xóa bài tin thất bại.");
+            toast.error("Xóa bài tin thất bại.");
         }
     };
 
@@ -115,22 +112,6 @@ const NewsListComponent = () => {
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentNewsList = newsList.slice(indexOfFirstItem, indexOfLastItem);
 
-    if (loading) {
-        return (
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-                <CircularProgress />
-            </Box>
-        );
-    }
-
-    if (error) {
-        return (
-            <Container maxWidth="md" sx={{ mt: 4 }}>
-                <Alert severity="error">{error}</Alert>
-            </Container>
-        );
-    }
-
     const sliderSettings = {
         dots: true,
         infinite: true,
@@ -140,45 +121,59 @@ const NewsListComponent = () => {
         adaptiveHeight: true,
     };
 
+    if (loading) {
+        return (
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+                <Typography variant="h6">Đang tải...</Typography>
+            </Box>
+        );
+    }
+
+    if (error) {
+        return (
+            <Container maxWidth="md" sx={{ mt: 4 }}>
+                <Typography variant="body1" color="error">{error}</Typography>
+            </Container>
+        );
+    }
+
     return (
         <>
+            <HeaderAdmin />
+            <ToastContainer position="top-right" autoClose={3000} />
             <Helmet>
                 <title>Quản lý tin tức</title>
             </Helmet>
-            <HeaderAdmin />
-            <Container maxWidth="lg" sx={{ mt: 10 }}>
-                <Box
-                    sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        mb: 3,
-                    }}
+            <Container maxWidth="lg" sx={{ mt: 4, pt: 4 }}>
+                <Grid
+                    container
+                    alignItems="center"
+                    justifyContent="center"
+                    sx={{ position: 'relative', my: 2 }} // my: 2 sẽ áp dụng margin-top và margin-bottom
                 >
-                    <Typography
-                        variant="h5"
-                        sx={{
-                            fontWeight: "bold",
-                            flexGrow: 1,
-                            textAlign: "center",
-                        }}
-                    >
-                        Danh sách tin tức
-                    </Typography>
+                    <Grid item>
+                        <Typography
+                            variant="h5"
+                            sx={{ fontWeight: 'bold', color: 'black', textAlign: 'center' }}
+                        >
+                            Danh Sách Tin Tức
+                        </Typography>
+                    </Grid>
+                </Grid>
+                <Grid item xs={12} sm={4} display="flex" justifyContent="flex-end" alignItems="center" sx={{ my: 2 }}>
                     <Button
                         variant="contained"
-                        sx={{
-                            backgroundColor: "#FFC107",
-                            color: "black",
-                            "&:hover": { backgroundColor: "#FFA000" },
-                        }}
-                        startIcon={<AddIcon />}
                         onClick={() => navigate("/news/create")}
+                        sx={{
+                            backgroundColor: "#E7B45A",
+                            color: "black",
+                            "&:hover": { backgroundColor: "#D1A750" },
+                        }}
                     >
                         Thêm bài mới
                     </Button>
-                </Box>
-                <TableContainer component={Paper} sx={{ borderRadius: 2, overflow: "hidden" }}>
+                </Grid>
+                <TableContainer component={Paper} sx={{ maxHeight: "600px", overflowY: "auto", mb: 2 }}>
                     <Table>
                         <TableHead>
                             <TableRow>
@@ -189,7 +184,7 @@ const NewsListComponent = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {currentNewsList.map((news) => (
+                            {currentNewsList.length > 0 ? currentNewsList.map((news) => (
                                 <TableRow key={news.id}>
                                     <TableCell align="center">
                                         {news.images?.length > 0 ? (
@@ -198,7 +193,6 @@ const NewsListComponent = () => {
                                                 image={news.images[0].img}
                                                 alt={news.title}
                                                 sx={{
-                                                    width: 80,
                                                     height: 80,
                                                     objectFit: "cover",
                                                     borderRadius: 1,
@@ -210,15 +204,21 @@ const NewsListComponent = () => {
                                     </TableCell>
                                     <TableCell>
                                         <Typography
-                                            variant="h6"
-                                            sx={{ cursor: "pointer" }}
                                             onClick={() => handleOpenModal(news)}
+                                            sx={{
+                                                cursor: "pointer",
+                                                whiteSpace: "nowrap",
+                                                overflow: "hidden",
+                                                textOverflow: "ellipsis",
+                                                maxWidth: "200px",
+                                            }}
                                         >
                                             {news.title || "Không có tiêu đề"}
                                         </Typography>
                                     </TableCell>
                                     <TableCell>
-                                        {new Date(news.dateNews).toLocaleString()}
+                                        {new Date(news.dateNews).toLocaleDateString()}<br />
+                                        {new Date(news.dateNews).toLocaleTimeString()}
                                     </TableCell>
                                     <TableCell align="center">
                                         <Box display="flex" justifyContent="center" gap={1}>
@@ -227,38 +227,45 @@ const NewsListComponent = () => {
                                                 color="primary"
                                                 size="small"
                                                 onClick={() => navigate(`/news/edit/${news.id}`)}
-                                                sx={{ fontSize: '0.875rem' }}  // Giảm kích thước font nếu cần
+                                                sx={{ fontSize: '0.875rem' }}
                                             >
-                                               sửa
+                                                Sửa
                                             </Button>
                                             <Button
                                                 variant="contained"
                                                 color="error"
-                                                size="small"  // Giảm kích thước nút
+                                                size="small"
                                                 onClick={() => handleOpenDeleteDialog(news)}
-                                                sx={{ fontSize: '0.875rem' }}  // Giảm kích thước font nếu cần
+                                                sx={{ fontSize: '0.875rem' }}
                                             >
                                                 Xóa
                                             </Button>
                                         </Box>
                                     </TableCell>
-
-
-
                                 </TableRow>
-                            ))}
+                            )) : (
+                                <TableRow>
+                                    <TableCell colSpan={4} align="center">
+                                        <Typography variant="body1" sx={{ color: "#C4975C" }}>
+                                            Không có tin tức nào
+                                        </Typography>
+                                    </TableCell>
+                                </TableRow>
+                            )}
                         </TableBody>
                     </Table>
                 </TableContainer>
-                <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+                <Box display="flex" justifyContent="center" mb={3}>
                     <Pagination
                         count={Math.ceil(newsList.length / itemsPerPage)}
                         page={currentPage}
                         onChange={(e, value) => setCurrentPage(value)}
+                        color="primary"
+                        size="medium"
                     />
                 </Box>
 
-                {/* Modal xem chi tiết tin */}
+                {/* Modal Xem Chi Tiết Tin */}
                 <Modal open={openModal} onClose={handleCloseModal}>
                     <Box
                         sx={{
@@ -279,10 +286,7 @@ const NewsListComponent = () => {
                                 {selectedNews.images?.length > 0 && (
                                     <Slider {...sliderSettings}>
                                         {selectedNews.images.map((image, index) => (
-                                            <Box
-                                                key={index}
-                                                sx={{ display: "flex", justifyContent: "center" }}
-                                            >
+                                            <Box key={index} sx={{ display: "flex", justifyContent: "center" }}>
                                                 <CardMedia
                                                     component="img"
                                                     image={image.img}
@@ -318,25 +322,17 @@ const NewsListComponent = () => {
                     </Box>
                 </Modal>
 
-                {/* Dialog xác nhận xóa */}
+                {/* Dialog Xác Nhận Xóa */}
                 <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
                     <DialogTitle sx={{ fontWeight: "bold", color: "#f57c00" }}>
                         Xác nhận xóa
                     </DialogTitle>
                     <DialogContent>
                         <Typography>
-                            Bạn có chắc chắn muốn xóa bài tin{" "}
-                            <strong>{newsToDelete?.title}</strong> không?
+                            Bạn có chắc chắn muốn xóa bài tin <strong>{newsToDelete?.title}</strong> không?
                         </Typography>
                     </DialogContent>
-                    <DialogActions
-                        sx={{
-                            justifyContent: "flex-end",
-                            gap: 2,
-                            px: 3,
-                            pb: 2,
-                        }}
-                    >
+                    <DialogActions sx={{ justifyContent: "flex-end", gap: 2, px: 3, pb: 2 }}>
                         <Button
                             onClick={handleCloseDeleteDialog}
                             sx={{
@@ -347,11 +343,7 @@ const NewsListComponent = () => {
                         >
                             Hủy
                         </Button>
-                        <Button
-                            onClick={handleDeleteConfirm}
-                            color="error"
-                            variant="contained"
-                        >
+                        <Button onClick={handleDeleteConfirm} color="error" variant="contained">
                             Xóa
                         </Button>
                     </DialogActions>

@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getNewsById, updateNews } from "../service/NewService";
-import {uploadImageAndGetUrl} from "../service/CloudinaryService";
+import { uploadImageAndGetUrl } from "../service/CloudinaryService";
 import {
     Container,
+    Paper,
     TextField,
     Button,
     Typography,
@@ -11,10 +12,14 @@ import {
     CircularProgress,
     Alert,
     IconButton,
+    Grid,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import HeaderAdmin from "../component/admin/HeaderAdmin";
 import { Helmet } from "react-helmet-async";
+
+const primaryColor = "#E7B45A";
 
 const NewsUpdateComponent = () => {
     const { id } = useParams();
@@ -100,15 +105,14 @@ const NewsUpdateComponent = () => {
 
         try {
             let uploadedNewImageUrls = [];
-            console.log("newImages:", newImages);
             if (newImages.length > 0) {
                 const uploadPromises = newImages.map(async (image) => {
                     const url = await uploadImageAndGetUrl(image);
-                    console.log("Upload result:", url);
                     return url;
                 });
-                uploadedNewImageUrls = (await Promise.all(uploadPromises)).filter((url) => url !== null);
-                console.log("Uploaded new image URLs:", uploadedNewImageUrls);
+                uploadedNewImageUrls = (await Promise.all(uploadPromises)).filter(
+                    (url) => url !== null
+                );
             }
 
             // Gộp danh sách ảnh: ảnh cũ (đã có id) và ảnh mới upload (chỉ có trường img)
@@ -126,21 +130,16 @@ const NewsUpdateComponent = () => {
                 images: combinedImages,
             };
 
-            console.log("Payload cập nhật:", newsDetails);
             await updateNews(id, newsDetails);
             setMessage("Bài tin đã được cập nhật thành công!");
-            console.log("Payload cập nhật:", newsDetails);
             // Sau khi cập nhật, gọi lại API để lấy dữ liệu mới
             const updatedData = await getNewsById(id);
             setNews(updatedData);
             setTitle(updatedData.title);
             setContent(updatedData.content);
             setOldImages(updatedData.images || []);
-
             setNewImages([]);
             setNewImagePreviews([]);
-
-            // Chuyển hướng sau vài giây
             setTimeout(() => {
                 navigate("/news");
             }, 2000);
@@ -167,126 +166,173 @@ const NewsUpdateComponent = () => {
             </Helmet>
             <HeaderAdmin />
             <Container maxWidth="md" sx={{ mt: 10 }}>
-                <Typography variant="h4" gutterBottom>
-                    Cập nhật bài tin
-                </Typography>
-                {error && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
-                        {error}
-                    </Alert>
-                )}
-                {message && (
-                    <Alert severity="success" sx={{ mb: 2 }}>
-                        {message}
-                    </Alert>
-                )}
-                <Box component="form" onSubmit={handleSubmit} noValidate>
-                    <TextField
-                        label="Tiêu đề"
-                        fullWidth
-                        margin="normal"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        required
-                    />
-                    <TextField
-                        label="Nội dung"
-                        fullWidth
-                        margin="normal"
-                        multiline
-                        rows={4}
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                        required
-                    />
-
-                    {/* Hiển thị danh sách ảnh cũ với nút xoá */}
-                    {oldImages.length > 0 && (
-                        <Box sx={{ my: 2 }}>
-                            <Typography variant="subtitle1">Ảnh hiện tại:</Typography>
-                            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mt: 1 }}>
-                                {oldImages.map((img, index) => (
-                                    <Box key={index} position="relative">
-                                        <img
-                                            src={img.img}
-                                            alt={`Ảnh hiện tại ${index + 1}`}
-                                            style={{ maxWidth: "200px", height: "auto" }}
-                                        />
-                                        <IconButton
-                                            size="small"
-                                            onClick={() => handleRemoveOldImage(index)}
-                                            sx={{
-                                                position: "absolute",
-                                                top: 0,
-                                                right: 0,
-                                                backgroundColor: "rgba(0,0,0,0.5)",
-                                                color: "white",
-                                            }}
-                                        >
-                                            <DeleteIcon fontSize="small" />
-                                        </IconButton>
-                                    </Box>
-                                ))}
-                            </Box>
-                        </Box>
-                    )}
-
-                    {/* Hiển thị danh sách ảnh mới đã chọn với nút xoá */}
-                    {newImagePreviews.length > 0 && (
-                        <Box sx={{ my: 2 }}>
-                            <Typography variant="subtitle1">
-                                Ảnh mới đã chọn:
-                            </Typography>
-                            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mt: 1 }}>
-                                {newImagePreviews.map((preview, index) => (
-                                    <Box key={index} position="relative">
-                                        <img
-                                            src={preview}
-                                            alt={`Ảnh mới ${index + 1}`}
-                                            style={{ maxWidth: "200px", height: "auto" }}
-                                        />
-                                        <IconButton
-                                            size="small"
-                                            onClick={() => handleRemoveNewImage(index)}
-                                            sx={{
-                                                position: "absolute",
-                                                top: 0,
-                                                right: 0,
-                                                backgroundColor: "rgba(0,0,0,0.5)",
-                                                color: "white",
-                                            }}
-                                        >
-                                            <DeleteIcon fontSize="small" />
-                                        </IconButton>
-                                    </Box>
-                                ))}
-                            </Box>
-                        </Box>
-                    )}
-
-                    <Box sx={{ my: 2 }}>
-                        <Typography variant="subtitle1">
-                            Chọn ảnh mới (có thể chọn nhiều ảnh):
-                        </Typography>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            onChange={handleImageChange}
-                            ref={fileInputRef}
-                            style={{ marginTop: 8 }}
-                        />
-                    </Box>
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        disabled={updating}
-                        sx={{ mt: 2 }}
+                <Paper
+                    elevation={3}
+                    sx={{
+                        p: 4,
+                        borderRadius: 3,
+                        border: `1px solid ${primaryColor}`,
+                    }}
+                >
+                    <Typography
+                        variant="h4"
+                        gutterBottom
+                        sx={{
+                            color: primaryColor,
+                            fontWeight: "bold",
+                            textAlign: "center",
+                        }}
                     >
-                        {updating ? "Đang cập nhật..." : "Cập nhật bài tin"}
-                    </Button>
-                </Box>
+                        📝 Cập nhật bài tin
+                    </Typography>
+
+                    {error && (
+                        <Alert severity="error" sx={{ mb: 3 }}>
+                            {error}
+                        </Alert>
+                    )}
+                    {message && (
+                        <Alert severity="success" sx={{ mb: 3 }}>
+                            {message}
+                        </Alert>
+                    )}
+
+                    <Box component="form" onSubmit={handleSubmit} noValidate>
+                        <TextField
+                            label="Tiêu đề"
+                            fullWidth
+                            margin="normal"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            required
+                            InputLabelProps={{ shrink: true }}
+                        />
+                        <TextField
+                            label="Nội dung"
+                            fullWidth
+                            margin="normal"
+                            multiline
+                            rows={5}
+                            value={content}
+                            onChange={(e) => setContent(e.target.value)}
+                            required
+                            InputLabelProps={{ shrink: true }}
+                        />
+
+                        {/* Hiển thị ảnh cũ với Grid */}
+                        {oldImages.length > 0 && (
+                            <Box sx={{ my: 2 }}>
+                                <Typography variant="subtitle1" sx={{ color: primaryColor, mb: 1 }}>
+                                    Ảnh hiện tại:
+                                </Typography>
+                                <Grid container spacing={2}>
+                                    {oldImages.map((img, index) => (
+                                        <Grid item xs={6} sm={4} md={3} key={index} sx={{ position: "relative" }}>
+                                            <img
+                                                src={img.img}
+                                                alt={`Ảnh hiện tại ${index + 1}`}
+                                                style={{
+                                                    width: "100%",
+                                                    height: "auto",
+                                                    borderRadius: 8,
+                                                    border: "1px solid #ddd",
+                                                    padding: 4,
+                                                }}
+                                            />
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => handleRemoveOldImage(index)}
+                                                sx={{
+                                                    position: "absolute",
+                                                    top: 5,
+                                                    right: 5,
+                                                    backgroundColor: "rgba(0,0,0,0.5)",
+                                                }}
+                                            >
+                                                <DeleteIcon sx={{ color: "white" }} fontSize="small" />
+                                            </IconButton>
+                                        </Grid>
+                                    ))}
+                                </Grid>
+                            </Box>
+                        )}
+
+                        {/* Hiển thị ảnh mới đã chọn với Grid */}
+                        {newImagePreviews.length > 0 && (
+                            <Box sx={{ my: 2 }}>
+                                <Typography variant="subtitle1" sx={{ color: primaryColor, mb: 1 }}>
+                                    Ảnh mới đã chọn:
+                                </Typography>
+                                <Grid container spacing={2}>
+                                    {newImagePreviews.map((preview, index) => (
+                                        <Grid item xs={6} sm={4} md={3} key={index} sx={{ position: "relative" }}>
+                                            <img
+                                                src={preview}
+                                                alt={`Ảnh mới ${index + 1}`}
+                                                style={{
+                                                    width: "100%",
+                                                    height: "auto",
+                                                    borderRadius: 8,
+                                                    border: "1px solid #ddd",
+                                                    padding: 4,
+                                                }}
+                                            />
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => handleRemoveNewImage(index)}
+                                                sx={{
+                                                    position: "absolute",
+                                                    top: 5,
+                                                    right: 5,
+                                                    backgroundColor: "rgba(0,0,0,0.5)",
+                                                }}
+                                            >
+                                                <DeleteIcon sx={{ color: "white" }} fontSize="small" />
+                                            </IconButton>
+                                        </Grid>
+                                    ))}
+                                </Grid>
+                            </Box>
+                        )}
+
+                        <Box sx={{ my: 2, display: "flex", alignItems: "center" }}>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                onChange={handleImageChange}
+                                ref={fileInputRef}
+                                style={{ display: "none" }}
+                                id="select-new-images"
+                            />
+                            <label htmlFor="select-new-images" style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
+                                <IconButton color="primary" component="span">
+                                    <PhotoCamera />
+                                </IconButton>
+                                <Typography variant="subtitle1" sx={{ color: primaryColor, ml: 1 }}>
+                                    Chọn ảnh mới
+                                </Typography>
+                            </label>
+                        </Box>
+
+                        <Box sx={{ mt: 4, position: "relative" }}>
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                fullWidth
+                                disabled={updating}
+                                sx={{
+                                    backgroundColor: primaryColor,
+                                    "&:hover": { backgroundColor: "#d1a750" },
+                                    py: 1.5,
+                                    fontSize: "1rem",
+                                }}
+                            >
+                                {updating ? "Đang cập nhật..." : "Cập nhật bài tin"}
+                            </Button>
+                        </Box>
+                    </Box>
+                </Paper>
             </Container>
         </>
     );
