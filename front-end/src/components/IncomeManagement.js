@@ -386,7 +386,10 @@ const IncomeManagement = () => {
         <>
             <HeaderAdmin />
             <Container maxWidth="lg" sx={{ mt: "80px" }}>
-                <Typography variant="h4" align="center" gutterBottom>
+                <Typography
+                    variant="h5"
+                    sx={{ fontWeight: 'bold', color: 'black', textAlign: 'center' }}
+                >
                     Quản Lý Doanh Thu
                 </Typography>
                 {error ? (
