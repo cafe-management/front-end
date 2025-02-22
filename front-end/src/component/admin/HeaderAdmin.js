@@ -20,9 +20,6 @@ function EmployeeManagementHeader() {
     const handleGoToEmployeeList = () => {
         navigate("/admin/list"); // Điều hướng đến trang EmployeeList
     };
-    const handleGoToAddEmployee = () => {
-        navigate("/admin/register");
-    };
     const handleGoToListNew = () => {
         navigate("/news");
     };
@@ -100,24 +97,6 @@ function EmployeeManagementHeader() {
                             onClick={handleGoToEmployeeList} // Điều hướng tới EmployeeList
                         >
                             Quản Lý Nhân Viên
-                        </Button>
-                        <Button
-                            color={isAddEmployeeActive ? "primary" : "inherit"} // Đổi màu nếu đang ở trang thêm nhân viên
-                            sx={{
-                                fontWeight: "bold",
-                                padding: "8px 16px",
-                                backgroundColor: isAddEmployeeActive ? "#E7B45A" : "transparent", // Thêm màu nền khi active
-                                color: isAddEmployeeActive ? "#fff" : "white",
-                                boxShadow: isAddEmployeeActive ? "0px 4px 10px rgba(231, 180, 90, 0.6)" : "none", // Thêm bóng đổ
-                                "&:hover": {
-                                    backgroundColor: "#E7B45A",
-                                    color: "#fff",
-                                    boxShadow: "0px 6px 12px rgba(231, 180, 90, 0.8)", // Bóng đổ khi hover
-                                },
-                            }}
-                            onClick={handleGoToAddEmployee} // Điều hướng tới trang thêm nhân viên
-                        >
-                            Thêm Nhân Viên
                         </Button>
                         <Button
                             color={isAddEmployeeActive ? "primary" : "inherit"} // Đổi màu nếu đang ở trang thêm nhân viên

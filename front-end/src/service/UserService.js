@@ -68,7 +68,17 @@ const login = async (username, password) => {
         return { success: false, message: "Đăng nhập thất bại" };
     }
 };
-
+const lockAccount = async (accountId) => {
+    try {
+        const response = await axios.put(`${API_URL}/login/lock/${accountId}`, {}, {
+            headers: getAuthHeaders(),
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Lỗi khi khóa tài khoản:", error.response?.data || error.message);
+        return { success: false, message: error.response?.data?.message || "Có lỗi xảy ra" };
+    }
+};
 const getUserInfo = async () => {
     const username = localStorage.getItem("username");
     try {
@@ -89,7 +99,6 @@ const updateEmployee = async (id, employee) => {
             headers: getAuthHeaders(),
         });
         return result.data;
-
     } catch (error) {
         console.log(error);
         return [];
@@ -167,4 +176,4 @@ const resetPassword = async (emailOrUsername, otp, newPassword) => {
         return {success: false, message: error.response?.data?.message || "Có lỗi xảy ra"}
     }
 }
-export {getAllEmploy, createEmployee, updateEmployee, checkAccount, login, getUserInfo, changePassword, forgotPassword, verifyOtp, resetPassword};
+export {getAllEmploy, createEmployee, updateEmployee, checkAccount, login, getUserInfo, changePassword, forgotPassword, verifyOtp, resetPassword, lockAccount};

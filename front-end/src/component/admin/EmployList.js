@@ -1,16 +1,33 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, Container, Paper, Typography,Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination } from "@mui/material";
+import {
+    Box,
+    Button,
+    Container,
+    Paper,
+    Typography,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    TablePagination,
+    IconButton
+} from "@mui/material";
+import FirstPageIcon from "@mui/icons-material/FirstPage";
+import LastPageIcon from "@mui/icons-material/LastPage";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
-import { getAllEmploy } from "../../service/UserService"; // Assuming you've defined this in the UserService file
+import {getAllEmploy, lockAccount} from "../../service/UserService"; // Assuming you've defined this in the UserService file
 import HeaderAdmin from "./HeaderAdmin";
+import EditIcon from "@mui/icons-material/Edit";
 
 export default function EmployeeList() {
     const navigate = useNavigate();
     const [employees, setEmployees] = useState([]);
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(0);  // Trang hiện tại
+    const [totalPages, setTotalPages] = useState(1);
     useEffect(() => {
         const token = localStorage.getItem("token");
         const role = localStorage.getItem("role");
@@ -23,7 +40,6 @@ export default function EmployeeList() {
             navigate("/login");
             return;
         }
-
         if (role !== "admin") {
             console.warn("Người dùng không có quyền admin, điều hướng về trang không có quyền.");
             navigate("/login");
@@ -37,25 +53,38 @@ export default function EmployeeList() {
         try {
             const data = await getAllEmploy();
             console.log("Fetched employees:", data); // Kiểm tra dữ liệu từ API
-            setEmployees(data);
+            if(data) {
+                setEmployees(data.content);
+            }
+            // const activeEmployees = data.filter(employee => !employee.account?.isLocked);
+            // setEmployees(activeEmployees);
         } catch (error) {
             console.error("Lỗi khi lấy danh sách nhân viên:", error);
         } finally {
             setLoading(false);
         }
     };
+    useEffect(() => {
+        fetchEmployees();
+    }, []);
+    const handleLockAccount = async (id) => {
+        const confirmLock = window.confirm("Bạn có chắc chắn muốn khóa tài khoản này?");
+        if (!confirmLock) return;
 
-
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
-    };
-
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
+        const result = await lockAccount(id);
+        if (result.success) {
+            alert("Tài khoản đã bị khóa thành công.");
+            setEmployees(prevEmployees => prevEmployees.filter(emp => emp.id !== id));
+        } else {
+            alert(result.message || "Có lỗi xảy ra khi khóa tài khoản.");
+        }
     };
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
+    };
+    const handleEditEmployee = (employee) => {
+
+        navigate(`/information`, { state: { employee } });
     };
     return (
         <>
@@ -69,6 +98,19 @@ export default function EmployeeList() {
                         <Typography variant="h5" align="center" gutterBottom sx={{ color: "#000", fontWeight: "bold" }}>
                             Danh sách nhân viên
                         </Typography>
+                        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
+                            <Button
+                                variant="contained"
+                                sx={{
+                                    backgroundColor: "#E7B45A",
+                                    color: "#000",
+                                    "&:hover": { backgroundColor: "#d09e4f" }
+                                }}
+                                onClick={() => navigate("/admin/register")}
+                            >
+                                Thêm nhân viên
+                            </Button>
+                        </Box>
                         {/* Table displaying employee data */}
                         <TableContainer>
                             <Table sx={{ minWidth: 650 }} aria-label="employee table">
@@ -81,60 +123,66 @@ export default function EmployeeList() {
                                         <TableCell align="center">Số điện thoại</TableCell>
                                         <TableCell align="center">Lương</TableCell>
                                         <TableCell align="center">Vị trí</TableCell>
+                                        <TableCell align="center"></TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {loading ? (
                                         <TableRow>
-                                            <TableCell colSpan={7} align="center">
-                                                Đang tải...
-                                            </TableCell>
+                                            <TableCell colSpan={8} align="center">Đang tải...</TableCell>
                                         </TableRow>
                                     ) : employees.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={7} align="center">
-                                                Không có nhân viên nào.
-                                            </TableCell>
+                                            <TableCell colSpan={8} align="center">Không có nhân viên nào.</TableCell>
                                         </TableRow>
-                                    ) : ( employees.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((employee) => (
-                                        <TableRow key={employee.id}>
-                                            <TableCell align="center">{employee.id}</TableCell>
-                                            <TableCell align="center">{employee.fullName}</TableCell>
-                                            <TableCell align="center">{employee.account ? employee.account.userName : 'N/A'}</TableCell> {/* Check if account exists */}
-                                            <TableCell align="center">{employee.email}</TableCell>
-                                            <TableCell align="center">{employee.phoneNumber}</TableCell> {/* Use phoneNumber directly */}
-                                            <TableCell align="center">{employee.salary? formatCurrency(employee.salary): "N/A"}</TableCell>
-                                            <TableCell align="center">{employee.account?.role?.nameRoles || "N/A"}</TableCell>
-
-                                        </TableRow>
-                                    )))}
+                                    ) : (
+                                        employees.map((employee) => (
+                                            <TableRow key={employee.id}>
+                                                <TableCell align="center">{employee.id}</TableCell>
+                                                <TableCell align="center">{employee.fullName}</TableCell>
+                                                <TableCell align="center">{employee.account ? employee.account.userName : 'N/A'}</TableCell>
+                                                <TableCell align="center">{employee.email}</TableCell>
+                                                <TableCell align="center">{employee.phoneNumber}</TableCell>
+                                                <TableCell align="center">{employee.salary ? formatCurrency(employee.salary) : "N/A"}</TableCell>
+                                                <TableCell align="center">{employee.account?.role?.nameRoles || "N/A"}</TableCell>
+                                                <TableCell align="center">
+                                                    <Button
+                                                        variant="contained"
+                                                        color={employee.account?.isLocked ? "error" : "secondary"}
+                                                        disabled={employee.account?.isLocked}
+                                                        onClick={() => handleLockAccount(employee.id)}
+                                                    >
+                                                        {employee.account?.isLocked ? "Đã khóa" : "Khóa"}
+                                                    </Button>
+                                                    <IconButton
+                                                            color="primary"
+                                                            onClick={() => handleEditEmployee(employee)}
+                                                        >
+                                                            <EditIcon />
+                                                    </IconButton>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    )}
                                 </TableBody>
                             </Table>
                         </TableContainer>
-                        {/* Pagination */}
-                        <TablePagination
-                            rowsPerPageOptions={[5, 10, 25]}
-                            component="div"
-                            count={employees.length}
-                            rowsPerPage={rowsPerPage}
-                            page={page}
-                            onPageChange={handleChangePage}
-                            onRowsPerPageChange={handleChangeRowsPerPage}
-                        />
-
-                        {/* Button to navigate to the "Register" page */}
-                        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
-                            <Button
-                                variant="contained"
-                                sx={{
-                                    backgroundColor: "#E7B45A",
-                                    color: "#000",
-                                    "&:hover": { backgroundColor: "#d09e4f" }
-                                }}
-                                onClick={() => navigate("/admins/register")}
+                        <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+                            <IconButton
+                                disabled={page === 0}
+                                onClick={() => setPage(prev => Math.max(prev - 1, 0))}
                             >
-                                Thêm nhân viên
-                            </Button>
+                                <FirstPageIcon />
+                            </IconButton>
+                            <Typography sx={{ mx: 2, display: "flex", alignItems: "center" }}>
+                                {page + 1} / {totalPages}
+                            </Typography>
+                            <IconButton
+                                disabled={page >= totalPages - 1}
+                                onClick={() => setPage(prev => Math.min(prev + 1, totalPages - 1))}
+                            >
+                                <LastPageIcon />
+                            </IconButton>
                         </Box>
                     </Paper>
                 </Container>
