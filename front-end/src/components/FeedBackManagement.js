@@ -13,25 +13,30 @@ import {
     Typography,
     IconButton,
     TextField,
+    Pagination,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import FeedbackDetailModal from "./FeedbackDetailModal";
-import dayjs from 'dayjs';
+import dayjs from "dayjs";
 
 const FeedBackManagement = () => {
-    const [feedbacks, setFeedbacks] = useState([]);
+    const [allFeedbacks, setAllFeedbacks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedFeedback, setSelectedFeedback] = useState(null);
     const [openModal, setOpenModal] = useState(false);
     const [searchDate, setSearchDate] = useState("");
+    const [page, setPage] = useState(1);
+    const pageSize = 5;
+    const totalPages = Math.ceil(allFeedbacks.length / pageSize);
 
     const loadFeedbacks = async () => {
         try {
             setLoading(true);
+            // API trả về một mảng feedback
             const data = await getFeedback();
-            setFeedbacks(data);
+            setAllFeedbacks(data.content);
         } catch (err) {
             console.error("Error fetching feedback:", err);
             setError("Không thể lấy danh sách feedback.");
@@ -43,6 +48,11 @@ const FeedBackManagement = () => {
     useEffect(() => {
         loadFeedbacks();
     }, []);
+
+    // Xử lý phân trang: Lấy dữ liệu của trang hiện tại
+    const indexOfLast = page * pageSize;
+    const indexOfFirst = indexOfLast - pageSize;
+    const currentFeedbacks = allFeedbacks.slice(indexOfFirst, indexOfLast);
 
     const handleDetail = (feedback) => {
         setSelectedFeedback(feedback);
@@ -58,14 +68,20 @@ const FeedBackManagement = () => {
         if (!searchDate) return;
         try {
             setLoading(true);
+            // Nếu API tìm kiếm cũng trả về mảng feedback
             const data = await searchFeedbackByDate(searchDate);
-            setFeedbacks(data);
+            setAllFeedbacks(data);
+            setPage(1); // Reset trang sau khi tìm kiếm
         } catch (err) {
             console.error("Error searching feedback by date:", err);
             setError("Không thể tìm kiếm feedback theo ngày.");
         } finally {
             setLoading(false);
         }
+    };
+
+    const handlePageChange = (event, value) => {
+        setPage(value);
     };
 
     if (loading) {
@@ -121,7 +137,11 @@ const FeedBackManagement = () => {
                 </IconButton>
             </Box>
 
-            <TableContainer component={Paper} elevation={3} sx={{ maxWidth: "100%", margin: "auto" }}>
+            <TableContainer
+                component={Paper}
+                elevation={3}
+                sx={{ maxWidth: "100%", margin: "auto" }}
+            >
                 <Table>
                     <TableHead>
                         <TableRow>
@@ -146,24 +166,27 @@ const FeedBackManagement = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {feedbacks.length === 0 ? (
+                        {currentFeedbacks.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={6} align="center">
                                     Không có feedback trong bảng này
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            feedbacks.map((feedback, index) => (
+                            currentFeedbacks.map((feedback, index) => (
                                 <TableRow
                                     key={feedback.id}
                                     sx={{
-                                        backgroundColor: index % 2 === 0 ? "action.hover" : "background.paper",
+                                        backgroundColor:
+                                            index % 2 === 0 ? "action.hover" : "background.paper",
                                     }}
                                 >
-                                    <TableCell align="center">{index + 1}</TableCell>
+                                    <TableCell align="center">
+                                        {indexOfFirst + index + 1}
+                                    </TableCell>
                                     <TableCell align="center">{feedback.codeFeedback}</TableCell>
                                     <TableCell align="center">
-                                        {dayjs(feedback.dateFeedback).format('DD/MM/YYYY HH:mm')}
+                                        {dayjs(feedback.dateFeedback).format("DD/MM/YYYY HH:mm")}
                                     </TableCell>
                                     <TableCell align="center">
                                         {feedback.customer
@@ -176,7 +199,10 @@ const FeedBackManagement = () => {
                                             : "N/A"}
                                     </TableCell>
                                     <TableCell align="center">
-                                        <IconButton onClick={() => handleDetail(feedback)} color="primary">
+                                        <IconButton
+                                            onClick={() => handleDetail(feedback)}
+                                            color="primary"
+                                        >
                                             <VisibilityIcon />
                                         </IconButton>
                                     </TableCell>
@@ -187,7 +213,23 @@ const FeedBackManagement = () => {
                 </Table>
             </TableContainer>
 
-            <FeedbackDetailModal open={openModal} feedback={selectedFeedback} onClose={handleClose} />
+            {/* Phân trang */}
+            {totalPages > 1 && (
+                <Box display="flex" justifyContent="center" mt={2}>
+                    <Pagination
+                        count={totalPages}
+                        page={page}
+                        onChange={handlePageChange}
+                        color="primary"
+                    />
+                </Box>
+            )}
+
+            <FeedbackDetailModal
+                open={openModal}
+                feedback={selectedFeedback}
+                onClose={handleClose}
+            />
         </Box>
     );
 };

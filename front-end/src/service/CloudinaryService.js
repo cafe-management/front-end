@@ -1,5 +1,5 @@
 const cloudName = "drszapjl6";
-const uploadPreset = "test_cloundinary"; // Make sure this is your actual preset
+const uploadPreset = "test_cloundinary";
 
 export const getCloudinaryImageUrl = (publicId, options = {}) => {
     let transformation = "";
@@ -41,4 +41,11 @@ export const uploadImageToCloudinary = async (imageFile) => {
         console.error("Error uploading image to Cloudinary:", error);
         throw error;
     }
+};
+
+export const uploadImageAndGetUrl = async (imageFile, options = {}) => {
+    // Upload ảnh và nhận về public_id
+    const publicId = await uploadImageToCloudinary(imageFile);
+    // Sử dụng hàm getCloudinaryImageUrl để chuyển đổi public_id thành URL (có thể áp dụng các tùy chọn chuyển đổi nếu cần)
+    return getCloudinaryImageUrl(publicId, options);
 };

@@ -25,6 +25,7 @@ import IncomeManagement from "./components/IncomeManagement";
 import DrinksManagement from "./components/DrinksManagement";
 import ResetPassword from "./component/auth/ResetPassword";
 import AddDrinkComponent from "./components/AddDrinkComponent";
+import {ToastContainer} from "react-toastify";
 function App() {
 
     return (
@@ -56,7 +57,7 @@ function App() {
                     <Route path="/drink/create" element={<AddDrinkComponent/>} />
                 </Routes>
             </BrowserRouter>
-
+            <ToastContainer/>
             </AbilityProvider>
         </div>
         </HelmetProvider>
