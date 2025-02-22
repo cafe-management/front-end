@@ -36,7 +36,7 @@ const FeedBackManagement = () => {
             setLoading(true);
             // API trả về một mảng feedback
             const data = await getFeedback();
-            setAllFeedbacks(data);
+            setAllFeedbacks(data.content);
         } catch (err) {
             console.error("Error fetching feedback:", err);
             setError("Không thể lấy danh sách feedback.");
