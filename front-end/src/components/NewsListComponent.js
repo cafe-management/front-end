@@ -44,6 +44,7 @@ const NewsListComponent = () => {
     const [newsToDelete, setNewsToDelete] = useState(null);
     const navigate = useNavigate();
     const role = localStorage.getItem("role");
+    const hasPendingNews = newsList.some(news => news.status === "PENDING");
     useEffect(() => {
         const role = localStorage.getItem("role");
 
@@ -220,8 +221,8 @@ const NewsListComponent = () => {
                                 <TableCell align="center">Hình ảnh</TableCell>
                                 <TableCell>Tiêu đề</TableCell>
                                 <TableCell>Ngày đăng</TableCell>
-                                {role === "employ" && <TableCell>Trạng thái</TableCell>}
-                                <TableCell align="center">Hành động</TableCell>
+                                {role === "employ" && hasPendingNews && <TableCell>Trạng thái</TableCell>}
+                                <TableCell align="center">{role === "admin" || (role === "employ" && hasPendingNews) ? "Hành động" : null}</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
