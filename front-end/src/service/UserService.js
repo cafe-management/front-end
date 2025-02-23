@@ -1,10 +1,7 @@
 import axios from "axios";
 import {API_URL} from "../config/apiConfig";
 const token = localStorage.getItem("token");
-// const authHeaders = {
-//     Authorization: `Bearer ${token}`,
-//     "Content-Type": "application/json"
-// }
+
 const getAuthHeaders = () => {
     const token = localStorage.getItem("token");
     return {
@@ -12,9 +9,10 @@ const getAuthHeaders = () => {
         "Content-Type": "application/json"
     };
 };
-const getAllEmploy = async () => {
+const getAllEmploy = async (page = 0, size = 4, search = "") => {
     try {
         const result = await axios.get(`${API_URL}/admin`, {
+            params: { page, size, search },
             headers: getAuthHeaders(),
         });
         return result.data;

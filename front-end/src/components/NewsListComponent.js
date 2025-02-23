@@ -44,22 +44,35 @@ const NewsListComponent = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
+        const role = localStorage.getItem("role");
+
+        if (role !== "admin" && role !== "employ") {
+            navigate("/login");
+            return;
+        }
         fetchNews();
         connectWebSocketUser(fetchNews);
+
         return () => {
             disconnectWebSocket();
         };
     }, []);
+
 
     const fetchNews = async () => {
         try {
             setLoading(true);
             const response = await getAllNews();
             let newsData = response.data || response;
+            const role = localStorage.getItem("role");
+            const username = localStorage.getItem("username"); // Lấy username từ localStorage
+
             if (Array.isArray(newsData)) {
-                newsData = newsData.sort(
-                    (a, b) => new Date(b.dateNews) - new Date(a.dateNews)
-                );
+                if (role === "employ") {
+                    newsData = newsData.filter(news => news.createdBy === username);
+                }
+
+                newsData = newsData.sort((a, b) => new Date(b.dateNews) - new Date(a.dateNews));
                 setNewsList(newsData);
             } else {
                 setError("Dữ liệu không đúng định dạng.");
