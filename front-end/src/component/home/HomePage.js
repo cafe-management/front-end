@@ -51,7 +51,7 @@ function CoffeeShop() {
     const fetchFeedbacks = async () => {
         try {
             const fbData = await feedbackService.getFeedback();
-            setFeedbacks(fbData);
+            setFeedbacks(fbData.content);
         } catch (error) {
             toast.error(error.message);
         }

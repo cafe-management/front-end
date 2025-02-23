@@ -1,12 +1,21 @@
+// EmployeeDashBoard.js
 import React, { useEffect, useMemo, useState } from "react";
-import {AppBar, Toolbar, Button, Box, IconButton, Menu, MenuItem, Badge} from "@mui/material";
+import {
+    AppBar,
+    Toolbar,
+    Button,
+    Box,
+    IconButton,
+    Menu,
+    MenuItem,
+    Badge,
+} from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AccountCircle, Notifications as NotificationsIcon } from "@mui/icons-material";
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
 import { Howl } from "howler";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 import { getAllNotifications, markAllNotificationsAsSeen } from "../service/NotificationService";
 import { API_URL_SOCKET } from "../config/apiConfig";
 
@@ -102,7 +111,7 @@ const EmployeeDashBoard = () => {
             backgroundColor: "#E7B45A",
             color: "#fff",
             boxShadow: "0px 6px 12px rgba(231, 180, 90, 0.8)",
-        }
+        },
     });
 
     const renderProfileMenu = (
@@ -118,8 +127,8 @@ const EmployeeDashBoard = () => {
                     borderRadius: 2,
                     mt: 1,
                     minWidth: 150,
-                    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)"
-                }
+                    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+                },
             }}
         >
             <MenuItem
@@ -150,8 +159,8 @@ const EmployeeDashBoard = () => {
                     borderRadius: 2,
                     mt: 1,
                     minWidth: 250,
-                    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)"
-                }
+                    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+                },
             }}
         >
             {notifications.length === 0 ? (
@@ -165,7 +174,7 @@ const EmployeeDashBoard = () => {
                         onClick={handleNotificationMenuClose}
                         sx={{
                             py: 1,
-                            color: notif.seen ? "gray" : "inherit"
+                            color: notif.seen ? "gray" : "inherit",
                         }}
                     >
                         {notif.content} -{" "}
@@ -183,7 +192,7 @@ const EmployeeDashBoard = () => {
                 sx={{
                     backgroundColor: "#333",
                     width: "100%",
-                    boxShadow: "none"
+                    boxShadow: "none",
                 }}
             >
                 <Toolbar
@@ -192,7 +201,7 @@ const EmployeeDashBoard = () => {
                         justifyContent: "flex-end",
                         width: "100%",
                         maxWidth: "1200px",
-                        margin: "0 auto"
+                        margin: "0 auto",
                     }}
                 >
                     <Box sx={{ display: "flex", gap: 2 }}>
@@ -220,15 +229,23 @@ const EmployeeDashBoard = () => {
                         >
                             Hóa đơn
                         </Button>
-                        <IconButton onClick={handleNotificationMenuOpen} sx={{ color: "white" }}>
+                        <IconButton
+                            onClick={handleNotificationMenuOpen}
+                            sx={{ color: "white" }}
+                        >
                             <Badge
-                                badgeContent={notifications.filter(notif => !notif.seen).length}
+                                badgeContent={
+                                    notifications.filter((notif) => !notif.seen).length
+                                }
                                 color="error"
                             >
                                 <NotificationsIcon />
                             </Badge>
                         </IconButton>
-                        <IconButton onClick={handleProfileMenuOpen} sx={{ color: "white" }}>
+                        <IconButton
+                            onClick={handleProfileMenuOpen}
+                            sx={{ color: "white" }}
+                        >
                             <AccountCircle />
                         </IconButton>
                     </Box>
@@ -236,7 +253,6 @@ const EmployeeDashBoard = () => {
             </AppBar>
             {renderProfileMenu}
             {renderNotificationMenu}
-            <ToastContainer autoClose={3000} />
             {/* Các nội dung khác của EmployeeDashBoard */}
             <Box sx={{ marginTop: "64px", padding: "16px" }}>
                 {/* Nội dung trang dashboard */}

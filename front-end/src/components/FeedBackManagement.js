@@ -68,10 +68,10 @@ const FeedBackManagement = () => {
         if (!searchDate) return;
         try {
             setLoading(true);
-            // Nếu API tìm kiếm cũng trả về mảng feedback
             const data = await searchFeedbackByDate(searchDate);
-            setAllFeedbacks(data);
-            setPage(1); // Reset trang sau khi tìm kiếm
+            // Nếu dữ liệu trả về là { content: [...] }
+            setAllFeedbacks(data.content);
+            setPage(1);
         } catch (err) {
             console.error("Error searching feedback by date:", err);
             setError("Không thể tìm kiếm feedback theo ngày.");
@@ -79,7 +79,6 @@ const FeedBackManagement = () => {
             setLoading(false);
         }
     };
-
     const handlePageChange = (event, value) => {
         setPage(value);
     };

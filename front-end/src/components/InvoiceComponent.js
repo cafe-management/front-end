@@ -56,7 +56,7 @@ const InvoiceComponent = () => {
     // Ref dùng để tham chiếu nội dung cần chuyển PDF
     const printRef = useRef();
 
-    // Fetch invoices (với API không có phân trang)
+    // Fetch invoices (sử dụng phân trang phía server)
     useEffect(() => {
         const fetchInvoices = async () => {
             setLoading(true);
@@ -84,18 +84,15 @@ const InvoiceComponent = () => {
         fetchInvoices();
     }, [page, size]);
 
-    // Lọc hóa đơn theo tên người tạo
+    // Lọc hóa đơn theo tên người tạo (áp dụng trên dữ liệu đã được phân trang từ server)
     const filteredInvoices = invoices.filter((invoice) =>
         invoice.user && invoice.user.fullName
             ? invoice.user.fullName.toLowerCase().includes(searchCreator.toLowerCase())
             : false
     );
 
-    // Tính phân trang cho mảng đã lọc
-    const paginatedInvoices = filteredInvoices.slice(
-        page * size,
-        page * size + size
-    );
+    // Nếu sử dụng phân trang phía server, bạn không cần phải dùng slice nữa.
+    const displayedInvoices = filteredInvoices;
 
     const handlePrintInvoice = (invoice) => {
         setSelectedInvoice(invoice);
@@ -207,20 +204,17 @@ const InvoiceComponent = () => {
                             <TableCell align="center" sx={{ fontWeight: "bold" }}>
                                 In Hóa Đơn Giấy
                             </TableCell>
-                            <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                                Chi Tiết
-                            </TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {paginatedInvoices.length === 0 ? (
+                        {displayedInvoices.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={8} align="center">
                                     Không tìm thấy hóa đơn nào
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            paginatedInvoices.map((invoice, index) => (
+                            displayedInvoices.map((invoice, index) => (
                                 <TableRow
                                     key={invoice.id}
                                     sx={{
@@ -255,16 +249,6 @@ const InvoiceComponent = () => {
                                                 onClick={() => handlePrintInvoice(invoice)}
                                             >
                                                 <PrintIcon />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <Tooltip title="Xem Chi Tiết">
-                                            <IconButton
-                                                color="primary"
-                                                onClick={() => handleOpenDetail(invoice)}
-                                            >
-                                                <InfoIcon />
                                             </IconButton>
                                         </Tooltip>
                                     </TableCell>
