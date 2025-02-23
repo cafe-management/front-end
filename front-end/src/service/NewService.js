@@ -6,6 +6,8 @@ import "react-toastify/dist/ReactToastify.css";
 const API_URL = API_URL_NEWS;
 const getAuthHeaders = () => {
     const token = localStorage.getItem("token");
+    const username = localStorage.getItem("username");
+    const role = localStorage.getItem("role");
     return {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json"
@@ -64,11 +66,12 @@ export const createNews = async (news) => {
 export const updateNews = async (id, newsDetails) => {
     try {
         const role = localStorage.getItem("role");
+        const username = localStorage.getItem("username");
         if (role !== "admin") {
             toast.error("⛔ Bạn không có quyền cập nhật bài viết này!");
             return;
         }
-        const response = await axios.put(`${API_URL}/${id}`, newsDetails, {
+        const response = await axios.put(`${API_URL}/${id}?username=${username}&role=${role}`, newsDetails, {
             headers: getAuthHeaders(),
         });
         toast.success("✏️ Tin tức đã được cập nhật!");
@@ -101,15 +104,35 @@ export const approveNews = async (id) => {
             toast.error("⛔ Bạn không có quyền duyệt bài viết!");
             return;
         }
-
         const response = await axios.put(`${API_URL}/${id}/approve`, {}, {
             headers: getAuthHeaders(),
         });
-
-        toast.success("✅ Bài viết đã được duyệt!");
         return response.data;
     } catch (error) {
         toast.error("❌ Lỗi khi duyệt bài viết!");
+        throw error;
+    }
+};
+export const getPendingNews = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/pending`, {
+            headers: getAuthHeaders(),
+        });
+        return response.data;
+    } catch (error) {
+        toast.error("⚠️ Lỗi khi tải danh sách tin tức đang chờ duyệt!");
+        throw error;
+    }
+};
+export const rejectNews = async (id) => {
+    try {
+        const response = await axios.put(`${API_URL}/${id}/reject`,{},
+            {
+                headers: getAuthHeaders(),
+            });
+            return response.data;
+    } catch (error) {
+        console.error("Lỗi từ chối bài viết:", error);
         throw error;
     }
 };

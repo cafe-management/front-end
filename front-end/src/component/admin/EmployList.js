@@ -201,17 +201,36 @@ export default function EmployeeList() {
                                                 <TableCell align="center">{employee.salary ? formatCurrency(employee.salary) : "N/A"}</TableCell>
                                                 <TableCell align="center">{employee.account?.role?.nameRoles || "N/A"}</TableCell>
                                                 <TableCell align="center">
-                                                    <Button
-                                                        variant="contained"
-                                                        color={employee.account?.isLocked ? "error" : "secondary"}
-                                                        disabled={employee.account?.isLocked}
-                                                        onClick={() => handleOpenLockDialog(employee)}
-                                                    >
-                                                        {employee.account?.isLocked ? "Đã khóa" : "Khóa"}
-                                                    </Button>
-                                                    <IconButton sx={{ color: "#000" }} onClick={() => handleEditEmployee(employee)}>
-                                                        <EditIcon />
-                                                    </IconButton>
+                                                    <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
+                                                        <Button
+                                                            variant="contained"
+                                                            color="error"
+                                                            disabled={employee.account?.isLocked}
+                                                            onClick={() => handleOpenLockDialog(employee)}
+                                                            sx={{
+                                                                backgroundColor: employee.account?.isLocked ? "#d32f2f" : "#f44336",
+                                                                "&:hover": {
+                                                                    backgroundColor: employee.account?.isLocked ? "#d32f2f" : "#c62828"
+                                                                }
+                                                            }}
+                                                        >
+                                                            {employee.account?.isLocked ? "Đã khóa" : "Khóa"}
+                                                        </Button>
+
+                                                        <Button
+                                                            variant="contained"
+                                                            color="primary"
+                                                            onClick={() => handleEditEmployee(employee)}
+                                                            sx={{
+                                                                backgroundColor: "#1976d2",
+                                                                "&:hover": {
+                                                                    backgroundColor: "#1565c0"
+                                                                }
+                                                            }}
+                                                        >
+                                                            Sửa
+                                                        </Button>
+                                                    </Box>
                                                 </TableCell>
                                             </TableRow>
                                         ))

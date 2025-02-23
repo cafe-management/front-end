@@ -30,6 +30,7 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { toast, ToastContainer } from "react-toastify";
+import EmployeeDashboard from "./EmployeeDashboard";
 
 const NewsListComponent = () => {
     const [newsList, setNewsList] = useState([]);
@@ -42,7 +43,7 @@ const NewsListComponent = () => {
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [newsToDelete, setNewsToDelete] = useState(null);
     const navigate = useNavigate();
-
+    const role = localStorage.getItem("role");
     useEffect(() => {
         const role = localStorage.getItem("role");
 
@@ -83,7 +84,18 @@ const NewsListComponent = () => {
             setLoading(false);
         }
     };
-
+    const getStatusLabel = (status) => {
+        switch (status) {
+            case "PENDING":
+                return "Đang chờ xét duyệt";
+            case "APPROVED":
+                return "Đã duyệt";
+            case "REJECTED":
+                return "Bị từ chối";
+            default:
+                return "Không xác định";
+        }
+    };
     const handleDelete = async (id) => {
         try {
             await deleteNews(id);
@@ -152,7 +164,7 @@ const NewsListComponent = () => {
 
     return (
         <>
-            <HeaderAdmin />
+            {role === "admin" ? <HeaderAdmin /> : <EmployeeDashboard />}
             <ToastContainer position="top-right" autoClose={3000} />
             <Helmet>
                 <title>Quản lý tin tức</title>
@@ -173,7 +185,21 @@ const NewsListComponent = () => {
                         </Typography>
                     </Grid>
                 </Grid>
-                <Grid item xs={12} sm={4} display="flex" justifyContent="flex-end" alignItems="center" sx={{ my: 2 }}>
+                <Grid container alignItems="center" justifyContent="flex-end" sx={{ my: 2 }}>
+                    {role === "admin" && (
+                        <Grid item>
+                            <Button
+                                variant="contained"
+                                color="warning"
+                                onClick={() => navigate("/pending-news")}
+                                sx={{ textTransform: "none" }}
+                                sx={{ mr: 100 }}
+                            >
+                                Bài Viết Chờ Duyệt
+                            </Button>
+                        </Grid>
+                    )}
+                    <Grid item>
                     <Button
                         variant="contained"
                         onClick={() => navigate("/news/create")}
@@ -185,6 +211,7 @@ const NewsListComponent = () => {
                     >
                         Thêm bài mới
                     </Button>
+                    </Grid>
                 </Grid>
                 <TableContainer component={Paper} sx={{ maxHeight: "600px", overflowY: "auto", mb: 2 }}>
                     <Table>
@@ -193,6 +220,7 @@ const NewsListComponent = () => {
                                 <TableCell align="center">Hình ảnh</TableCell>
                                 <TableCell>Tiêu đề</TableCell>
                                 <TableCell>Ngày đăng</TableCell>
+                                {role === "employ" && <TableCell>Trạng thái</TableCell>}
                                 <TableCell align="center">Hành động</TableCell>
                             </TableRow>
                         </TableHead>
@@ -233,27 +261,41 @@ const NewsListComponent = () => {
                                         {new Date(news.dateNews).toLocaleDateString()}<br />
                                         {new Date(news.dateNews).toLocaleTimeString()}
                                     </TableCell>
+                                    {role === "employ" && (
+                                        <TableCell>
+                                            <Typography
+                                                sx={{
+                                                    fontWeight: "bold",
+                                                    color: news.status === "PENDING" ? "#f57c00" : news.status === "APPROVED" ? "#2e7d32" : "#d32f2f",
+                                                }}
+                                            >
+                                                {getStatusLabel(news.status)}
+                                            </Typography>
+                                        </TableCell>
+                                    )}
                                     <TableCell align="center">
-                                        <Box display="flex" justifyContent="center" gap={1}>
-                                            <Button
-                                                variant="contained"
-                                                color="primary"
-                                                size="small"
-                                                onClick={() => navigate(`/news/edit/${news.id}`)}
-                                                sx={{ fontSize: '0.875rem' }}
-                                            >
-                                                Sửa
-                                            </Button>
-                                            <Button
-                                                variant="contained"
-                                                color="error"
-                                                size="small"
-                                                onClick={() => handleOpenDeleteDialog(news)}
-                                                sx={{ fontSize: '0.875rem' }}
-                                            >
-                                                Xóa
-                                            </Button>
-                                        </Box>
+                                        {(role === "admin" || (role === "employ" && news.status === "PENDING")) && (
+                                            <Box display="flex" justifyContent="center" gap={1}>
+                                                <Button
+                                                    variant="contained"
+                                                    color="primary"
+                                                    size="small"
+                                                    onClick={() => navigate(`/news/edit/${news.id}`)}
+                                                    sx={{ fontSize: '0.875rem' }}
+                                                >
+                                                    Sửa
+                                                </Button>
+                                                <Button
+                                                    variant="contained"
+                                                    color="error"
+                                                    size="small"
+                                                    onClick={() => handleOpenDeleteDialog(news)}
+                                                    sx={{ fontSize: '0.875rem' }}
+                                                >
+                                                    Xóa
+                                                </Button>
+                                            </Box>
+                                        )}
                                     </TableCell>
                                 </TableRow>
                             )) : (
