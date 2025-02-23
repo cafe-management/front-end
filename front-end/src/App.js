@@ -61,8 +61,8 @@ function App() {
                     <Route path = "/drink/edit/:id" element={<EditDrinkPage/>} />
                 </Routes>
             </BrowserRouter>
-            <ToastContainer/>
             </AbilityProvider>
+            <ToastContainer/>
         </div>
         </HelmetProvider>
 

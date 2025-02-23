@@ -208,9 +208,9 @@ const IncomeManagement = () => {
     return (
         <>
             <HeaderAdmin />
-            <Box sx={{ mt: 10, p: 2 }}>
-                <Typography variant="h4" gutterBottom>
-                    Quản lý Danh Thu
+            <Box sx={{ mt: 8, p: 2 }}>
+                <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'black', textAlign: 'center' }}>
+                    Danh Sách Nhân Viên
                 </Typography>
                 <Grid container spacing={2} sx={{ mb: 4 }}>
                     <Grid item xs={12} sm={6} md={3}>

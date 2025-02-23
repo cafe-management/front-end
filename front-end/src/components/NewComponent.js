@@ -106,12 +106,12 @@ const NewsCreateComponent = () => {
             </Helmet>
             {userRole === "admin" ? <HeaderAdmin /> : <EmployeeDashboard />}
             <Box
-                sx={{
-                    pt: 10,
-                    pb: 10,
-                    minHeight: "calc(100vh - 64px)",
-                    backgroundColor: "#f5f5f5",
-                }}
+                // sx={{
+                //     pt: 10,
+                //     pb: 10,
+                //     minHeight: "calc(100vh - 64px)",
+                //     backgroundColor: "#f5f5f5",
+                // }}
             >
                 <Container maxWidth="sm">
                     <Paper
