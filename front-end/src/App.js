@@ -27,6 +27,7 @@ import ResetPassword from "./component/auth/ResetPassword";
 import AddDrinkComponent from "./components/AddDrinkComponent";
 import {ToastContainer} from "react-toastify";
 import PendingNewsList from "./components/NewsNeedApprove";
+import EditDrinkPage from "./components/EditDrinkPage";
 function App() {
 
     return (
@@ -57,6 +58,7 @@ function App() {
                     <Route path="/manager/invoice" element={<DashBoardInvoice/>} />
                     <Route path="/chart" element={<IncomeManagement/>}/>
                     <Route path="/drink/create" element={<AddDrinkComponent/>} />
+                    <Route path = "/drink/edit/:id" element={<EditDrinkPage/>} />
                 </Routes>
             </BrowserRouter>
             <ToastContainer/>

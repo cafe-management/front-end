@@ -27,7 +27,6 @@ const createInvoice = async (invoice) => {
 // Gán hóa đơn cho giỏ hàng (Assign Invoice to Cart)
 const assignInvoiceToCart = async (invoiceId, cartId) => {
     try {
-        // Endpoint: PUT /api/invoices/{invoiceId}/cart/{cartId}
         const response = await axios.put(`${API_URL_INVOICE}/${invoiceId}/cart/${cartId}`);
         return response.data;
     } catch (error) {
