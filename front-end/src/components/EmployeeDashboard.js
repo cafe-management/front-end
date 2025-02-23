@@ -197,6 +197,12 @@ const EmployeeDashBoard = () => {
                 >
                     <Box sx={{ display: "flex", gap: 2 }}>
                         <Button
+                            sx={getButtonStyle("/news")}
+                            onClick={() => navigate("/news")}
+                        >
+                            Tin tức
+                        </Button>
+                        <Button
                             sx={getButtonStyle("/manager/feedback")}
                             onClick={() => navigate("/manager/feedback")}
                         >

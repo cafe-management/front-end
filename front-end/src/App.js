@@ -26,6 +26,7 @@ import DrinksManagement from "./components/DrinksManagement";
 import ResetPassword from "./component/auth/ResetPassword";
 import AddDrinkComponent from "./components/AddDrinkComponent";
 import {ToastContainer} from "react-toastify";
+import PendingNewsList from "./components/NewsNeedApprove";
 function App() {
 
     return (
@@ -50,6 +51,7 @@ function App() {
                     <Route path="/news" element={<NewsListComponent />} />
                     <Route path="/news/create" element={<NewComponent />} />
                     <Route path="/news/edit/:id" element={<NewsUpdateComponent />} />
+                    <Route path="/pending-news" element={<PendingNewsList />} />
                     <Route path="/home/news" element={<NewsListMobi/>}/>
                     <Route path="admin/menu" element={<DrinksManagement/>}/>
                     <Route path="/manager/invoice" element={<DashBoardInvoice/>} />

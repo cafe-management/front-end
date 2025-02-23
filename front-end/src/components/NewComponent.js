@@ -18,6 +18,7 @@ import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import DeleteIcon from "@mui/icons-material/Delete";
 import HeaderAdmin from "../component/admin/HeaderAdmin";
 import { Helmet } from "react-helmet-async";
+import EmployeeDashboard from "./EmployeeDashboard";
 
 const primaryColor = "#E7B45A";
 
@@ -32,9 +33,8 @@ const NewsCreateComponent = () => {
     const uploadPreset = "test_cloundinary";
     const navigate = useNavigate();
     const userRole = localStorage.getItem("role");
-
     useEffect(() => {
-        if (userRole !== "admin") {
+        if (userRole !== "admin" && userRole !== "employ") {
             navigate("/login");
         }
     }, [userRole, navigate]);
@@ -81,7 +81,11 @@ const NewsCreateComponent = () => {
             };
 
             await createNews(newsData);
-
+            if (userRole === "admin") {
+                setMessage("✅ Tin tức đã được đăng thành công!");
+            } else {
+                setMessage("⏳ Tin tức của bạn đang chờ xét duyệt!");
+            }
             setMessage("✅ Tin tức đã được đăng thành công!");
             setTitle("");
             setContent("");
@@ -104,7 +108,7 @@ const NewsCreateComponent = () => {
             <Helmet>
                 <title>Đăng Tin Tức Mới</title>
             </Helmet>
-            <HeaderAdmin />
+            {userRole === "admin" ? <HeaderAdmin /> : <EmployeeDashboard />}
             <Container maxWidth="md" sx={{ mt: 10 }}>
                 <Paper elevation={3} sx={{ p: 4, borderRadius: 3, border: `1px solid ${primaryColor}` }}>
                     <Typography
