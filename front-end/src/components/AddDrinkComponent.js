@@ -124,6 +124,7 @@ const DrinkCreateComponent = () => {
                 price: parseFloat(drink.price),
                 category: { id: drink.category },
                 imgDrinks: imagePublicId || null,
+                New:true,
             };
 
             await addDrinks(drinkData);
