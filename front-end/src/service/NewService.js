@@ -67,7 +67,7 @@ export const updateNews = async (id, newsDetails) => {
     try {
         const role = localStorage.getItem("role");
         const username = localStorage.getItem("username");
-        if (role !== "admin") {
+        if (role !== "admin" && role !== "employ") {
             toast.error("⛔ Bạn không có quyền cập nhật bài viết này!");
             return;
         }
@@ -133,6 +133,19 @@ export const rejectNews = async (id) => {
             return response.data;
     } catch (error) {
         console.error("Lỗi từ chối bài viết:", error);
+        throw error;
+    }
+};
+
+export const updateNewsStatus = async (id, status) => {
+    try {
+        const response = await axios.put(`${API_URL}/${id}/status`, { status }, {
+            headers: getAuthHeaders(),
+        });
+        toast.success("✅ Cập nhật trạng thái thành công!");
+        return response.data;
+    } catch (error) {
+        toast.error("❌ Lỗi khi cập nhật trạng thái bài viết!");
         throw error;
     }
 };
