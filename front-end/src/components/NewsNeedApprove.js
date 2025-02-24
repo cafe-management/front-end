@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {getAllNews, deleteNews, approveNews, getPendingNews, rejectNews} from "../service/NewService";
+import { getPendingNews, updateNewsStatus } from "../service/NewService";
 import { Container, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogActions, DialogContent, DialogTitle, Box } from "@mui/material";
 import { toast, ToastContainer } from "react-toastify";
-import {Helmet} from "react-helmet-async";
+import { Helmet } from "react-helmet-async";
 import HeaderAdmin from "../component/admin/HeaderAdmin";
 
 const PendingNewsList = () => {
     const [newsList, setNewsList] = useState([]);
-    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-    const [newsToDelete, setNewsToDelete] = useState(null);
+    const [openDialog, setOpenDialog] = useState(false);
+    const [newsToUpdate, setNewsToUpdate] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -19,26 +19,21 @@ const PendingNewsList = () => {
             return;
         }
         fetchPendingNews();
-    }, []);
+    }, [navigate]);
 
     const fetchPendingNews = async () => {
         try {
-            const response = await getPendingNews(); // Gọi API lấy danh sách bài chờ duyệt
-            setNewsList(response); // Cập nhật danh sách tin tức
+            const response = await getPendingNews(); // Lấy danh sách bài viết chờ duyệt
+            setNewsList(response);
         } catch (error) {
             toast.error("❌ Lỗi khi tải danh sách tin tức chờ duyệt!");
         }
     };
 
+    // Hàm duyệt bài viết
     const handleApprove = async (id) => {
-        const role = localStorage.getItem("role");
-        console.log("Role hiện tại:", role);
-        if (role !== "admin") {
-            toast.error("⛔ Bạn không có quyền duyệt bài viết!");
-            return;
-        }
         try {
-            await approveNews(id);
+            await updateNewsStatus(id, 'APPROVED');
             toast.success("✅ Bài viết đã được duyệt!");
             setNewsList(prev => prev.filter(news => news.id !== id));
         } catch (error) {
@@ -46,40 +41,32 @@ const PendingNewsList = () => {
         }
     };
 
+    // Mở dialog xác nhận từ chối bài viết
     const handleReject = (news) => {
-        setNewsToDelete(news);
-        setOpenDeleteDialog(true);
+        setNewsToUpdate(news);
+        setOpenDialog(true);
     };
 
+    // Xác nhận từ chối bài viết
     const confirmReject = async () => {
-        if (newsToDelete) {
+        if (newsToUpdate) {
             try {
-                // Cập nhật trạng thái của bài viết thành 'REJECTED' thay vì xóa
-                await updateNewsStatus(newsToDelete.id, 'REJECTED');
-                // Cập nhật lại danh sách bài viết
-                setNewsList(prev => prev.filter(news => news.id !== newsToDelete.id));
-                toast.success("Đã từ chối duyệt bài viết này");
+                await updateNewsStatus(newsToUpdate.id, 'REJECTED');
+                toast.success("✅ Bài viết đã bị từ chối!");
+                setNewsList(prev => prev.filter(news => news.id !== newsToUpdate.id));
             } catch (error) {
                 toast.error("❌ Lỗi khi từ chối bài viết!");
             }
         }
-        setOpenDeleteDialog(false);
+        setOpenDialog(false);
     };
-    const updateNewsStatus = async (id, status) => {
-        try {
-            // Gọi API để cập nhật trạng thái bài viết
-            await rejectNews(newsToDelete.id);
-        } catch (error) {
-            console.error("Lỗi cập nhật trạng thái bài viết:", error);
-            throw error;
-        }
-    };
+
     return (
         <>
             <Helmet>
                 <title>Tin Tức Chờ Duyệt</title>
             </Helmet>
-            <HeaderAdmin/>
+            <HeaderAdmin />
             <Container maxWidth="lg" sx={{ mt: 4 }}>
                 <ToastContainer position="top-right" autoClose={3000} />
                 <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
@@ -90,6 +77,7 @@ const PendingNewsList = () => {
                         <TableHead>
                             <TableRow>
                                 <TableCell>Tiêu đề</TableCell>
+                                <TableCell>Hình ảnh</TableCell>
                                 <TableCell>Người đăng</TableCell>
                                 <TableCell>Ngày đăng</TableCell>
                                 <TableCell align="center">Hành động</TableCell>
@@ -99,6 +87,17 @@ const PendingNewsList = () => {
                             {newsList.length > 0 ? newsList.map((news) => (
                                 <TableRow key={news.id}>
                                     <TableCell>{news.title}</TableCell>
+                                    <TableCell>
+                                        {news.images && news.images.length > 0 ? (
+                                            <img
+                                                src={news.images[0].img}
+                                                alt="Thumbnail"
+                                                style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 4 }}
+                                            />
+                                        ) : (
+                                            "No Image"
+                                        )}
+                                    </TableCell>
                                     <TableCell>{news.createdBy}</TableCell>
                                     <TableCell>{new Date(news.dateNews).toLocaleString()}</TableCell>
                                     <TableCell align="center">
@@ -122,26 +121,25 @@ const PendingNewsList = () => {
                                 </TableRow>
                             )) : (
                                 <TableRow>
-                                    <TableCell colSpan={4} align="center">Không có bài viết nào đang chờ duyệt</TableCell>
+                                    <TableCell colSpan={5} align="center">Không có bài viết nào đang chờ duyệt</TableCell>
                                 </TableRow>
                             )}
                         </TableBody>
                     </Table>
                 </TableContainer>
-                {/* Dialog Xác nhận từ chối */}
-                <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
+                {/* Dialog xác nhận từ chối */}
+                <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
                     <DialogTitle>Xác nhận từ chối</DialogTitle>
                     <DialogContent>
-                        <Typography>Bạn có chắc chắn muốn từ chối bài viết "{newsToDelete?.title}" không?</Typography>
+                        <Typography>Bạn có chắc chắn muốn từ chối bài viết "{newsToUpdate?.title}" không?</Typography>
                     </DialogContent>
                     <DialogActions>
-                        <Button onClick={() => setOpenDeleteDialog(false)}>Hủy</Button>
+                        <Button onClick={() => setOpenDialog(false)}>Hủy</Button>
                         <Button onClick={confirmReject} color="error" variant="contained">Từ chối</Button>
                     </DialogActions>
                 </Dialog>
             </Container>
         </>
-
     );
 };
 
