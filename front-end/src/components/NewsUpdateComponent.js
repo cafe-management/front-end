@@ -43,7 +43,7 @@ const NewsUpdateComponent = () => {
     // Kiểm tra quyền admin khi component load
     useEffect(() => {
         const userRole = localStorage.getItem("role");
-        if (userRole !== "admin") {
+        if (userRole !== "admin" && userRole !== "employ") {
             navigate("/login");
         }
     }, [navigate]);

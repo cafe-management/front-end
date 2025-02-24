@@ -89,7 +89,7 @@ const SaleManagement = () => {
                     }
                 };
                 refreshData();
-            }, 3000); // Polling mỗi 3 giây
+            }, 1000); // Polling mỗi 3 giây
             return () => clearInterval(interval);
         }
     }, [selectedTable]);
