@@ -41,7 +41,10 @@ const DrinksManagement = () => {
         const fetchData = async () => {
             try {
                 const drinkData = await getDrinks();
-                setDrinks(drinkData);
+                // Sắp xếp theo thứ tự giảm dần dựa trên id
+                const sortedDrinks = drinkData.sort((a, b) => b.id - a.id);
+                setDrinks(sortedDrinks);
+
                 const categoryData = await getCategories();
                 const allCategory = { id: 0, nameCategory: "All" };
                 setCategories([allCategory, ...categoryData]);

@@ -103,8 +103,8 @@ const EditDrinkPage = () => {
             <Box
                 sx={{
                     pt: 10,
-                    pb: 10,
-                    minHeight: "calc(100vh - 64px)",
+                    pb: 1, // giảm padding dưới để tránh khoảng trắng thừa
+                    minHeight: "calc(100vh - 100px)", // điều chỉnh minHeight nếu cần
                     backgroundColor: "#f5f5f5",
                 }}
             >
