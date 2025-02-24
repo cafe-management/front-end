@@ -39,6 +39,8 @@ const NewsListMobi = () => {
                 const response = await getAllNews(tableId);
                 let newsData = response.data ? response.data : response;
                 if (Array.isArray(newsData)) {
+                    // Lọc chỉ những tin tức có status là "APPROVED"
+                    newsData = newsData.filter((news) => news.status === "APPROVED");
                     newsData = newsData.sort((a, b) => new Date(b.dateNews) - new Date(a.dateNews));
                     setNewsList(newsData);
                 } else {
@@ -52,7 +54,6 @@ const NewsListMobi = () => {
         };
 
         fetchNews();
-        // Loại bỏ kết nối WebSocket để không làm ảnh hưởng đến nội dung
     }, [tableId]);
 
     useEffect(() => {
@@ -198,7 +199,6 @@ const NewsListMobi = () => {
                             {selectedNews?.content || "Không có nội dung"}
                         </Typography>
                     </DialogContent>
-
                 </Dialog>
             </Container>
             <Footer />
