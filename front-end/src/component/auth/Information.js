@@ -20,6 +20,7 @@ import { toast } from "react-toastify";
 import HeaderAdmin from "../admin/HeaderAdmin";
 
 const themeColor = "#E7B45A";
+const editBgColor = "#FFF9C4"; // Màu nền cho các trường có thể chỉnh sửa
 
 export default function AccountInfo() {
     const location = useLocation();
@@ -105,7 +106,10 @@ export default function AccountInfo() {
     };
 
     const formatCurrency = (amount) => {
-        return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
+        return new Intl.NumberFormat("vi-VN", {
+            style: "currency",
+            currency: "VND",
+        }).format(amount);
     };
 
     return (
@@ -113,7 +117,7 @@ export default function AccountInfo() {
             <Helmet>
                 <title>Thông tin tài khoản</title>
             </Helmet>
-            <HeaderAdmin/>
+            <HeaderAdmin />
             <Box
                 sx={{
                     pt: 10,
@@ -169,7 +173,10 @@ export default function AccountInfo() {
                                             InputLabelProps={{ shrink: true }}
                                             InputProps={{
                                                 readOnly: !isEditing || (isEditing && !isAdmin),
-                                                style: { backgroundColor: isEditing && !isAdmin ? "#f0f0f0" : "white" },
+                                                style: {
+                                                    backgroundColor:
+                                                        isEditing && isAdmin ? editBgColor : "white",
+                                                },
                                             }}
                                             sx={{ mb: 2 }}
                                         />
@@ -181,28 +188,41 @@ export default function AccountInfo() {
                                                 setEditedInfo({ ...editedInfo, address: e.target.value })
                                             }
                                             InputLabelProps={{ shrink: true }}
-                                            InputProps={{ readOnly: !isEditing, style: { backgroundColor: "white" } }}
+                                            InputProps={{
+                                                readOnly: !isEditing,
+                                                style: { backgroundColor: isEditing ? editBgColor : "white" },
+                                            }}
                                             sx={{ mb: 2 }}
                                         />
                                         <TextField
                                             label="Số điện thoại"
                                             fullWidth
-                                            value={isEditing ? editedInfo.phoneNumber : userInfo.phoneNumber || ""}
+                                            value={
+                                                isEditing ? editedInfo.phoneNumber : userInfo.phoneNumber || ""
+                                            }
                                             onChange={(e) =>
                                                 setEditedInfo({ ...editedInfo, phoneNumber: e.target.value })
                                             }
                                             InputLabelProps={{ shrink: true }}
-                                            InputProps={{ readOnly: !isEditing, style: { backgroundColor: "white" } }}
+                                            InputProps={{
+                                                readOnly: !isEditing,
+                                                style: { backgroundColor: isEditing ? editBgColor : "white" },
+                                            }}
                                             sx={{ mb: 2 }}
                                         />
                                         {isEditing ? (
                                             <FormControl fullWidth sx={{ mb: 2 }}>
                                                 <InputLabel>Giới tính</InputLabel>
                                                 <Select
-                                                    value={editedInfo.gender !== "" ? editedInfo.gender : userInfo.gender}
+                                                    value={
+                                                        editedInfo.gender !== ""
+                                                            ? editedInfo.gender
+                                                            : userInfo.gender
+                                                    }
                                                     onChange={(e) =>
                                                         setEditedInfo({ ...editedInfo, gender: e.target.value })
                                                     }
+                                                    sx={{ backgroundColor: editBgColor }}
                                                 >
                                                     <MenuItem value={true}>Nam</MenuItem>
                                                     <MenuItem value={false}>Nữ</MenuItem>
@@ -242,7 +262,10 @@ export default function AccountInfo() {
                                             InputLabelProps={{ shrink: true }}
                                             InputProps={{
                                                 readOnly: !isEditing || (isEditing && !isAdmin),
-                                                style: { backgroundColor: isEditing && !isAdmin ? "#f0f0f0" : "white" },
+                                                style: {
+                                                    backgroundColor:
+                                                        isEditing && isAdmin ? editBgColor : "white",
+                                                },
                                             }}
                                             sx={{ mb: 2 }}
                                         />
@@ -268,7 +291,10 @@ export default function AccountInfo() {
                                             InputLabelProps={{ shrink: true }}
                                             InputProps={{
                                                 readOnly: !isEditing || (isEditing && !isAdmin),
-                                                style: { backgroundColor: isEditing && !isAdmin ? "#f0f0f0" : "white" },
+                                                style: {
+                                                    backgroundColor:
+                                                        isEditing && isAdmin ? editBgColor : "white",
+                                                },
                                             }}
                                             sx={{ mb: 2 }}
                                         />
