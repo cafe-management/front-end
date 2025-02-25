@@ -9,6 +9,7 @@ import {
     TextField,
     Button,
     Box,
+    CircularProgress,
 } from "@mui/material";
 import { Helmet } from "react-helmet-async";
 
@@ -45,7 +46,9 @@ function ResetPassword() {
     };
 
     const handleResetPassword = async () => {
+        setLoading(true);
         const response = await resetPassword(emailOrUsername, otp, password);
+        setLoading(false);
         if (response.success) {
             toast.success("✅ Mật khẩu đã được cập nhật thành công! Hãy đăng nhập lại.");
             navigate("/login");
@@ -53,6 +56,7 @@ function ResetPassword() {
             toast.error(response.message);
         }
     };
+
     return (
         <>
             <Helmet>
@@ -82,9 +86,14 @@ function ResetPassword() {
                                     variant="contained"
                                     fullWidth
                                     onClick={handleVerifyOtp}
-                                    sx={{ backgroundColor: "#E7B45A", color: "#000", "&:hover": { backgroundColor: "#d09e4f" } }}
+                                    disabled={loading}
+                                    sx={{
+                                        backgroundColor: "#E7B45A",
+                                        color: "#000",
+                                        "&:hover": { backgroundColor: "#d09e4f" },
+                                    }}
                                 >
-                                    Xác thực OTP
+                                    {loading ? <CircularProgress size={24} color="inherit" /> : "Xác thực OTP"}
                                 </Button>
                             </Box>
                         </>
@@ -107,9 +116,14 @@ function ResetPassword() {
                                     variant="contained"
                                     fullWidth
                                     onClick={handleResetPassword}
-                                    sx={{ backgroundColor: "#E7B45A", color: "#000", "&:hover": { backgroundColor: "#d09e4f" } }}
+                                    disabled={loading}
+                                    sx={{
+                                        backgroundColor: "#E7B45A",
+                                        color: "#000",
+                                        "&:hover": { backgroundColor: "#d09e4f" },
+                                    }}
                                 >
-                                    Đổi mật khẩu
+                                    {loading ? <CircularProgress size={24} color="inherit" /> : "Đổi mật khẩu"}
                                 </Button>
                             </Box>
                         </>
