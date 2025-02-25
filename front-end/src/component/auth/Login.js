@@ -1,12 +1,21 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import { defineAbilitiesFor } from "../../ability";
-import {Box, Button, Container, Modal, Paper, TextField, Typography} from "@mui/material";
+import {
+    Box,
+    Button,
+    Container,
+    Modal,
+    Paper,
+    TextField,
+    Typography,
+    CircularProgress
+} from "@mui/material";
 import { Helmet } from "react-helmet-async";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import {forgotPassword, getUserInfo, login} from "../../service/UserService";
-import {toast, ToastContainer} from "react-toastify";
+import { forgotPassword, getUserInfo, login } from "../../service/UserService";
+import { toast, ToastContainer } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useAbility } from "../../Can.js"; // Đảm bảo bạn import useAbility từ Can.js
 
@@ -23,6 +32,8 @@ function Login() {
     const { setCurrentAbility } = useAbility();
     const [openModal, setOpenModal] = useState(false);
     const [emailOrUsername, setEmailOrUsername] = useState("");
+    const [loadingForgot, setLoadingForgot] = useState(false); // state loading
+
     useEffect(() => {
         setCurrentAbility(defineAbilitiesFor(null));
         const userRole = localStorage.getItem("role");
@@ -37,7 +48,7 @@ function Login() {
             console.log("D liệu: ", result);
             if (result.success) {
                 toast.success("Đăng nhập thành công");
-                const { token, role, username} = result;
+                const { token, role, username } = result;
                 localStorage.setItem("token", token);      // Lưu JWT token
                 localStorage.setItem("role", role);         // Lưu role của người dùng
                 localStorage.setItem("username", username);
@@ -51,7 +62,7 @@ function Login() {
                         localStorage.setItem("userId", userInfo.id);
                     }
                     navigate("/manager/sale");
-                    console.log("role:",localStorage.getItem('userId'));
+                    console.log("role:", localStorage.getItem('userId'));
                 } else {
                     toast.error("Role không hợp lệ");
                 }
@@ -70,25 +81,29 @@ function Login() {
             }
         }
     };
+
     const handleForgotPassword = async () => {
         if (!emailOrUsername) {
-        toast.error("Vui lòng nhập email hoặc tên tài khoản");
-        return;
-    }
-    try {
-        const response = await forgotPassword(emailOrUsername);
-        if (response.success) {
-            toast.success("Yêu cầu đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra email!");
-            localStorage.setItem("emailOrUsername", emailOrUsername);
-            navigate("/verify")
-            setOpenModal(false);
-        } else {
-            toast.error(response.message || "Gửi yêu cầu thất bại.");
+            toast.error("Vui lòng nhập email hoặc tên tài khoản");
+            return;
         }
-    } catch (error) {
-        toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
-    }
-};
+        setLoadingForgot(true);
+        try {
+            const response = await forgotPassword(emailOrUsername);
+            if (response.success) {
+                toast.success("Yêu cầu đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra email!");
+                localStorage.setItem("emailOrUsername", emailOrUsername);
+                navigate("/verify");
+                setOpenModal(false);
+            } else {
+                toast.error(response.message || "Gửi yêu cầu thất bại.");
+            }
+        } catch (error) {
+            toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
+        }
+        setLoadingForgot(false);
+    };
+
     return (
         <>
             <Helmet>
@@ -131,11 +146,32 @@ function Login() {
             <Modal open={openModal} onClose={() => setOpenModal(false)}>
                 <Box sx={{ width: 400, padding: 4, backgroundColor: "white", margin: "auto", marginTop: "10%", borderRadius: 2 }}>
                     <Typography variant="h6" gutterBottom>Quên mật khẩu</Typography>
-                    <TextField label="Email hoặc tên tài khoản" fullWidth value={emailOrUsername} onChange={(e) => setEmailOrUsername(e.target.value)} sx={{ marginBottom: 2 }} />
-                    <Button variant="contained" fullWidth onClick={handleForgotPassword}>Gửi yêu cầu</Button>
+                    <TextField
+                        label="Email hoặc tên tài khoản"
+                        fullWidth
+                        value={emailOrUsername}
+                        onChange={(e) => setEmailOrUsername(e.target.value)}
+                        sx={{ marginBottom: 2 }}
+                    />
+                    <Button
+                        variant="contained"
+                        fullWidth
+                        onClick={handleForgotPassword}
+                        disabled={loadingForgot}
+                        sx={{ position: "relative" }}
+                    >
+                        {loadingForgot ? (
+                            <>
+                                <CircularProgress size={24} sx={{ color: "#fff" }} />
+                                &nbsp;Đang gửi...
+                            </>
+                        ) : (
+                            "Gửi yêu cầu"
+                        )}
+                    </Button>
                 </Box>
             </Modal>
-            <ToastContainer/>
+            <ToastContainer />
         </>
     );
 }
