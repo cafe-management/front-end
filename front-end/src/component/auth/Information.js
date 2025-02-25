@@ -18,6 +18,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { getUserInfo, updateEmployee } from "../../service/UserService";
 import { toast } from "react-toastify";
 import HeaderAdmin from "../admin/HeaderAdmin";
+import EmployeeDashboard from "../../components/EmployeeDashboard";
 
 const themeColor = "#E7B45A";
 const editBgColor = "#FFF9C4"; // Màu nền cho các trường có thể chỉnh sửa
@@ -35,6 +36,9 @@ export default function AccountInfo() {
         gender: "",
     });
     const isAdmin = role === "admin";
+
+    // Điều chỉnh chiều cao header tùy theo vai trò
+    const headerHeight = isAdmin ? 64 : 56; // Giả sử: HeaderAdmin cao 64px, EmployeeDashboard cao 56px
 
     useEffect(() => {
         if (!userInfo) {
@@ -117,16 +121,18 @@ export default function AccountInfo() {
             <Helmet>
                 <title>Thông tin tài khoản</title>
             </Helmet>
-            <HeaderAdmin />
+            {role === "admin" ? <HeaderAdmin /> : <EmployeeDashboard />}
             <Box
                 sx={{
-                    pt: 10,
-                    pb: 10,
-                    minHeight: "calc(100vh - 64px)",
-                    backgroundColor: "#f5f5f5",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
+                    position: "fixed",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    width: "80%",
+                    maxWidth: "1200px",
+                    minHeight: "60vh",
+                    padding: 3,
+                    overflowY: "auto",
                 }}
             >
                 <Container maxWidth="sm">
@@ -174,8 +180,7 @@ export default function AccountInfo() {
                                             InputProps={{
                                                 readOnly: !isEditing || (isEditing && !isAdmin),
                                                 style: {
-                                                    backgroundColor:
-                                                        isEditing && isAdmin ? editBgColor : "white",
+                                                    backgroundColor: isEditing && isAdmin ? editBgColor : "white",
                                                 },
                                             }}
                                             sx={{ mb: 2 }}
@@ -197,9 +202,7 @@ export default function AccountInfo() {
                                         <TextField
                                             label="Số điện thoại"
                                             fullWidth
-                                            value={
-                                                isEditing ? editedInfo.phoneNumber : userInfo.phoneNumber || ""
-                                            }
+                                            value={isEditing ? editedInfo.phoneNumber : userInfo.phoneNumber || ""}
                                             onChange={(e) =>
                                                 setEditedInfo({ ...editedInfo, phoneNumber: e.target.value })
                                             }
@@ -214,11 +217,7 @@ export default function AccountInfo() {
                                             <FormControl fullWidth sx={{ mb: 2 }}>
                                                 <InputLabel>Giới tính</InputLabel>
                                                 <Select
-                                                    value={
-                                                        editedInfo.gender !== ""
-                                                            ? editedInfo.gender
-                                                            : userInfo.gender
-                                                    }
+                                                    value={editedInfo.gender !== "" ? editedInfo.gender : userInfo.gender}
                                                     onChange={(e) =>
                                                         setEditedInfo({ ...editedInfo, gender: e.target.value })
                                                     }
@@ -263,8 +262,7 @@ export default function AccountInfo() {
                                             InputProps={{
                                                 readOnly: !isEditing || (isEditing && !isAdmin),
                                                 style: {
-                                                    backgroundColor:
-                                                        isEditing && isAdmin ? editBgColor : "white",
+                                                    backgroundColor: isEditing && isAdmin ? editBgColor : "white",
                                                 },
                                             }}
                                             sx={{ mb: 2 }}
@@ -292,8 +290,7 @@ export default function AccountInfo() {
                                             InputProps={{
                                                 readOnly: !isEditing || (isEditing && !isAdmin),
                                                 style: {
-                                                    backgroundColor:
-                                                        isEditing && isAdmin ? editBgColor : "white",
+                                                    backgroundColor: isEditing && isAdmin ? editBgColor : "white",
                                                 },
                                             }}
                                             sx={{ mb: 2 }}

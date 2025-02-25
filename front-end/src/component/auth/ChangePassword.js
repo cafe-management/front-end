@@ -1,11 +1,12 @@
-import React, {useEffect, useState} from "react";
+import React, { useState } from "react";
 import { Box, Button, Container, Paper, TextField, Typography } from "@mui/material";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import { changePassword } from "../../service/UserService";
-import HeaderAdmin from "../admin/HeaderAdmin"; // Hàm gọi API để thay đổi mật khẩu
+import HeaderAdmin from "../admin/HeaderAdmin";
+import EmployeeDashboard from "../../components/EmployeeDashboard"; // Import thêm cho nhân viên
 
-const themeColor = "#E7B45A"; // Màu chủ đạo
+const themeColor = "#E7B45A";
 
 export default function ChangePassword() {
     const navigate = useNavigate();
@@ -15,7 +16,9 @@ export default function ChangePassword() {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
 
-    // Hàm xử lý thay đổi mật khẩu
+    // Lấy role từ localStorage (có thể thay đổi theo cách lưu của bạn)
+    const role = localStorage.getItem("role") || "";
+
     const handleChangePassword = async () => {
         if (newPassword !== confirmPassword) {
             setError("Mật khẩu mới và xác nhận mật khẩu không khớp.");
@@ -38,7 +41,7 @@ export default function ChangePassword() {
     };
 
     const handleBack = () => {
-        navigate(-1); // Quay lại trang trước
+        navigate(-1);
     };
 
     return (
@@ -46,14 +49,19 @@ export default function ChangePassword() {
             <Helmet>
                 <title>Thay đổi mật khẩu</title>
             </Helmet>
-            <HeaderAdmin />
+            {/* Phân quyền Header: nếu role là "admin" thì dùng HeaderAdmin, ngược lại sử dụng EmployeeDashboard */}
+            {role === "admin" ? <HeaderAdmin /> : <EmployeeDashboard />}
             <Box
                 sx={{
-                    minHeight: "100vh",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    backgroundColor: "#F4F4F4",
+                    position: "fixed",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    width: "80%",
+                    maxWidth: "1200px",
+                    minHeight: "60vh",
+                    padding: 3,
+                    overflowY: "auto",
                 }}
             >
                 <Container maxWidth="sm">
@@ -70,7 +78,6 @@ export default function ChangePassword() {
                             Đổi mật khẩu
                         </Typography>
 
-                        {/* Hiển thị thông báo lỗi hoặc thành công */}
                         {error && (
                             <Typography variant="body2" color="error" align="center" sx={{ marginBottom: 2 }}>
                                 {error}
@@ -82,7 +89,6 @@ export default function ChangePassword() {
                             </Typography>
                         )}
 
-                        {/* Form đổi mật khẩu */}
                         <Box component="form" sx={{ flexGrow: 1 }}>
                             <TextField
                                 label="Mật khẩu hiện tại"
@@ -109,7 +115,6 @@ export default function ChangePassword() {
                                 sx={{ marginBottom: 2 }}
                             />
 
-                            {/* Nút bấm */}
                             <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
                                 <Button
                                     variant="outlined"
@@ -131,6 +136,5 @@ export default function ChangePassword() {
                 </Container>
             </Box>
         </>
-
     );
 }
