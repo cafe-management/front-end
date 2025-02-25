@@ -34,7 +34,6 @@ const DrinksManagement = () => {
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [deleteDrinkId, setDeleteDrinkId] = useState(null);
     const navigate = useNavigate();
-
     const itemsPerPage = 4;
 
     useEffect(() => {
@@ -83,7 +82,8 @@ const DrinksManagement = () => {
     const handleDeleteDrink = async () => {
         try {
             await deleteDrink(deleteDrinkId);
-            setDrinks(drinks.filter((drink) => drink.id !== deleteDrinkId));
+            // Cập nhật lại danh sách drinks sau soft delete
+            setDrinks((prevDrinks) => prevDrinks.filter((drink) => drink.id !== deleteDrinkId));
             setOpenDeleteDialog(false);
             toast.success("Xóa món ăn thành công!");
         } catch (error) {
@@ -106,25 +106,27 @@ const DrinksManagement = () => {
             <HeaderAdmin />
             <ToastContainer position="top-right" autoClose={3000} />
             <Container maxWidth="lg" sx={{ mt: 4, pt: 4 }}>
-                <Grid container alignItems="center" justifyContent="center" sx={{ position: 'relative', my: 2 }}>
+                <Grid container alignItems="center" justifyContent="center" sx={{ my: 2 }}>
                     <Grid item>
-                        <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'black', textAlign: 'center' }}>
+                        <Typography variant="h5" sx={{ fontWeight: "bold", color: "black", textAlign: "center" }}>
                             Danh Sách Đồ Uống
                         </Typography>
                     </Grid>
                 </Grid>
-                <Grid item xs={12} sm={4} display="flex" justifyContent="flex-end" alignItems="center" sx={{ my: 2 }}>
-                    <Button
-                        variant="contained"
-                        onClick={() => navigate("/drink/create")}
-                        sx={{
-                            backgroundColor: "#E7B45A",
-                            color: "black",
-                            "&:hover": { backgroundColor: "#D1A750" },
-                        }}
-                    >
-                        Thêm Món mới
-                    </Button>
+                <Grid container justifyContent="flex-end" sx={{ my: 2 }}>
+                    <Grid item>
+                        <Button
+                            variant="contained"
+                            onClick={() => navigate("/drink/create")}
+                            sx={{
+                                backgroundColor: "#E7B45A",
+                                color: "black",
+                                "&:hover": { backgroundColor: "#D1A750" },
+                            }}
+                        >
+                            Thêm Món mới
+                        </Button>
+                    </Grid>
                 </Grid>
 
                 <TableContainer component={Paper} sx={{ maxHeight: "600px", overflowY: "auto", mb: 2 }}>
@@ -158,9 +160,7 @@ const DrinksManagement = () => {
                                         </TableCell>
                                         <TableCell>{drink.nameDrinks}</TableCell>
                                         <TableCell>{formatPrice(drink.price)}</TableCell>
-                                        <TableCell>
-                                            {drink.category ? drink.category.nameCategory : "Chưa có loại"}
-                                        </TableCell>
+                                        <TableCell>{drink.category ? drink.category.nameCategory : "Chưa có loại"}</TableCell>
                                         <TableCell align="center">
                                             <Box display="flex" gap={1} justifyContent="center">
                                                 <Button
@@ -209,16 +209,11 @@ const DrinksManagement = () => {
 
             {/* Dialog xác nhận xóa */}
             <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
-                <DialogTitle sx={{ fontWeight: "bold", color: "#f57c00" }}>
-                    Xác nhận xóa
-                </DialogTitle>
+                <DialogTitle sx={{ fontWeight: "bold", color: "#f57c00" }}>Xác nhận xóa</DialogTitle>
                 <DialogContent>
                     <Typography>
                         Bạn có chắc chắn muốn xóa món ăn{" "}
-                        <strong>
-                            {drinks.find((drink) => drink.id === deleteDrinkId)?.nameDrinks}
-                        </strong>{" "}
-                        không?
+                        <strong>{drinks.find((drink) => drink.id === deleteDrinkId)?.nameDrinks}</strong> không?
                     </Typography>
                 </DialogContent>
                 <DialogActions sx={{ justifyContent: "flex-end", gap: 2, px: 3, pb: 2 }}>
