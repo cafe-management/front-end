@@ -169,7 +169,13 @@ const NewsListComponent = () => {
             <Helmet>
                 <title>Quản lý tin tức</title>
             </Helmet>
-            <Container maxWidth="lg" sx={{ mt: 4, pt: 4 }}>
+            <Container
+                maxWidth="lg"
+                sx={{
+                    mt: role === "employ" ? 0 : 4,
+                    pt: role === "employ" ? 0 : 4,
+                }}
+            >
                 <Grid
                     container
                     alignItems="center"
@@ -177,12 +183,18 @@ const NewsListComponent = () => {
                     sx={{ position: 'relative', my: 2 }} // my: 2 sẽ áp dụng margin-top và margin-bottom
                 >
                     <Grid item>
-                        <Typography
-                            variant="h5"
-                            sx={{ fontWeight: 'bold', color: 'black', textAlign: 'center' }}
-                        >
-                            Danh Sách Tin Tức
-                        </Typography>
+                        {role === "employ" ? (
+                            <Typography variant="h4" align="center" gutterBottom>
+                                Danh sách Tin Tức
+                            </Typography>
+                        ) : (
+                            <Typography
+                                variant="h5"
+                                sx={{ fontWeight: 'bold', color: 'black', textAlign: 'center' }}
+                            >
+                                Danh Sách Tin Tức
+                            </Typography>
+                        )}
                     </Grid>
                 </Grid>
                 <Grid container alignItems="center" justifyContent="flex-end" sx={{ my: 2 }}>
