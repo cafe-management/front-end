@@ -27,7 +27,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import moment from 'moment';
 
-const nowLocal = moment().utcOffset(7).format()
+const nowLocal = moment().utcOffset(7).format();
 const SaleManagement = () => {
     const [tables, setTables] = useState([]);
     const [error, setError] = useState(null);
@@ -50,6 +50,14 @@ const SaleManagement = () => {
         fetchTables();
     }, []);
 
+    // Polling danh sách bàn để tự động cập nhật trạng thái bàn
+    useEffect(() => {
+        const interval = setInterval(() => {
+            fetchTables();
+        }, 3000); // Cập nhật mỗi 3 giây
+        return () => clearInterval(interval);
+    }, []);
+
     useEffect(() => {
         const fetchCart = async () => {
             if (selectedTable) {
@@ -68,7 +76,7 @@ const SaleManagement = () => {
         fetchCart();
     }, [selectedTable]);
 
-    // Polling tự động cập nhật lại dữ liệu (bàn và đơn hàng) khi có thay đổi
+    // Polling tự động cập nhật lại dữ liệu (đơn hàng và cập nhật thông tin bàn được chọn) khi có thay đổi
     useEffect(() => {
         if (selectedTable) {
             const interval = setInterval(() => {
@@ -89,7 +97,7 @@ const SaleManagement = () => {
                     }
                 };
                 refreshData();
-            }, 1000); // Polling mỗi 3 giây
+            }, 1000); // Polling mỗi 1 giây cho bàn được chọn
             return () => clearInterval(interval);
         }
     }, [selectedTable]);
@@ -141,6 +149,7 @@ const SaleManagement = () => {
             // Cập nhật trực tiếp state của bàn được chọn
             setSelectedTable(updatedTable);
             toast.success("Bàn đã cập nhật về trạng thái không có người ngồi");
+            fetchTables(); // Cập nhật lại danh sách bàn
         } catch (error) {
             console.error("Lỗi cập nhật bàn:", error);
         }
@@ -160,6 +169,7 @@ const SaleManagement = () => {
             });
             setSelectedTable(updatedTable);
             toast.warning("Bàn đã cập nhật về trạng thái bảo trì");
+            fetchTables(); // Cập nhật lại danh sách bàn
         } catch (error) {
             console.error("Lỗi cập nhật bàn:", error);
         }

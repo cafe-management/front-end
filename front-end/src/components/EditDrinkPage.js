@@ -14,7 +14,7 @@ import {
     Paper,
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
-import { toast, ToastContainer } from "react-toastify";
+import { toast} from "react-toastify";
 import { Helmet } from "react-helmet-async";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import { getDrinks, updateDrink } from "../service/DrinkService";
