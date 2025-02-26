@@ -1,21 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import { defineAbilitiesFor } from "../../ability";
-import {
-    Box,
-    Button,
-    Container,
-    Modal,
-    Paper,
-    TextField,
-    Typography,
-    CircularProgress
-} from "@mui/material";
+import {Box, Button, CircularProgress, Container, Modal, Paper, TextField, Typography} from "@mui/material";
 import { Helmet } from "react-helmet-async";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { forgotPassword, getUserInfo, login } from "../../service/UserService";
-import { toast, ToastContainer } from "react-toastify";
+import {forgotPassword, getUserInfo, login} from "../../service/UserService";
+import {toast, ToastContainer} from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useAbility } from "../../Can.js"; // Đảm bảo bạn import useAbility từ Can.js
 
@@ -32,8 +23,7 @@ function Login() {
     const { setCurrentAbility } = useAbility();
     const [openModal, setOpenModal] = useState(false);
     const [emailOrUsername, setEmailOrUsername] = useState("");
-    const [loadingForgot, setLoadingForgot] = useState(false); // state loading
-
+    const [loadingForgot, setLoadingForgot] = useState(false);
     useEffect(() => {
         setCurrentAbility(defineAbilitiesFor(null));
         const userRole = localStorage.getItem("role");
@@ -48,7 +38,7 @@ function Login() {
             console.log("D liệu: ", result);
             if (result.success) {
                 toast.success("Đăng nhập thành công");
-                const { token, role, username } = result;
+                const { token, role, username} = result;
                 localStorage.setItem("token", token);      // Lưu JWT token
                 localStorage.setItem("role", role);         // Lưu role của người dùng
                 localStorage.setItem("username", username);
@@ -62,7 +52,7 @@ function Login() {
                         localStorage.setItem("userId", userInfo.id);
                     }
                     navigate("/manager/sale");
-                    console.log("role:", localStorage.getItem('userId'));
+                    console.log("role:",localStorage.getItem('userId'));
                 } else {
                     toast.error("Role không hợp lệ");
                 }
@@ -81,29 +71,28 @@ function Login() {
             }
         }
     };
-
     const handleForgotPassword = async () => {
         if (!emailOrUsername) {
-            toast.error("Vui lòng nhập email hoặc tên tài khoản");
-            return;
-        }
+        toast.error("Vui lòng nhập email hoặc tên tài khoản");
+        return;
+    }
         setLoadingForgot(true);
-        try {
-            const response = await forgotPassword(emailOrUsername);
-            if (response.success) {
-                toast.success("Yêu cầu đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra email!");
-                localStorage.setItem("emailOrUsername", emailOrUsername);
-                navigate("/verify");
-                setOpenModal(false);
-            } else {
-                toast.error(response.message || "Gửi yêu cầu thất bại.");
-            }
-        } catch (error) {
-            toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
-        }
+    try {
+        const response = await forgotPassword(emailOrUsername);
         setLoadingForgot(false);
-    };
-
+        if (response.success) {
+            toast.success("Yêu cầu đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra email!");
+            localStorage.setItem("emailOrUsername", emailOrUsername);
+            navigate("/verify")
+            setOpenModal(false);
+        } else {
+            toast.error(response.message || "Gửi yêu cầu thất bại.");
+        }
+    } catch (error) {
+        setLoadingForgot(false);
+        toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
+    }
+};
     return (
         <>
             <Helmet>
@@ -171,7 +160,7 @@ function Login() {
                     </Button>
                 </Box>
             </Modal>
-            <ToastContainer />
+            <ToastContainer/>
         </>
     );
 }

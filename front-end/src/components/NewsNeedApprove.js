@@ -1,9 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getPendingNews, updateNewsStatus } from "../service/NewService";
-import { Container, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogActions, DialogContent, DialogTitle, Box } from "@mui/material";
+import {getAllNews, deleteNews, approveNews, getPendingNews, rejectNews, updateNewsStatus} from "../service/NewService";
+import {
+    Container,
+    Typography,
+    Button,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    Box,
+    CardMedia
+} from "@mui/material";
+
 import { toast, ToastContainer } from "react-toastify";
-import { Helmet } from "react-helmet-async";
+import {Helmet} from "react-helmet-async";
 import HeaderAdmin from "../component/admin/HeaderAdmin";
 
 const PendingNewsList = () => {
@@ -30,8 +48,13 @@ const PendingNewsList = () => {
         }
     };
 
-    // Hàm duyệt bài viết
     const handleApprove = async (id) => {
+        const role = localStorage.getItem("role");
+        console.log("Role hiện tại:", role);
+        if (role !== "admin") {
+            toast.error("⛔ Bạn không có quyền duyệt bài viết!");
+            return;
+        }
         try {
             await updateNewsStatus(id, 'APPROVED');
             toast.success("✅ Bài viết đã được duyệt!");
@@ -41,13 +64,11 @@ const PendingNewsList = () => {
         }
     };
 
-    // Mở dialog xác nhận từ chối bài viết
     const handleReject = (news) => {
         setNewsToUpdate(news);
         setOpenDialog(true);
     };
 
-    // Xác nhận từ chối bài viết
     const confirmReject = async () => {
         if (newsToUpdate) {
             try {
@@ -66,7 +87,7 @@ const PendingNewsList = () => {
             <Helmet>
                 <title>Tin Tức Chờ Duyệt</title>
             </Helmet>
-            <HeaderAdmin />
+            <HeaderAdmin/>
             <Container maxWidth="lg" sx={{ mt: 4 }}>
                 <ToastContainer position="top-right" autoClose={3000} />
                 <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
@@ -140,6 +161,7 @@ const PendingNewsList = () => {
                 </Dialog>
             </Container>
         </>
+
     );
 };
 

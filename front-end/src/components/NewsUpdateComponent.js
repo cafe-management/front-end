@@ -25,6 +25,7 @@ const NewsUpdateComponent = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
+    // State cho tin tức, trạng thái, thông báo lỗi/thành công và dữ liệu form
     const [news, setNews] = useState(null);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
@@ -57,6 +58,7 @@ const NewsUpdateComponent = () => {
                 setTitle(data.title);
                 setContent(data.content);
                 if (data.images && data.images.length > 0) {
+                    // Lưu trữ ảnh cũ dưới dạng mảng các đối tượng { id, img }
                     setOldImages(data.images);
                 }
             } catch (err) {
@@ -83,12 +85,12 @@ const NewsUpdateComponent = () => {
         }
     };
 
-    // Xoá ảnh cũ khỏi danh sách
+    // Xoá ảnh cũ khỏi danh sách nếu người dùng không muốn cập nhật nữa
     const handleRemoveOldImage = (index) => {
         setOldImages((prev) => prev.filter((_, i) => i !== index));
     };
 
-    // Xoá ảnh mới đã chọn
+    // Xoá ảnh mới (chưa upload)
     const handleRemoveNewImage = (index) => {
         setNewImages((prev) => prev.filter((_, i) => i !== index));
         setNewImagePreviews((prev) => prev.filter((_, i) => i !== index));
@@ -113,12 +115,13 @@ const NewsUpdateComponent = () => {
                 );
             }
 
-            // Gộp ảnh cũ và ảnh mới upload
+            // Gộp danh sách ảnh: ảnh cũ (đã có id) và ảnh mới upload (chỉ có trường img)
             const combinedImages = [
                 ...oldImages,
                 ...uploadedNewImageUrls.map((url) => ({ img: url })),
             ];
 
+            // Chuẩn bị payload cập nhật
             const newsDetails = {
                 id: news.id,
                 title,

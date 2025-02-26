@@ -21,7 +21,7 @@ import HeaderAdmin from "../admin/HeaderAdmin";
 import EmployeeDashboard from "../../components/EmployeeDashboard";
 
 const themeColor = "#E7B45A";
-const editBgColor = "#FFF9C4"; // Màu nền cho các trường có thể chỉnh sửa
+const editBgColor = "white"; // Màu nền cho các trường có thể chỉnh sửa
 
 export default function AccountInfo() {
     const location = useLocation();
@@ -180,7 +180,11 @@ export default function AccountInfo() {
                                             InputProps={{
                                                 readOnly: !isEditing || (isEditing && !isAdmin),
                                                 style: {
-                                                    backgroundColor: isEditing && isAdmin ? editBgColor : "white",
+                                                    backgroundColor: isEditing
+                                                        ? !isAdmin
+                                                            ? "#f0f0f0"
+                                                            : editBgColor
+                                                        : "white",
                                                 },
                                             }}
                                             sx={{ mb: 2 }}
@@ -247,7 +251,9 @@ export default function AccountInfo() {
                                             value={userInfo.account?.userName || ""}
                                             InputProps={{
                                                 readOnly: true,
-                                                style: { backgroundColor: "white" },
+                                                style: { backgroundColor: isEditing ? "#f0f0f0"
+                                                        : editBgColor
+                                                },
                                             }}
                                             sx={{ mb: 2 }}
                                         />
@@ -262,7 +268,11 @@ export default function AccountInfo() {
                                             InputProps={{
                                                 readOnly: !isEditing || (isEditing && !isAdmin),
                                                 style: {
-                                                    backgroundColor: isEditing && isAdmin ? editBgColor : "white",
+                                                    backgroundColor: isEditing
+                                                        ? !isAdmin
+                                                            ? "#f0f0f0"
+                                                            : editBgColor
+                                                        : "white",
                                                 },
                                             }}
                                             sx={{ mb: 2 }}
@@ -273,7 +283,10 @@ export default function AccountInfo() {
                                             value={userInfo.account?.role?.nameRoles || "Chưa có thông tin"}
                                             InputProps={{
                                                 readOnly: true,
-                                                style: { backgroundColor: "white" },
+                                                style: { backgroundColor: isEditing
+                                                            ? "#f0f0f0"
+                                                            : editBgColor
+                                                },
                                             }}
                                             sx={{ mb: 2 }}
                                         />
@@ -290,7 +303,11 @@ export default function AccountInfo() {
                                             InputProps={{
                                                 readOnly: !isEditing || (isEditing && !isAdmin),
                                                 style: {
-                                                    backgroundColor: isEditing && isAdmin ? editBgColor : "white",
+                                                    backgroundColor: isEditing
+                                                        ? !isAdmin
+                                                            ? "#f0f0f0"
+                                                            : editBgColor
+                                                        : "white",
                                                 },
                                             }}
                                             sx={{ mb: 2 }}

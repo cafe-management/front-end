@@ -91,6 +91,7 @@ export const deleteNews = async (id) => {
             return;
         }
         await axios.delete(`${API_URL}/${id}`);
+        toast.success("🗑️ Tin tức đã được xóa!");
     } catch (error) {
         toast.error("❌ Lỗi khi xóa tin tức!");
         throw error;
