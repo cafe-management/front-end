@@ -63,9 +63,8 @@ function App() {
             </BrowserRouter>
             </AbilityProvider>
         </div>
-            <ToastContainer/>
+            <ToastContainer position="top-right" autoClose={3000} />
         </HelmetProvider>
-
     );
 }
 

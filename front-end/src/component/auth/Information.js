@@ -16,7 +16,7 @@ import {
 import { Helmet } from "react-helmet-async";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getUserInfo, updateEmployee } from "../../service/UserService";
-import { toast } from "react-toastify";
+import {toast} from "react-toastify";
 import HeaderAdmin from "../admin/HeaderAdmin";
 import EmployeeDashboard from "../../components/EmployeeDashboard";
 
@@ -39,7 +39,6 @@ export default function AccountInfo() {
 
     // Điều chỉnh chiều cao header tùy theo vai trò
     const headerHeight = isAdmin ? 64 : 56; // Giả sử: HeaderAdmin cao 64px, EmployeeDashboard cao 56px
-
     useEffect(() => {
         if (!userInfo) {
             const fetchUserInfo = async () => {
@@ -86,7 +85,7 @@ export default function AccountInfo() {
                     setUserInfo(updatedData);
                     toast.success("Cập nhật thành công");
                 } else {
-                    console.error("Cập nhật thất bại:", response.message);
+                    toast.error("Cập nhật thất bại:");
                 }
             } catch (error) {
                 console.error("Lỗi khi cập nhật thông tin:", error);

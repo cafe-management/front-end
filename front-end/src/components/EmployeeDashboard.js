@@ -15,7 +15,7 @@ import { AccountCircle, Notifications as NotificationsIcon } from "@mui/icons-ma
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
 import { Howl } from "howler";
-import { toast } from "react-toastify";
+import {toast, ToastContainer} from "react-toastify";
 import { getAllNotifications, markAllNotificationsAsSeen } from "../service/NotificationService";
 import { API_URL_SOCKET } from "../config/apiConfig";
 

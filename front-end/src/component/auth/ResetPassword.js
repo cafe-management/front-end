@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { resetPassword, verifyOtp } from "../../service/UserService";
-import { toast } from "react-toastify";
+import {toast, ToastContainer} from "react-toastify";
 import {
     Container,
     Paper,

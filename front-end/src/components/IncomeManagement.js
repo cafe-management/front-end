@@ -210,7 +210,7 @@ const IncomeManagement = () => {
             <HeaderAdmin />
             <Box sx={{ mt: 8, p: 2 }}>
                 <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'black', textAlign: 'center' }}>
-                    Danh Sách Nhân Viên
+                    Quản Lý Doanh Thu
                 </Typography>
                 <Grid container spacing={2} sx={{ mb: 4 }}>
                     <Grid item xs={12} sm={6} md={3}>

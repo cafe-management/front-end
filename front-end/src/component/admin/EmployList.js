@@ -25,7 +25,7 @@ import { useNavigate } from "react-router-dom";
 import { getAllEmploy, lockAccount } from "../../service/UserService";
 import HeaderAdmin from "./HeaderAdmin";
 import SearchIcon from "@mui/icons-material/Search";
-import { toast } from "react-toastify";
+import {toast, ToastContainer} from "react-toastify";
 
 export default function EmployeeList() {
     const navigate = useNavigate();

@@ -23,7 +23,7 @@ import {
 import { getTableCoffee, updateTableCoffeeStatus } from "../service/TableCoffeeService";
 import { getCartByTableId } from "../service/CartService";
 import { createInvoice, assignInvoiceToCart } from "../service/InvoiceService";
-import { toast } from "react-toastify";
+import {toast, ToastContainer} from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import moment from 'moment';
 
@@ -217,6 +217,7 @@ const SaleManagement = () => {
     });
 
     return (
+        <>
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             <Typography variant="h4" gutterBottom align="center">
                 Quản Lý Bàn & Đơn Hàng
@@ -391,6 +392,7 @@ const SaleManagement = () => {
                 )}
             </Grid>
         </Container>
+        </>
     );
 };
 
