@@ -36,6 +36,10 @@ function Login() {
         try {
             const result = await login(data.username, data.password);
             console.log("D liệu: ", result);
+            if (!result || typeof result !== "object") {
+                toast.error("Lỗi không xác định từ server");
+                return;
+            }
             if (result.success) {
                 toast.success("Đăng nhập thành công");
                 const { token, role, username} = result;
@@ -57,7 +61,7 @@ function Login() {
                     toast.error("Role không hợp lệ");
                 }
             } else {
-                toast.error("Sai tên đăng nhập hoặc mật khẩu");
+                toast.error(result.message || "Sai tên đăng nhập hoặc mật khẩu");
             }
         } catch (error) {
             console.error("Lỗi đăng nhập:", error);

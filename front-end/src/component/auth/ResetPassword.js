@@ -65,7 +65,7 @@ function ResetPassword() {
             <Container component="main" maxWidth="xs">
                 <Paper elevation={3} sx={{ padding: 4, marginTop: 8, textAlign: "center", backgroundColor: "#fff" }}>
                     <Typography variant="h5" gutterBottom sx={{ color: "#E7B45A", fontWeight: "bold" }}>
-                        Xác thực OTP
+                        {isOtpVerified ? "Nhập mật khẩu mới" : "Xác thực OTP"}
                     </Typography>
 
                     {!isOtpVerified && (

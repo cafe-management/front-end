@@ -63,6 +63,7 @@ const login = async (username, password) => {
         return response.data;
     } catch (error) {
         console.error("Lỗi khi đăng nhập:", error);
+        console.log("Phản hồi từ backend:", error.response?.data);
         return { success: false, message: "Đăng nhập thất bại" };
     }
 };
