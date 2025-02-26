@@ -104,7 +104,6 @@ const DrinksManagement = () => {
     return (
         <>
             <HeaderAdmin />
-            <ToastContainer position="top-right" autoClose={3000} />
             <Container maxWidth="lg" sx={{ mt: 4, pt: 4 }}>
                 <Grid container alignItems="center" justifyContent="center" sx={{ my: 2 }}>
                     <Grid item>

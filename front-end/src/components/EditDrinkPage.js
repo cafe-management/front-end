@@ -99,7 +99,7 @@ const EditDrinkPage = () => {
                 <title>Chỉnh sửa món ăn</title>
             </Helmet>
             <HeaderAdmin />
-            <ToastContainer position="top-right" autoClose={3000} />
+
             <Box
                 sx={{
                     pt: 10,
