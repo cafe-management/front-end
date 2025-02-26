@@ -75,7 +75,6 @@ export const updateNews = async (id, newsDetails) => {
             headers: getAuthHeaders(),
         });
         toast.success("✏️ Tin tức đã được cập nhật!");
-        console.log("Dữ liệu gửi lên:", response);
         return response.data;
     } catch (error) {
         toast.error("❌ Lỗi khi cập nhật tin tức!");
@@ -87,10 +86,12 @@ export const updateNews = async (id, newsDetails) => {
 export const deleteNews = async (id) => {
     try {
         const role = localStorage.getItem("role");
-        if (role !== "admin" && role !== "employ") {
+        if (role !== "admin" && role!=="employ") {
+            toast.error("⛔ Bạn không có quyền xóa bài viết!");
             return;
         }
         await axios.delete(`${API_URL}/${id}`);
+        toast.success("🗑️ Tin tức đã được xóa!");
     } catch (error) {
         toast.error("❌ Lỗi khi xóa tin tức!");
         throw error;
@@ -132,6 +133,19 @@ export const rejectNews = async (id) => {
             return response.data;
     } catch (error) {
         console.error("Lỗi từ chối bài viết:", error);
+        throw error;
+    }
+};
+
+export const updateNewsStatus = async (id, status) => {
+    try {
+        const response = await axios.put(`${API_URL}/${id}/status`, { status }, {
+            headers: getAuthHeaders(),
+        });
+        toast.success("✅ Cập nhật trạng thái thành công!");
+        return response.data;
+    } catch (error) {
+        toast.error("❌ Lỗi khi cập nhật trạng thái bài viết!");
         throw error;
     }
 };

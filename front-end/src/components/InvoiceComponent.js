@@ -24,7 +24,6 @@ import {
     Pagination,
 } from "@mui/material";
 import PrintIcon from "@mui/icons-material/Print";
-import InfoIcon from "@mui/icons-material/Info";
 import SearchIcon from "@mui/icons-material/Search";
 import dayjs from "dayjs";
 import jsPDF from "jspdf";
@@ -36,9 +35,9 @@ const formatter = new Intl.NumberFormat("vi-VN", {
 });
 
 const InvoiceComponent = () => {
-    // State phân trang
+    // State phân trang phía client
     const [page, setPage] = useState(0);
-    const [size] = useState(5);
+    const size = 5;
     const [totalPages, setTotalPages] = useState(0);
 
     // State dữ liệu và loading
@@ -56,24 +55,30 @@ const InvoiceComponent = () => {
     // Ref dùng để tham chiếu nội dung cần chuyển PDF
     const printRef = useRef();
 
-    // Fetch invoices (với API không có phân trang)
+    // Fetch toàn bộ hóa đơn (không dùng phân trang từ backend)
     useEffect(() => {
         const fetchInvoices = async () => {
             setLoading(true);
             try {
-                const data = await getAllInvoice(page, size);
+                // Giả sử backend cho phép truyền size rất lớn để lấy tất cả dữ liệu
+                const data = await getAllInvoice(0, 9999);
+                let invoicesData = [];
                 if (data && data.content) {
-                    // Nếu API trả về đối tượng phân trang
-                    setInvoices(data.content);
-                    setTotalPages(data.totalPages || 0);
+                    invoicesData = data.content;
                 } else if (Array.isArray(data)) {
-                    // Nếu API trả về mảng, tính số trang trên client
-                    setInvoices(data);
-                    setTotalPages(Math.ceil(data.length / size));
-                } else {
-                    setInvoices([]);
-                    setTotalPages(0);
+                    invoicesData = data;
                 }
+                // Sắp xếp sao cho hóa đơn của hôm nay được ưu tiên hiển thị đầu tiên
+                const today = dayjs();
+                const sortedInvoices = invoicesData.sort((a, b) => {
+                    const aIsToday = dayjs(a.dateCreate).isSame(today, "day");
+                    const bIsToday = dayjs(b.dateCreate).isSame(today, "day");
+                    if (aIsToday && !bIsToday) return -1;
+                    if (!aIsToday && bIsToday) return 1;
+                    return dayjs(b.dateCreate).diff(dayjs(a.dateCreate));
+                });
+                setInvoices(sortedInvoices);
+                setTotalPages(Math.ceil(sortedInvoices.length / size));
             } catch (err) {
                 setError(err);
             } finally {
@@ -82,20 +87,17 @@ const InvoiceComponent = () => {
         };
 
         fetchInvoices();
-    }, [page, size]);
+    }, []);
 
-    // Lọc hóa đơn theo tên người tạo
+    // Lọc hóa đơn theo tên người tạo (áp dụng trên dữ liệu đã fetch)
     const filteredInvoices = invoices.filter((invoice) =>
         invoice.user && invoice.user.fullName
             ? invoice.user.fullName.toLowerCase().includes(searchCreator.toLowerCase())
             : false
     );
 
-    // Tính phân trang cho mảng đã lọc
-    const paginatedInvoices = filteredInvoices.slice(
-        page * size,
-        page * size + size
-    );
+    // Phân trang phía client: cắt mảng dữ liệu theo trang hiện tại
+    const displayedInvoices = filteredInvoices.slice(page * size, (page + 1) * size);
 
     const handlePrintInvoice = (invoice) => {
         setSelectedInvoice(invoice);
@@ -207,20 +209,17 @@ const InvoiceComponent = () => {
                             <TableCell align="center" sx={{ fontWeight: "bold" }}>
                                 In Hóa Đơn Giấy
                             </TableCell>
-                            <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                                Chi Tiết
-                            </TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {paginatedInvoices.length === 0 ? (
+                        {displayedInvoices.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={8} align="center">
                                     Không tìm thấy hóa đơn nào
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            paginatedInvoices.map((invoice, index) => (
+                            displayedInvoices.map((invoice, index) => (
                                 <TableRow
                                     key={invoice.id}
                                     sx={{
@@ -255,16 +254,6 @@ const InvoiceComponent = () => {
                                                 onClick={() => handlePrintInvoice(invoice)}
                                             >
                                                 <PrintIcon />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <Tooltip title="Xem Chi Tiết">
-                                            <IconButton
-                                                color="primary"
-                                                onClick={() => handleOpenDetail(invoice)}
-                                            >
-                                                <InfoIcon />
                                             </IconButton>
                                         </Tooltip>
                                     </TableCell>

@@ -1,9 +1,26 @@
 import React, { useState, useEffect } from "react";
 import {
-    Container, Typography, CardMedia, Button, Box, Paper, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Pagination, Dialog, DialogActions, DialogContent, DialogTitle, TextField, List, ListItem, ListItemText, Select, MenuItem, InputLabel, FormControl
+    Container,
+    Typography,
+    CardMedia,
+    Button,
+    Box,
+    Paper,
+    Grid,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Pagination,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
 } from "@mui/material";
-import { getDrinks, deleteDrink, updateDrink } from "../service/DrinkService";
-import { getCloudinaryImageUrl, uploadImageToCloudinary } from "../service/CloudinaryService";
+import { getDrinks, deleteDrink } from "../service/DrinkService";
+import { getCloudinaryImageUrl } from "../service/CloudinaryService";
 import { getCategories } from "../service/CategoryService";
 import HeaderAdmin from "../component/admin/HeaderAdmin";
 import { useNavigate } from "react-router-dom";
@@ -14,20 +31,19 @@ const DrinksManagement = () => {
     const [categories, setCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [currentPage, setCurrentPage] = useState(1);
-    const [openDialog, setOpenDialog] = useState(false);
-    const [selectedDrink, setSelectedDrink] = useState(null);
-    const [imageFile, setImageFile] = useState(null);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [deleteDrinkId, setDeleteDrinkId] = useState(null);
     const navigate = useNavigate();
-
     const itemsPerPage = 4;
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const drinkData = await getDrinks();
-                setDrinks(drinkData);
+                // Sắp xếp theo thứ tự giảm dần dựa trên id
+                const sortedDrinks = drinkData.sort((a, b) => b.id - a.id);
+                setDrinks(sortedDrinks);
+
                 const categoryData = await getCategories();
                 const allCategory = { id: 0, nameCategory: "All" };
                 setCategories([allCategory, ...categoryData]);
@@ -50,7 +66,10 @@ const DrinksManagement = () => {
         }).format(price);
     };
 
-    const filteredDrinks = selectedCategory === "All" ? drinks : drinks.filter(drink => drink.category.nameCategory === selectedCategory);
+    const filteredDrinks =
+        selectedCategory === "All"
+            ? drinks
+            : drinks.filter((drink) => drink.category.nameCategory === selectedCategory);
 
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -63,7 +82,8 @@ const DrinksManagement = () => {
     const handleDeleteDrink = async () => {
         try {
             await deleteDrink(deleteDrinkId);
-            setDrinks(drinks.filter(drink => drink.id !== deleteDrinkId));
+            // Cập nhật lại danh sách drinks sau soft delete
+            setDrinks((prevDrinks) => prevDrinks.filter((drink) => drink.id !== deleteDrinkId));
             setOpenDeleteDialog(false);
             toast.success("Xóa món ăn thành công!");
         } catch (error) {
@@ -81,83 +101,50 @@ const DrinksManagement = () => {
         setDeleteDrinkId(null);
     };
 
-    const handleOpenDialog = (drink) => {
-        setSelectedDrink(drink);
-        setOpenDialog(true);
-        setImageFile(null);
-    };
-
-    const handleCloseDialog = () => {
-        setOpenDialog(false);
-        setSelectedDrink(null);
-        setImageFile(null);
-    };
-
-    const handleUpdateDrink = async () => {
-        try {
-            if (imageFile) {
-                const publicId = await uploadImageToCloudinary(imageFile);
-                selectedDrink.imgDrinks = publicId;
-            }
-
-            await updateDrink(selectedDrink);
-            setDrinks(drinks.map(drink => (drink.id === selectedDrink.id ? selectedDrink : drink)));
-            handleCloseDialog();
-            toast.success("Cập nhật món ăn thành công!");
-        } catch (error) {
-            toast.error("Lỗi khi cập nhật món ăn!");
-        }
-    };
-
-    const handleImageChange = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            setImageFile(file);
-        }
-    };
-
     return (
         <>
             <HeaderAdmin />
             <ToastContainer position="top-right" autoClose={3000} />
             <Container maxWidth="lg" sx={{ mt: 4, pt: 4 }}>
-                <Grid item xs={12} sm={8}>
-                    <Box display="flex" justifyContent="center" alignItems="center" mb={2}>
-                        <Typography variant="h5" sx={{ fontWeight: "bold", color: "balck", textAlign: "center" }}>
-                            Quản Lý Món Ăn
+                <Grid container alignItems="center" justifyContent="center" sx={{ my: 2 }}>
+                    <Grid item>
+                        <Typography variant="h5" sx={{ fontWeight: "bold", color: "black", textAlign: "center" }}>
+                            Danh Sách Đồ Uống
                         </Typography>
-                    </Box>
-                    <Box display="flex" justifyContent="flex-end" mb={2}>
+                    </Grid>
+                </Grid>
+                <Grid container justifyContent="flex-end" sx={{ my: 2 }}>
+                    <Grid item>
                         <Button
                             variant="contained"
+                            onClick={() => navigate("/drink/create")}
                             sx={{
                                 backgroundColor: "#E7B45A",
                                 color: "black",
-                                "&:hover": {
-                                    backgroundColor: "#D1A750"
-                                }
+                                "&:hover": { backgroundColor: "#D1A750" },
                             }}
-                            onClick={() => navigate("/drink/create")}
                         >
-                            Thêm Món Mới
+                            Thêm Món mới
                         </Button>
-                    </Box>
+                    </Grid>
+                </Grid>
 
-                    <TableContainer component={Paper} sx={{ maxHeight: "500px", overflowY: "auto" }}>
-                        <Table aria-label="drinks table">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>Ảnh</TableCell>
-                                    <TableCell>Tên Món</TableCell>
-                                    <TableCell>Giá</TableCell>
-                                    <TableCell>Loại Món</TableCell> {/* New Column */}
-                                    <TableCell>Hành Động</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {currentDrinks.length > 0 ? currentDrinks.map((drink) => (
+                <TableContainer component={Paper} sx={{ maxHeight: "600px", overflowY: "auto", mb: 2 }}>
+                    <Table aria-label="drinks table">
+                        <TableHead>
+                            <TableRow>
+                                <TableCell align="center">Ảnh</TableCell>
+                                <TableCell>Tên Món</TableCell>
+                                <TableCell>Giá</TableCell>
+                                <TableCell>Loại Món</TableCell>
+                                <TableCell align="center">Hành Động</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {currentDrinks.length > 0 ? (
+                                currentDrinks.map((drink) => (
                                     <TableRow key={drink.id}>
-                                        <TableCell>
+                                        <TableCell align="center">
                                             <CardMedia
                                                 component="img"
                                                 image={getCloudinaryImageUrl(drink.imgDrinks)}
@@ -172,15 +159,15 @@ const DrinksManagement = () => {
                                             />
                                         </TableCell>
                                         <TableCell>{drink.nameDrinks}</TableCell>
-                                        <TableCell>{formatPrice(drink.price)} VND</TableCell>
-                                        <TableCell>{drink.category ? drink.category.nameCategory : "Chưa có loại"}</TableCell> {/* Displaying category */}
-                                        <TableCell>
-                                            <Box display="flex" gap={1}>
+                                        <TableCell>{formatPrice(drink.price)}</TableCell>
+                                        <TableCell>{drink.category ? drink.category.nameCategory : "Chưa có loại"}</TableCell>
+                                        <TableCell align="center">
+                                            <Box display="flex" gap={1} justifyContent="center">
                                                 <Button
                                                     variant="contained"
-                                                    color="primary"  // Đổi từ 'warning' thành 'primary' để sử dụng màu xanh
+                                                    color="primary"
                                                     size="small"
-                                                    onClick={() => handleOpenDialog(drink)}
+                                                    onClick={() => navigate(`/drink/edit/${drink.id}`)}
                                                 >
                                                     Sửa
                                                 </Button>
@@ -195,129 +182,56 @@ const DrinksManagement = () => {
                                             </Box>
                                         </TableCell>
                                     </TableRow>
-                                )) : (
-                                    <TableRow>
-                                        <TableCell colSpan={5} align="center">
-                                            <Typography variant="body1" sx={{ color: "#C4975C" }}>
-                                                Không có món nào
-                                            </Typography>
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={5} align="center">
+                                        <Typography variant="body1" sx={{ color: "#C4975C" }}>
+                                            Không có món nào
+                                        </Typography>
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
 
-
-                    <Box display="flex" justifyContent="center" mt={2}>
-                        <Pagination
-                            count={Math.ceil(filteredDrinks.length / itemsPerPage)}
-                            page={currentPage}
-                            onChange={handleChangePage}
-                            color="primary"
-                            size="medium"
-                        />
-                    </Box>
-                </Grid>
-
-                <Dialog open={openDialog} onClose={handleCloseDialog}>
-                    <DialogTitle>Chỉnh Sửa Món</DialogTitle>
-                    <DialogContent>
-                        {selectedDrink && (
-                            <>
-                                <Typography variant="body1" sx={{ mb: 2 }}>Ảnh Cũ:</Typography>
-                                <CardMedia
-                                    component="img"
-                                    image={getCloudinaryImageUrl(selectedDrink.imgDrinks, { width: 100, height: 100, crop: "fit" })}
-                                    alt={selectedDrink.nameDrinks}
-                                    sx={{
-                                        width: 100,
-                                        height: 100,
-                                        objectFit: "cover",
-                                        borderRadius: "8px",
-                                        border: "1px solid #C4975C",
-                                        mb: 2
-                                    }}
-                                />
-
-                                <TextField
-                                    label="Tên Món"
-                                    fullWidth
-                                    value={selectedDrink.nameDrinks}
-                                    onChange={(e) => setSelectedDrink({ ...selectedDrink, nameDrinks: e.target.value })}
-                                    sx={{ mb: 2 }}
-                                />
-                                <TextField
-                                    label="Giá"
-                                    fullWidth
-                                    value={selectedDrink.price}
-                                    onChange={(e) => setSelectedDrink({ ...selectedDrink, price: e.target.value })}
-                                    sx={{ mb: 2 }}
-                                />
-
-                                <FormControl fullWidth sx={{ mb: 2 }}>
-                                    <InputLabel>Loại Sản Phẩm</InputLabel>
-                                    <Select
-                                        value={selectedDrink.category ? selectedDrink.category.nameCategory : ""}
-                                        onChange={(e) => {
-                                            const selectedCategory = categories.find(cat => cat.nameCategory === e.target.value);
-                                            setSelectedDrink({ ...selectedDrink, category: selectedCategory });
-                                        }}
-                                    >
-                                        {categories
-                                            .filter(category => category.nameCategory !== "All") // Loại bỏ danh mục "All"
-                                            .map((category, index) => (
-                                                <MenuItem key={index} value={category.nameCategory}>
-                                                    {category.nameCategory}
-                                                </MenuItem>
-                                            ))}
-                                    </Select>
-                                </FormControl>
-
-                                {imageFile && (
-                                    <Typography variant="body1" sx={{ mb: 2 }}>Ảnh Mới:</Typography>
-                                )}
-                                {imageFile && (
-                                    <CardMedia
-                                        component="img"
-                                        image={URL.createObjectURL(imageFile)}
-                                        alt="New Image Preview"
-                                        sx={{
-                                            width: 100,
-                                            height: 100,
-                                            objectFit: "cover",
-                                            borderRadius: "8px",
-                                            border: "1px solid #C4975C",
-                                            mb: 2
-                                        }}
-                                    />
-                                )}
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleImageChange}
-                                    style={{ display: "block", marginTop: "10px" }}
-                                />
-                            </>
-                        )}
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={handleCloseDialog} color="primary">Hủy</Button>
-                        <Button onClick={handleUpdateDrink} color="primary">Cập Nhật</Button>
-                    </DialogActions>
-                </Dialog>
-
-                <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
-                    <DialogTitle>Chắc chắn muốn xóa?</DialogTitle>
-                    <DialogContent>
-                        <Typography variant="body1">Bạn có chắc chắn muốn xóa món này không?</Typography>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={handleCloseDeleteDialog} color="primary">Hủy</Button>
-                        <Button onClick={handleDeleteDrink} color="error">Xóa</Button>
-                    </DialogActions>
-                </Dialog>
+                <Box display="flex" justifyContent="center" mb={3}>
+                    <Pagination
+                        count={Math.ceil(filteredDrinks.length / itemsPerPage)}
+                        page={currentPage}
+                        onChange={handleChangePage}
+                        color="primary"
+                        size="medium"
+                    />
+                </Box>
             </Container>
+
+            {/* Dialog xác nhận xóa */}
+            <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
+                <DialogTitle sx={{ fontWeight: "bold", color: "#f57c00" }}>Xác nhận xóa</DialogTitle>
+                <DialogContent>
+                    <Typography>
+                        Bạn có chắc chắn muốn xóa món ăn{" "}
+                        <strong>{drinks.find((drink) => drink.id === deleteDrinkId)?.nameDrinks}</strong> không?
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: "flex-end", gap: 2, px: 3, pb: 2 }}>
+                    <Button
+                        onClick={handleCloseDeleteDialog}
+                        sx={{
+                            backgroundColor: "#b0bec5",
+                            color: "black",
+                            "&:hover": { backgroundColor: "#90a4ae" },
+                        }}
+                    >
+                        Hủy
+                    </Button>
+                    <Button onClick={handleDeleteDrink} color="error" variant="contained">
+                        Xóa
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </>
     );
 };

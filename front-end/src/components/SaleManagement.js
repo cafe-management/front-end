@@ -89,7 +89,7 @@ const SaleManagement = () => {
                     }
                 };
                 refreshData();
-            }, 3000); // Polling mỗi 3 giây
+            }, 1000); // Polling mỗi 3 giây
             return () => clearInterval(interval);
         }
     }, [selectedTable]);
@@ -149,13 +149,17 @@ const SaleManagement = () => {
     // Cập nhật trạng thái bàn về "Bảo trì" (status 2)
     const handleMaintenanceStatus = async () => {
         if (!selectedTable) return;
+        if (carts && carts.some((cart) => cart.items && cart.items.length > 0)) {
+            setWarning("Bàn có đơn hàng, không thể chuyển sang bảo trì!");
+            return;
+        }
         try {
             const updatedTable = await updateTableCoffeeStatus(selectedTable.id, {
                 statusTable: 2,
                 token: null,
             });
             setSelectedTable(updatedTable);
-            toast.warning("Bàn đã cập nhập về trạng thái bảo trì");
+            toast.warning("Bàn đã cập nhật về trạng thái bảo trì");
         } catch (error) {
             console.error("Lỗi cập nhật bàn:", error);
         }

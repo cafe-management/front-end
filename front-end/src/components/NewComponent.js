@@ -9,9 +9,8 @@ import {
     Button,
     Box,
     Grid,
-    CircularProgress,
+    IconButton,
     Alert,
-    IconButton
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
@@ -21,6 +20,8 @@ import { Helmet } from "react-helmet-async";
 import EmployeeDashboard from "./EmployeeDashboard";
 
 const primaryColor = "#E7B45A";
+const cloudName = "drszapjl6";
+const uploadPreset = "test_cloundinary";
 
 const NewsCreateComponent = () => {
     const [title, setTitle] = useState("");
@@ -29,8 +30,6 @@ const NewsCreateComponent = () => {
     const [previews, setPreviews] = useState([]);
     const [uploading, setUploading] = useState(false);
     const [message, setMessage] = useState("");
-    const cloudName = "drszapjl6";
-    const uploadPreset = "test_cloundinary";
     const navigate = useNavigate();
     const userRole = localStorage.getItem("role");
     useEffect(() => {
@@ -47,10 +46,8 @@ const NewsCreateComponent = () => {
     };
 
     const handleRemoveImage = (index) => {
-        const updatedFiles = files.filter((_, i) => i !== index);
-        const updatedPreviews = previews.filter((_, i) => i !== index);
-        setFiles(updatedFiles);
-        setPreviews(updatedPreviews);
+        setFiles(files.filter((_, i) => i !== index));
+        setPreviews(previews.filter((_, i) => i !== index));
     };
 
     const handleSubmit = async (e) => {
@@ -60,18 +57,17 @@ const NewsCreateComponent = () => {
 
         try {
             const uploadedImages = [];
-
             for (const file of files) {
                 const formData = new FormData();
                 formData.append("file", file);
                 formData.append("upload_preset", uploadPreset);
 
-                const cloudinaryResponse = await axios.post(
+                const response = await axios.post(
                     `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
                     formData
                 );
-                const { secure_url, public_id } = cloudinaryResponse.data;
-                uploadedImages.push({ img: secure_url, public_id: public_id });
+                const { secure_url, public_id } = response.data;
+                uploadedImages.push({ img: secure_url, public_id });
             }
 
             const newsData = {
@@ -109,114 +105,144 @@ const NewsCreateComponent = () => {
                 <title>Đăng Tin Tức Mới</title>
             </Helmet>
             {userRole === "admin" ? <HeaderAdmin /> : <EmployeeDashboard />}
-            <Container maxWidth="md" sx={{ mt: 10 }}>
-                <Paper elevation={3} sx={{ p: 4, borderRadius: 3, border: `1px solid ${primaryColor}` }}>
-                    <Typography
-                        variant="h4"
-                        gutterBottom
-                        sx={{ color: primaryColor, fontWeight: "bold", textAlign: "center" }}
+            <Box
+                sx={
+                    userRole === "admin"
+                        ? {
+                            pt: 11,
+                            minHeight: "calc(100vh - 64px)",
+                            backgroundColor: "#f5f5f5",
+                        }
+                        : {}
+                }
+            >
+                <Container maxWidth="sm">
+                    <Paper
+                        elevation={3}
+                        sx={{ p: 3, borderRadius: 3, border: `1px solid ${primaryColor}` }}
                     >
-                        📰 Đăng Tin Tức Mới
-                    </Typography>
+                        <Typography
+                            variant="h5"
+                            gutterBottom
+                            sx={{
+                                color: primaryColor,
+                                fontWeight: "bold",
+                                textAlign: "center",
+                            }}
+                        >
+                            📰 Đăng Tin Tức Mới
+                        </Typography>
 
-                    {message && (
-                        <Alert severity={message.includes("thành công") ? "success" : "error"} sx={{ mb: 3 }}>
-                            {message}
-                        </Alert>
-                    )}
-
-                    <Box component="form" onSubmit={handleSubmit} noValidate>
-                        <TextField
-                            label="📌 Tiêu đề"
-                            fullWidth
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            required
-                            margin="normal"
-                            InputLabelProps={{ shrink: true }}
-                        />
-                        <TextField
-                            label="📝 Nội dung"
-                            fullWidth
-                            multiline
-                            rows={5}
-                            value={content}
-                            onChange={(e) => setContent(e.target.value)}
-                            required
-                            margin="normal"
-                            InputLabelProps={{ shrink: true }}
-                        />
-
-                        <Box display="flex" alignItems="center" mt={2}>
-                            <input
-                                accept="image/*"
-                                id="file-upload"
-                                multiple
-                                type="file"
-                                hidden
-                                onChange={handleFileChange}
-                            />
-                            <label htmlFor="file-upload">
-                                <IconButton color="primary" component="span">
-                                    <PhotoCamera />
-                                </IconButton>
-                            </label>
-                            <Typography variant="body1" color="textSecondary">
-                                {files.length > 0 ? `${files.length} ảnh đã chọn` : "Chọn ảnh tải lên"}
-                            </Typography>
-                        </Box>
-
-                        {previews.length > 0 && (
-                            <Box sx={{ mt: 2 }}>
-                                <Typography variant="subtitle1" sx={{ color: primaryColor }}>
-                                    📷 Xem trước ảnh:
-                                </Typography>
-                                <Grid container spacing={2} sx={{ mt: 1 }}>
-                                    {previews.map((url, index) => (
-                                        <Grid item xs={4} sm={3} md={2} key={index} position="relative">
-                                            <img
-                                                src={url}
-                                                alt={`preview-${index}`}
-                                                style={{
-                                                    width: "100%",
-                                                    height: "auto",
-                                                    borderRadius: 8,
-                                                    border: "1px solid #ddd",
-                                                    padding: 2,
-                                                }}
-                                            />
-                                            <IconButton
-                                                sx={{ position: "absolute", top: 5, right: 5, background: "rgba(0,0,0,0.5)" }}
-                                                size="small"
-                                                onClick={() => handleRemoveImage(index)}
-                                            >
-                                                <DeleteIcon sx={{ color: "white" }} />
-                                            </IconButton>
-                                        </Grid>
-                                    ))}
-                                </Grid>
-                            </Box>
+                        {message && (
+                            <Alert
+                                severity={message.includes("thành công") ? "success" : "error"}
+                                sx={{ mb: 3 }}
+                            >
+                                {message}
+                            </Alert>
                         )}
 
-                        <Box sx={{ mt: 4, position: "relative" }}>
-                            <Button
-                                type="submit"
-                                variant="contained"
-                                disabled={uploading}
+                        <Box component="form" onSubmit={handleSubmit} noValidate>
+                            <TextField
+                                label="📌 Tiêu đề"
                                 fullWidth
-                                sx={{
-                                    backgroundColor: primaryColor,
-                                    "&:hover": { backgroundColor: "#d1a750" },
-                                    py: 1.5,
-                                    fontSize: "1rem",
-                                }}
-                            >
-                                {uploading ? "⏳ Đang tải lên..." : "🚀 Đăng Tin Tức"}
-                            </Button>
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                required
+                                margin="normal"
+                                InputLabelProps={{ shrink: true }}
+                            />
+                            <TextField
+                                label="📝 Nội dung"
+                                fullWidth
+                                multiline
+                                rows={5}
+                                value={content}
+                                onChange={(e) => setContent(e.target.value)}
+                                required
+                                margin="normal"
+                                InputLabelProps={{ shrink: true }}
+                            />
+
+                            <Box display="flex" alignItems="center" mt={2}>
+                                <input
+                                    accept="image/*"
+                                    id="file-upload"
+                                    multiple
+                                    type="file"
+                                    hidden
+                                    onChange={handleFileChange}
+                                />
+                                <label htmlFor="file-upload">
+                                    <IconButton color="primary" component="span">
+                                        <PhotoCamera />
+                                    </IconButton>
+                                </label>
+                                <Typography variant="body1" color="textSecondary">
+                                    {files.length > 0
+                                        ? `${files.length} ảnh đã chọn`
+                                        : "Chọn ảnh tải lên"}
+                                </Typography>
+                            </Box>
+
+                            {previews.length > 0 && (
+                                <Box sx={{ mt: 2 }}>
+                                    <Typography variant="subtitle1" sx={{ color: primaryColor }}>
+                                        📷 Xem trước ảnh:
+                                    </Typography>
+                                    <Grid container spacing={2} sx={{ mt: 1 }}>
+                                        {previews.map((url, index) => (
+                                            <Grid item xs={4} sm={3} md={2} key={index} position="relative">
+                                                <img
+                                                    src={url}
+                                                    alt={`preview-${index}`}
+                                                    style={{
+                                                        width: "100%",
+                                                        height: "auto",
+                                                        borderRadius: 8,
+                                                        border: "1px solid #ddd",
+                                                        padding: 2,
+                                                    }}
+                                                />
+                                                <IconButton
+                                                    sx={{
+                                                        position: "absolute",
+                                                        top: 5,
+                                                        right: 5,
+                                                        background: "rgba(0,0,0,0.5)",
+                                                    }}
+                                                    size="small"
+                                                    onClick={() => handleRemoveImage(index)}
+                                                >
+                                                    <DeleteIcon sx={{ color: "white" }} />
+                                                </IconButton>
+                                            </Grid>
+                                        ))}
+                                    </Grid>
+                                </Box>
+                            )}
+
+                            <Box sx={{ mt: 4, position: "relative" }}>
+                                <Button
+                                    type="submit"
+                                    variant="contained"
+                                    disabled={uploading}
+                                    fullWidth
+                                    sx={{
+                                        backgroundColor: primaryColor,
+                                        color: "white",
+                                        "&:hover": { backgroundColor: "#d1a750" },
+                                        py: 1.5,
+                                        fontSize: "1rem",
+                                    }}
+                                >
+                                    {uploading ? "⏳ Đang tải lên..." : "🚀 Đăng Tin Tức"}
+                                </Button>
+                            </Box>
                         </Box>
-                    </Box>
-                </Paper>
-            </Container>
+                    </Paper>
+                </Container>
+            </Box>
         </>
     );
 };

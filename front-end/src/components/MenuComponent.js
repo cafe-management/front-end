@@ -2,10 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { updateTableCoffeeStatus, getTableCoffeeById } from "../service/TableCoffeeService";
 import {
-    AppBar,
     Box,
     Container,
-    Toolbar,
     Typography,
     Stack,
     Button,
@@ -16,6 +14,7 @@ import {
     Badge,
     Snackbar,
     CircularProgress,
+    Chip,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
@@ -33,9 +32,8 @@ import PaymentIcon from '@mui/icons-material/Payment';
 import Tooltip from "@mui/material/Tooltip";
 import { Client } from '@stomp/stompjs';
 import SockJS from "sockjs-client";
-import{API_URL_SOCKET} from "../config/apiConfig";
+import { API_URL_SOCKET } from "../config/apiConfig";
 import Header from "../component/home/Header";
-
 
 const MenuComponent = () => {
     const [searchParams] = useSearchParams();
@@ -43,22 +41,37 @@ const MenuComponent = () => {
     const [table, setTable] = useState(null);
     const [activeCategory, setActiveCategory] = useState(null);
     const [categories, setCategories] = useState([]);
+    // Lưu danh sách đồ uống. Giả sử mỗi drink có thuộc tính new (true/false)
     const [drinks, setDrinks] = useState([]);
-    const [visibleCount, setVisibleCount] = useState(4);
-    const [cartItems, setCartItems] = useState([]);
+
+    // Khởi tạo state từ sessionStorage nếu có, ngược lại sử dụng giá trị mặc định
+    const [visibleCount, setVisibleCount] = useState(() => {
+        const storedCount = sessionStorage.getItem("visibleCount");
+        return storedCount ? JSON.parse(storedCount) : 4;
+    });
+    const [cartItems, setCartItems] = useState(() => {
+        const storedCart = sessionStorage.getItem("cartItems");
+        return storedCart ? JSON.parse(storedCart) : [];
+    });
+    const [showRatingIcon, setShowRatingIcon] = useState(() => {
+        const storedShowRatingIcon = sessionStorage.getItem("showRatingIcon");
+        return storedShowRatingIcon ? JSON.parse(storedShowRatingIcon) : false;
+    });
+    const [orderPlaced, setOrderPlaced] = useState(() => {
+        const storedOrderPlaced = sessionStorage.getItem("orderPlaced");
+        return storedOrderPlaced ? JSON.parse(storedOrderPlaced) : false;
+    });
     const [openCartModal, setOpenCartModal] = useState(false);
-    const [showRatingIcon, setShowRatingIcon] = useState(false);
     const [openFeedbackModal, setOpenFeedbackModal] = useState(false);
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: "",
     });
     const [isLoading, setIsLoading] = useState(false);
-    const [orderPlaced, setOrderPlaced] = useState(false);
+
     // Ref cho phần tử sentinel dùng để trigger load thêm
     const sentinelRef = useRef(null);
     const stompClientRef = useRef(null);
-
 
     const generateCodeFeedback = () => {
         return "FB-" + Math.random().toString(36).substr(2, 9).toUpperCase();
@@ -78,7 +91,27 @@ const MenuComponent = () => {
         return token;
     }, []);
 
-    // UseEffect để cho gửi thông báo
+    // Lưu cartItems vào sessionStorage mỗi khi state thay đổi
+    useEffect(() => {
+        sessionStorage.setItem("cartItems", JSON.stringify(cartItems));
+    }, [cartItems]);
+
+    // Lưu visibleCount vào sessionStorage mỗi khi state thay đổi
+    useEffect(() => {
+        sessionStorage.setItem("visibleCount", JSON.stringify(visibleCount));
+    }, [visibleCount]);
+
+    // Lưu showRatingIcon vào sessionStorage mỗi khi state thay đổi
+    useEffect(() => {
+        sessionStorage.setItem("showRatingIcon", JSON.stringify(showRatingIcon));
+    }, [showRatingIcon]);
+
+    // Lưu orderPlaced vào sessionStorage mỗi khi state thay đổi
+    useEffect(() => {
+        sessionStorage.setItem("orderPlaced", JSON.stringify(orderPlaced));
+    }, [orderPlaced]);
+
+    // UseEffect để thiết lập kết nối WebSocket
     useEffect(() => {
         stompClientRef.current = new Client({
             webSocketFactory: () => new SockJS(API_URL_SOCKET),
@@ -101,7 +134,7 @@ const MenuComponent = () => {
         };
     }, []);
 
-    // Chỉ lấy thông tin bàn ban đầu, không cập nhật trạng thái ngay lúc load menu
+    // Lấy thông tin bàn ban đầu
     useEffect(() => {
         if (tableId) {
             getTableCoffeeById(tableId)
@@ -137,13 +170,19 @@ const MenuComponent = () => {
         const fetchDrinks = async () => {
             if (activeCategory) {
                 try {
+                    let drinksData = [];
                     if (activeCategory.nameCategory === "Tất Cả") {
-                        const allDrinks = await getDrinks();
-                        setDrinks(shuffleArray(allDrinks));
+                        drinksData = await getDrinks();
+                        // Nếu muốn xáo trộn danh sách (có thể loại trừ món mới) thì sắp xếp lại:
+                        drinksData = drinksData.sort(() => Math.random() - 0.5);
                     } else {
-                        const drinksData = await getDrinksByCategory(activeCategory.id);
-                        setDrinks(drinksData);
+                        drinksData = await getDrinksByCategory(activeCategory.id);
                     }
+                    // Sắp xếp sao cho món mới (new === true) được đưa lên đầu danh sách
+                    drinksData.sort((a, b) => {
+                        return (b.new === true ? 1 : 0) - (a.new === true ? 1 : 0);
+                    });
+                    setDrinks(drinksData);
                 } catch (error) {
                     console.error("Error fetching drinks:", error);
                 }
@@ -154,7 +193,7 @@ const MenuComponent = () => {
 
     const handlePaymentNotification = () => {
         if (stompClientRef.current && stompClientRef.current.connected) {
-            const payload = `Bàn ${tableId} muốn tính tiền`; // Send the message directly as a string
+            const payload = `Bàn ${tableId} muốn tính tiền`;
             stompClientRef.current.publish({
                 destination: "/app/paymentNotification",
                 body: JSON.stringify(payload),
@@ -174,7 +213,6 @@ const MenuComponent = () => {
     // Hàm load thêm dữ liệu, hiển thị spinner trong quá trình load
     const handleLoadMore = useCallback(() => {
         setIsLoading(true);
-        // Giả lập thời gian load (500ms) để hiển thị spinner
         setTimeout(() => {
             setVisibleCount((prev) => prev + 4);
             setIsLoading(false);
@@ -196,7 +234,6 @@ const MenuComponent = () => {
             }
         );
 
-        // Lưu giá trị hiện tại của sentinelRef.current vào biến cục bộ
         const currentSentinel = sentinelRef.current;
         if (currentSentinel) {
             observer.observe(currentSentinel);
@@ -250,6 +287,7 @@ const MenuComponent = () => {
             console.error("Lỗi khi tạo feedback:", error);
         }
     };
+
     const handleOrder = async () => {
         if (table && table.statusTable === 2) {
             setSnackbar({
@@ -268,7 +306,6 @@ const MenuComponent = () => {
         }
         if (cartItems.length === 0) return;
 
-        // Cập nhật trạng thái bàn thành 1 nếu bàn chưa được sử dụng
         if (table && table.statusTable === 0) {
             try {
                 const sessionToken = getSessionToken();
@@ -296,8 +333,8 @@ const MenuComponent = () => {
             console.log("Đơn hàng đã được tạo thành công:", response);
             setCartItems([]);
             setOpenCartModal(false);
-            setShowRatingIcon(true);
-            setOrderPlaced(true);
+            setShowRatingIcon(true); // Hiển thị nút đánh giá khi đặt hàng thành công
+            setOrderPlaced(true); // Hiển thị nút thanh toán khi đặt hàng thành công
             setSnackbar({
                 open: true,
                 message: "Bạn đã đặt món thành công",
@@ -356,7 +393,6 @@ const MenuComponent = () => {
             return;
         }
         if (table && table.token && table.token !== getSessionToken()) {
-            // Chỉ từ chối thao tác nếu table.token đã tồn tại và không khớp với token phiên
             setSnackbar({
                 open: true,
                 message: "Bàn này đang được sử dụng. Bạn không thể thao tác giỏ hàng.",
@@ -385,7 +421,6 @@ const MenuComponent = () => {
             return;
         }
         if (table && table.token && table.token !== getSessionToken()) {
-            // Chỉ từ chối thao tác nếu table.token đã tồn tại và không khớp với token phiên
             setSnackbar({
                 open: true,
                 message: "Bàn này đang được sử dụng. Bạn không thể thao tác giỏ hàng.",
@@ -397,6 +432,11 @@ const MenuComponent = () => {
 
     const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
     const totalCartPrice = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+
+    // Tạo một mảng đồ uống đã được sắp xếp (món mới lên đầu) sử dụng thuộc tính "new"
+    const sortedDrinks = [...drinks].sort((a, b) => {
+        return (b.new === true ? 1 : 0) - (a.new === true ? 1 : 0);
+    });
 
     return (
         <Box sx={{ backgroundColor: "#f3f4f6", minHeight: "100vh", fontFamily: "sans-serif" }}>
@@ -467,14 +507,28 @@ const MenuComponent = () => {
 
                 {activeCategory && (
                     <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 6 } }}>
-                        {drinks.length > 0 ? (
+                        {sortedDrinks.length > 0 ? (
                             <>
                                 <Grid container spacing={2}>
-                                    {drinks.slice(0, visibleCount).map((drink) => (
+                                    {sortedDrinks.slice(0, visibleCount).map((drink) => (
                                         <Grid item key={drink.id} xs={6} sm={6} md={4} lg={3}>
                                             <Card>
                                                 <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
                                                     <Box sx={{ position: "relative" }}>
+                                                        {/* Sử dụng Chip để hiển thị tag "Món mới" nếu drink.new === true */}
+                                                        {drink.new && (
+                                                            <Chip
+                                                                label="Món mới"
+                                                                size="small"
+                                                                sx={{
+                                                                    position: "absolute",
+                                                                    top: 8,
+                                                                    left: 8,
+                                                                    backgroundColor: "#FF5722",
+                                                                    color: "#fff",
+                                                                }}
+                                                            />
+                                                        )}
                                                         <img
                                                             src={getCloudinaryImageUrl(drink.imgDrinks, {
                                                                 width: 300,
@@ -522,7 +576,7 @@ const MenuComponent = () => {
                                         </Grid>
                                     ))}
                                 </Grid>
-                                {visibleCount < drinks.length && (
+                                {visibleCount < sortedDrinks.length && (
                                     <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
                                         {isLoading ? (
                                             <CircularProgress />
@@ -539,7 +593,7 @@ const MenuComponent = () => {
                 )}
             </Box>
 
-            {/* Phần nút giỏ hàng, đánh giá, thanh toán... */}
+            {/* Nút giỏ hàng, đánh giá, thanh toán */}
             <Box
                 sx={{
                     position: "fixed",

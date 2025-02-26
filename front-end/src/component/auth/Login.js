@@ -135,14 +135,28 @@ function Login() {
             <Modal open={openModal} onClose={() => setOpenModal(false)}>
                 <Box sx={{ width: 400, padding: 4, backgroundColor: "white", margin: "auto", marginTop: "10%", borderRadius: 2 }}>
                     <Typography variant="h6" gutterBottom>Quên mật khẩu</Typography>
-                    <TextField label="Email hoặc tên tài khoản" fullWidth value={emailOrUsername} onChange={(e) => setEmailOrUsername(e.target.value)} sx={{ marginBottom: 2 }} />
+                    <TextField
+                        label="Email hoặc tên tài khoản"
+                        fullWidth
+                        value={emailOrUsername}
+                        onChange={(e) => setEmailOrUsername(e.target.value)}
+                        sx={{ marginBottom: 2 }}
+                    />
                     <Button
                         variant="contained"
                         fullWidth
                         onClick={handleForgotPassword}
-                        disabled={loadingForgot} // Disable khi đang loading
+                        disabled={loadingForgot}
+                        sx={{ position: "relative" }}
                     >
-                        {loadingForgot ? <CircularProgress size={24} sx={{ color: "#fff" }} /> : "Gửi yêu cầu"}
+                        {loadingForgot ? (
+                            <>
+                                <CircularProgress size={24} sx={{ color: "#fff" }} />
+                                &nbsp;Đang gửi...
+                            </>
+                        ) : (
+                            "Gửi yêu cầu"
+                        )}
                     </Button>
                 </Box>
             </Modal>

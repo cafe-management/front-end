@@ -1,222 +1,156 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { getAllInvoice } from "../service/InvoiceService";
 import {
-    Container,
-    Typography,
-    Box,
-    Alert,
     Card,
     CardContent,
+    Typography,
     Grid,
-    ToggleButton,
-    ToggleButtonGroup,
-    Grow,
-    Button,
+    Box,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
     TextField,
 } from "@mui/material";
-import { Bar } from "react-chartjs-2";
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    BarElement,
-    ArcElement,
-    Title,
-    Tooltip,
-    Legend,
-} from "chart.js";
 import HeaderAdmin from "../component/admin/HeaderAdmin";
-
-// Đăng ký các thành phần của ChartJS
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    BarElement,
-    ArcElement,
-    Title,
-    Tooltip,
-    Legend
-);
+import { Bar } from "react-chartjs-2";
+import { Chart as ChartJS } from "chart.js/auto";
 
 const IncomeManagement = () => {
     const [invoices, setInvoices] = useState([]);
-    const [error, setError] = useState(null);
-    const [timeFrame, setTimeFrame] = useState("week");
-    const [revenueByDay, setRevenueByDay] = useState(0);
-    const [revenueByWeek, setRevenueByWeek] = useState(0);
-    const [revenueByMonth, setRevenueByMonth] = useState(0);
-    const [revenueByYear, setRevenueByYear] = useState(0);
-    const [totalRevenue, setTotalRevenue] = useState(0);
-    const [isComparing, setIsComparing] = useState(false);
-    // State cho khoảng tùy chỉnh
-    const [customStartDate, setCustomStartDate] = useState("");
-    const [customEndDate, setCustomEndDate] = useState("");
-
-    const currencyFormatter = new Intl.NumberFormat("vi-VN", {
-        style: "currency",
-        currency: "VND",
+    // selectedRange: "day" hoặc "month"
+    const [selectedRange, setSelectedRange] = useState("day");
+    const [totals, setTotals] = useState({
+        overall: 0,
+        today: 0,
+        month: 0,
+        year: 0,
     });
 
-    // Ánh xạ timeFrame sang tiếng Việt
-    const timeFrameMap = {
-        day: "ngày",
-        week: "tuần",
-        month: "tháng",
-        year: "năm",
-        custom: "tùy chỉnh",
-    };
+    // State cho lựa chọn ngày và tháng để so sánh
+    const [selectedDay, setSelectedDay] = useState(""); // format: YYYY-MM-DD
+    const [comparisonDay, setComparisonDay] = useState(""); // format: YYYY-MM-DD
+    const [selectedMonth, setSelectedMonth] = useState(""); // format: YYYY-MM
+    const [comparisonMonth, setComparisonMonth] = useState(""); // format: YYYY-MM
 
     useEffect(() => {
         const fetchInvoices = async () => {
             try {
-                const data = await getAllInvoice();
-                // Trích xuất mảng hóa đơn từ thuộc tính content của đối tượng trả về
-                const invoicesArray = data.content || [];
-                setInvoices(invoicesArray);
-                let dayTotal = 0,
-                    weekTotal = 0,
-                    monthTotal = 0,
-                    yearTotal = 0,
-                    total = 0;
-                const now = new Date();
-                const todayStr = now.toDateString();
-                const weekStart = new Date(now);
-                weekStart.setDate(now.getDate() - now.getDay());
-                const weekEnd = new Date(weekStart);
-                weekEnd.setDate(weekStart.getDate() + 6);
-
-                invoicesArray.forEach((invoice) => {
-                    const invoiceDate = new Date(invoice.dateCreate);
-                    const amount = parseFloat(invoice.totalAmount) || 0;
-                    total += amount;
-                    if (invoiceDate.toDateString() === todayStr) {
-                        dayTotal += amount;
-                    }
-                    if (invoiceDate >= weekStart && invoiceDate <= weekEnd) {
-                        weekTotal += amount;
-                    }
-                    if (
-                        invoiceDate.getMonth() === now.getMonth() &&
-                        invoiceDate.getFullYear() === now.getFullYear()
-                    ) {
-                        monthTotal += amount;
-                    }
-                    if (invoiceDate.getFullYear() === now.getFullYear()) {
-                        yearTotal += amount;
-                    }
-                });
-                setRevenueByDay(dayTotal);
-                setRevenueByWeek(weekTotal);
-                setRevenueByMonth(monthTotal);
-                setRevenueByYear(yearTotal);
-                setTotalRevenue(total);
-            } catch (err) {
-                console.error("Lỗi khi lấy dữ liệu hóa đơn:", err);
-                setError(err);
+                // Lấy tất cả hóa đơn; tăng size nếu cần dữ liệu đầy đủ cho biểu đồ
+                const data = await getAllInvoice(0, 100);
+                setInvoices(data.content);
+                calculateTotals(data.content);
+            } catch (error) {
+                console.error("Error fetching invoice data: ", error);
             }
         };
 
         fetchInvoices();
     }, []);
 
-    // Hàm tổng hợp dữ liệu cho biểu đồ theo khoảng thời gian hiện tại
-    const getChartData = (timeFrame) => {
+    const calculateTotals = (invoices) => {
+        let overall = 0,
+            today = 0,
+            month = 0,
+            year = 0;
         const now = new Date();
-        let labels = [];
-        let dataPoints = [];
 
-        if (timeFrame === "day") {
+        invoices.forEach((invoice) => {
+            overall += invoice.totalAmount;
+            const invoiceDate = new Date(invoice.datePayment);
+
+            // Doanh thu hôm nay
+            if (invoiceDate.toDateString() === now.toDateString()) {
+                today += invoice.totalAmount;
+            }
+            // Doanh thu tháng này (cùng tháng, năm)
+            if (
+                invoiceDate.getMonth() === now.getMonth() &&
+                invoiceDate.getFullYear() === now.getFullYear()
+            ) {
+                month += invoice.totalAmount;
+            }
+            // Doanh thu năm này
+            if (invoiceDate.getFullYear() === now.getFullYear()) {
+                year += invoice.totalAmount;
+            }
+        });
+
+        setTotals({ overall, today, month, year });
+    };
+
+    // Hàm định dạng ngày sang YYYY-MM-DD
+    const formatDate = (date) => date.toISOString().split("T")[0];
+
+    // Hàm định dạng tháng sang YYYY-MM
+    const formatMonth = (date) => {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, "0");
+        return `${year}-${month}`;
+    };
+
+    // Hàm tạo dữ liệu cho biểu đồ so sánh dựa vào lựa chọn (ngày hoặc tháng)
+    const getChartDataComparison = () => {
+        let labels = [];
+        let currentData = [];
+        let previousData = [];
+
+        if (selectedRange === "day") {
+            // Nếu chưa chọn ngày, sử dụng ngày hiện tại và ngày hôm qua làm mặc định
+            const targetDateStr = selectedDay || formatDate(new Date());
+            const compDateStr =
+                comparisonDay || formatDate(new Date(new Date().setDate(new Date().getDate() - 1)));
+            const targetDate = new Date(targetDateStr);
+            const compDate = new Date(compDateStr);
+            // Nhóm theo giờ: 0 - 23
             labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
-            dataPoints = Array(24).fill(0);
+            currentData = new Array(24).fill(0);
+            previousData = new Array(24).fill(0);
+
             invoices.forEach((invoice) => {
-                const invoiceDate = new Date(invoice.dateCreate);
-                if (invoiceDate.toDateString() === now.toDateString()) {
+                const invoiceDate = new Date(invoice.datePayment);
+                if (invoiceDate.toDateString() === targetDate.toDateString()) {
                     const hour = invoiceDate.getHours();
-                    dataPoints[hour] += parseFloat(invoice.totalAmount) || 0;
+                    currentData[hour] += invoice.totalAmount;
+                }
+                if (invoiceDate.toDateString() === compDate.toDateString()) {
+                    const hour = invoiceDate.getHours();
+                    previousData[hour] += invoice.totalAmount;
                 }
             });
-        } else if (timeFrame === "week") {
-            const days = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
-            labels = days;
-            dataPoints = Array(7).fill(0);
-            const weekStart = new Date(now);
-            weekStart.setDate(now.getDate() - now.getDay());
-            const weekEnd = new Date(weekStart);
-            weekEnd.setDate(weekStart.getDate() + 6);
+        } else if (selectedRange === "month") {
+            // Nếu chưa chọn tháng, sử dụng tháng hiện tại và tháng trước làm mặc định
+            const targetMonthStr = selectedMonth || formatMonth(new Date());
+            const compMonthStr =
+                comparisonMonth ||
+                formatMonth(new Date(new Date().setMonth(new Date().getMonth() - 1)));
+            const [targetYear, targetMonth] = targetMonthStr.split("-").map(Number);
+            const [compYear, compMonth] = compMonthStr.split("-").map(Number);
+            // Tính số ngày trong tháng mục tiêu
+            const daysInTarget = new Date(targetYear, targetMonth, 0).getDate();
+            // Sử dụng số ngày của tháng mục tiêu làm labels
+            labels = Array.from({ length: daysInTarget }, (_, i) => `${i + 1}`);
+            currentData = new Array(daysInTarget).fill(0);
+            previousData = new Array(daysInTarget).fill(0);
+
             invoices.forEach((invoice) => {
-                const invoiceDate = new Date(invoice.dateCreate);
-                if (invoiceDate >= weekStart && invoiceDate <= weekEnd) {
-                    const dayIndex = invoiceDate.getDay();
-                    dataPoints[dayIndex] += parseFloat(invoice.totalAmount) || 0;
-                }
-            });
-        } else if (timeFrame === "month") {
-            const year = now.getFullYear();
-            const month = now.getMonth();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            labels = Array.from({ length: daysInMonth }, (_, i) => `${i + 1}`);
-            dataPoints = Array(daysInMonth).fill(0);
-            invoices.forEach((invoice) => {
-                const invoiceDate = new Date(invoice.dateCreate);
+                const invoiceDate = new Date(invoice.datePayment);
+                // Nếu thuộc tháng mục tiêu
                 if (
-                    invoiceDate.getMonth() === month &&
-                    invoiceDate.getFullYear() === year
+                    invoiceDate.getFullYear() === targetYear &&
+                    invoiceDate.getMonth() + 1 === targetMonth
                 ) {
                     const day = invoiceDate.getDate();
-                    dataPoints[day - 1] += parseFloat(invoice.totalAmount) || 0;
+                    currentData[day - 1] += invoice.totalAmount;
                 }
-            });
-        } else if (timeFrame === "year") {
-            const monthNames = [
-                "Tháng 1",
-                "Tháng 2",
-                "Tháng 3",
-                "Tháng 4",
-                "Tháng 5",
-                "Tháng 6",
-                "Tháng 7",
-                "Tháng 8",
-                "Tháng 9",
-                "Tháng 10",
-                "Tháng 11",
-                "Tháng 12",
-            ];
-            labels = monthNames;
-            dataPoints = Array(12).fill(0);
-            const year = now.getFullYear();
-            invoices.forEach((invoice) => {
-                const invoiceDate = new Date(invoice.dateCreate);
-                if (invoiceDate.getFullYear() === year) {
-                    const m = invoiceDate.getMonth();
-                    dataPoints[m] += parseFloat(invoice.totalAmount) || 0;
-                }
-            });
-        } else if (timeFrame === "custom") {
-            if (!customStartDate || !customEndDate) {
-                return { labels: [], datasets: [] };
-            }
-            const startDate = new Date(customStartDate + "T00:00:00");
-            const endDate = new Date(customEndDate + "T00:00:00");
-            const timeDiff = endDate.getTime() - startDate.getTime();
-            if (timeDiff < 0) {
-                return { labels: [], datasets: [] };
-            }
-            const daysCount = Math.floor(timeDiff / (1000 * 3600 * 24)) + 1;
-            labels = [];
-            dataPoints = Array(daysCount).fill(0);
-            for (let i = 0; i < daysCount; i++) {
-                const date = new Date(startDate);
-                date.setDate(startDate.getDate() + i);
-                labels.push(date.toLocaleDateString());
-            }
-            invoices.forEach((invoice) => {
-                const invoiceDate = new Date(invoice.dateCreate);
-                if (invoiceDate >= startDate && invoiceDate <= endDate) {
-                    const diffDays = Math.floor(
-                        (invoiceDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24)
-                    );
-                    if (diffDays >= 0 && diffDays < daysCount) {
-                        dataPoints[diffDays] += parseFloat(invoice.totalAmount) || 0;
+                // Nếu thuộc tháng so sánh
+                if (
+                    invoiceDate.getFullYear() === compYear &&
+                    invoiceDate.getMonth() + 1 === compMonth
+                ) {
+                    const day = invoiceDate.getDate();
+                    if (day - 1 < previousData.length) {
+                        previousData[day - 1] += invoice.totalAmount;
                     }
                 }
             });
@@ -226,377 +160,171 @@ const IncomeManagement = () => {
             labels,
             datasets: [
                 {
-                    label: "Doanh thu hiện tại",
-                    data: dataPoints,
-                    backgroundColor: dataPoints.map(
-                        () => "#" + Math.floor(Math.random() * 16777215).toString(16)
-                    ),
+                    label: "Kỳ hiện tại",
+                    data: currentData,
+                    backgroundColor: "rgba(75, 192, 192, 0.6)",
+                    borderColor: "rgba(75, 192, 192, 1)",
+                    borderWidth: 1,
                 },
-            ],
-        };
-    };
-
-    // Hàm tổng hợp dữ liệu cho biểu đồ so sánh
-    const getComparisonChartData = (timeFrame) => {
-        const now = new Date();
-        let labels = [];
-        let dataPoints = [];
-
-        if (timeFrame === "day") {
-            const yesterday = new Date(now);
-            yesterday.setDate(now.getDate() - 1);
-            labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
-            dataPoints = Array(24).fill(0);
-            invoices.forEach((invoice) => {
-                const invoiceDate = new Date(invoice.dateCreate);
-                if (invoiceDate.toDateString() === yesterday.toDateString()) {
-                    const hour = invoiceDate.getHours();
-                    dataPoints[hour] += parseFloat(invoice.totalAmount) || 0;
-                }
-            });
-        } else if (timeFrame === "week") {
-            const days = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
-            labels = days;
-            dataPoints = Array(7).fill(0);
-            const lastWeekStart = new Date(now);
-            lastWeekStart.setDate(now.getDate() - now.getDay() - 7);
-            const lastWeekEnd = new Date(lastWeekStart);
-            lastWeekEnd.setDate(lastWeekStart.getDate() + 6);
-            invoices.forEach((invoice) => {
-                const invoiceDate = new Date(invoice.dateCreate);
-                if (invoiceDate >= lastWeekStart && invoiceDate <= lastWeekEnd) {
-                    const dayIndex = invoiceDate.getDay();
-                    dataPoints[dayIndex] += parseFloat(invoice.totalAmount) || 0;
-                }
-            });
-        } else if (timeFrame === "month") {
-            const year = now.getFullYear();
-            let month = now.getMonth() - 1;
-            if (month < 0) {
-                month = 11;
-            }
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            labels = Array.from({ length: daysInMonth }, (_, i) => `${i + 1}`);
-            dataPoints = Array(daysInMonth).fill(0);
-            invoices.forEach((invoice) => {
-                const invoiceDate = new Date(invoice.dateCreate);
-                if (
-                    invoiceDate.getMonth() === month &&
-                    invoiceDate.getFullYear() === year
-                ) {
-                    const day = invoiceDate.getDate();
-                    dataPoints[day - 1] += parseFloat(invoice.totalAmount) || 0;
-                }
-            });
-        } else if (timeFrame === "year") {
-            const monthNames = [
-                "Tháng 1",
-                "Tháng 2",
-                "Tháng 3",
-                "Tháng 4",
-                "Tháng 5",
-                "Tháng 6",
-                "Tháng 7",
-                "Tháng 8",
-                "Tháng 9",
-                "Tháng 10",
-                "Tháng 11",
-                "Tháng 12",
-            ];
-            labels = monthNames;
-            dataPoints = Array(12).fill(0);
-            const lastYear = now.getFullYear() - 1;
-            invoices.forEach((invoice) => {
-                const invoiceDate = new Date(invoice.dateCreate);
-                if (invoiceDate.getFullYear() === lastYear) {
-                    const m = invoiceDate.getMonth();
-                    dataPoints[m] += parseFloat(invoice.totalAmount) || 0;
-                }
-            });
-        } else if (timeFrame === "custom") {
-            if (!customStartDate || !customEndDate) {
-                return { labels: [], datasets: [] };
-            }
-            const startDate = new Date(customStartDate + "T00:00:00");
-            const endDate = new Date(customEndDate + "T00:00:00");
-            const timeDiff = endDate.getTime() - startDate.getTime();
-            if (timeDiff < 0) {
-                return { labels: [], datasets: [] };
-            }
-            const daysCount = Math.floor(timeDiff / (1000 * 3600 * 24)) + 1;
-            const comparisonEndDate = new Date(startDate);
-            comparisonEndDate.setDate(startDate.getDate() - 1);
-            const comparisonStartDate = new Date(comparisonEndDate);
-            comparisonStartDate.setDate(
-                comparisonEndDate.getDate() - daysCount + 1
-            );
-
-            labels = [];
-            dataPoints = Array(daysCount).fill(0);
-            for (let i = 0; i < daysCount; i++) {
-                const date = new Date(comparisonStartDate);
-                date.setDate(comparisonStartDate.getDate() + i);
-                labels.push(date.toLocaleDateString());
-            }
-            invoices.forEach((invoice) => {
-                const invoiceDate = new Date(invoice.dateCreate);
-                if (
-                    invoiceDate >= comparisonStartDate &&
-                    invoiceDate <= comparisonEndDate
-                ) {
-                    const diffDays = Math.floor(
-                        (invoiceDate.getTime() - comparisonStartDate.getTime()) /
-                        (1000 * 3600 * 24)
-                    );
-                    if (diffDays >= 0 && diffDays < daysCount) {
-                        dataPoints[diffDays] += parseFloat(invoice.totalAmount) || 0;
-                    }
-                }
-            });
-        }
-
-        return {
-            labels,
-            datasets: [
                 {
-                    label: "Doanh thu so sánh",
-                    data: dataPoints,
-                    backgroundColor: dataPoints.map(
-                        () => "#" + Math.floor(Math.random() * 16777215).toString(16)
-                    ),
+                    label: "Kỳ so sánh",
+                    data: previousData,
+                    backgroundColor: "rgba(255, 99, 132, 0.6)",
+                    borderColor: "rgba(255, 99, 132, 1)",
+                    borderWidth: 1,
                 },
             ],
         };
     };
 
-    const chartData = getChartData(timeFrame);
-    const comparisonChartData = getComparisonChartData(timeFrame);
-
-    const barOptions = {
+    const chartData = getChartDataComparison();
+    const chartOptions = {
         responsive: true,
-        maintainAspectRatio: false, // Cho phép biểu đồ chiếm đầy container
-        plugins: {
-            legend: {
-                position: "top",
-            },
-            title: {
-                display: true,
-                // Sử dụng timeFrameMap để hiển thị tiêu đề theo tiếng Việt
-                text: `Biểu đồ doanh thu theo ${timeFrameMap[timeFrame]}`,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: (value) => value.toLocaleString(),
+                },
             },
         },
-    };
-
-    const handleTimeFrameChange = (event, newTimeFrame) => {
-        if (newTimeFrame !== null) {
-            setTimeFrame(newTimeFrame);
-        }
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function (context) {
+                        let label = context.dataset.label || "";
+                        if (label) label += ": ";
+                        if (context.parsed.y !== null) {
+                            label += context.parsed.y.toLocaleString();
+                        }
+                        return label;
+                    },
+                },
+            },
+        },
     };
 
     return (
         <>
             <HeaderAdmin />
-            <Container maxWidth="lg" sx={{ mt: "80px" }}>
-                <Typography
-                    variant="h5"
-                    sx={{ fontWeight: 'bold', color: 'black', textAlign: 'center' }}
-                >
-                    Quản Lý Doanh Thu
+            <Box sx={{ mt: 8, p: 2 }}>
+                <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'black', textAlign: 'center' }}>
+                    Danh Sách Nhân Viên
                 </Typography>
-                {error ? (
-                    <Alert severity="error">Lỗi: {error.message}</Alert>
-                ) : (
-                    <Box sx={{ mt: 2 }}>
-                        <Grid container spacing={4}>
-                            {/* Các Card hiển thị tổng doanh thu */}
-                            <Grid item xs={12} md={4}>
-                                <Grid container spacing={2} direction="column">
-                                    <Grow in timeout={400}>
-                                        <Grid item>
-                                            <Card
-                                                sx={{
-                                                    transition: "transform 0.3s",
-                                                    "&:hover": { transform: "scale(1.03)" },
-                                                }}
-                                            >
-                                                <CardContent>
-                                                    <Typography variant="h6" align="center">
-                                                        Tổng Doanh Thu
-                                                    </Typography>
-                                                    <Typography variant="body1" align="center">
-                                                        {currencyFormatter.format(totalRevenue)}
-                                                    </Typography>
-                                                </CardContent>
-                                            </Card>
-                                        </Grid>
-                                    </Grow>
-                                    <Grow in timeout={500}>
-                                        <Grid item>
-                                            <Card
-                                                sx={{
-                                                    transition: "transform 0.3s",
-                                                    "&:hover": { transform: "scale(1.03)" },
-                                                }}
-                                            >
-                                                <CardContent>
-                                                    <Typography variant="h6" align="center">
-                                                        Hôm Nay
-                                                    </Typography>
-                                                    <Typography variant="body1" align="center">
-                                                        {currencyFormatter.format(revenueByDay)}
-                                                    </Typography>
-                                                </CardContent>
-                                            </Card>
-                                        </Grid>
-                                    </Grow>
-                                    <Grow in timeout={600}>
-                                        <Grid item>
-                                            <Card
-                                                sx={{
-                                                    transition: "transform 0.3s",
-                                                    "&:hover": { transform: "scale(1.03)" },
-                                                }}
-                                            >
-                                                <CardContent>
-                                                    <Typography variant="h6" align="center">
-                                                        Tuần Này
-                                                    </Typography>
-                                                    <Typography variant="body1" align="center">
-                                                        {currencyFormatter.format(revenueByWeek)}
-                                                    </Typography>
-                                                </CardContent>
-                                            </Card>
-                                        </Grid>
-                                    </Grow>
-                                    <Grow in timeout={700}>
-                                        <Grid item>
-                                            <Card
-                                                sx={{
-                                                    transition: "transform 0.3s",
-                                                    "&:hover": { transform: "scale(1.03)" },
-                                                }}
-                                            >
-                                                <CardContent>
-                                                    <Typography variant="h6" align="center">
-                                                        Tháng Này
-                                                    </Typography>
-                                                    <Typography variant="body1" align="center">
-                                                        {currencyFormatter.format(revenueByMonth)}
-                                                    </Typography>
-                                                </CardContent>
-                                            </Card>
-                                        </Grid>
-                                    </Grow>
-                                    <Grow in timeout={800}>
-                                        <Grid item>
-                                            <Card
-                                                sx={{
-                                                    transition: "transform 0.3s",
-                                                    "&:hover": { transform: "scale(1.03)" },
-                                                }}
-                                            >
-                                                <CardContent>
-                                                    <Typography variant="h6" align="center">
-                                                        Năm Này
-                                                    </Typography>
-                                                    <Typography variant="body1" align="center">
-                                                        {currencyFormatter.format(revenueByYear)}
-                                                    </Typography>
-                                                </CardContent>
-                                            </Card>
-                                        </Grid>
-                                    </Grow>
-                                </Grid>
-                            </Grid>
+                <Grid container spacing={2} sx={{ mb: 4 }}>
+                    <Grid item xs={12} sm={6} md={3}>
+                        <Card>
+                            <CardContent>
+                                <Typography variant="h6">Tổng danh thu</Typography>
+                                <Typography variant="h5">
+                                    {totals.overall.toLocaleString()} vnđ
+                                </Typography>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3}>
+                        <Card>
+                            <CardContent>
+                                <Typography variant="h6">Doanh thu hôm nay</Typography>
+                                <Typography variant="h5">
+                                    {totals.today.toLocaleString()} vnđ
+                                </Typography>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3}>
+                        <Card>
+                            <CardContent>
+                                <Typography variant="h6">Doanh thu tháng này</Typography>
+                                <Typography variant="h5">
+                                    {totals.month.toLocaleString()} vnđ
+                                </Typography>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3}>
+                        <Card>
+                            <CardContent>
+                                <Typography variant="h6">Doanh thu năm này</Typography>
+                                <Typography variant="h5">
+                                    {totals.year.toLocaleString()} vnđ
+                                </Typography>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                </Grid>
 
-                            {/* Cột chứa biểu đồ, toggle thời gian và input chọn ngày nếu chọn custom */}
-                            <Grid item xs={12} md={8}>
-                                <Box sx={{ mb: 2, textAlign: "center" }}>
-                                    <ToggleButtonGroup
-                                        value={timeFrame}
-                                        exclusive
-                                        onChange={handleTimeFrameChange}
-                                        aria-label="time frame"
-                                    >
-                                        <ToggleButton value="day" aria-label="day">
-                                            Ngày
-                                        </ToggleButton>
-                                        <ToggleButton value="week" aria-label="week">
-                                            Tuần
-                                        </ToggleButton>
-                                        <ToggleButton value="month" aria-label="month">
-                                            Tháng
-                                        </ToggleButton>
-                                        <ToggleButton value="year" aria-label="year">
-                                            Năm
-                                        </ToggleButton>
-                                        <ToggleButton value="custom" aria-label="custom">
-                                            Tùy chỉnh
-                                        </ToggleButton>
-                                    </ToggleButtonGroup>
-                                </Box>
-                                {timeFrame === "custom" && (
-                                    <Box
-                                        sx={{
-                                            display: "flex",
-                                            justifyContent: "center",
-                                            gap: 2,
-                                            mb: 2,
-                                        }}
-                                    >
-                                        <TextField
-                                            type="date"
-                                            label="Ngày bắt đầu"
-                                            InputLabelProps={{ shrink: true }}
-                                            value={customStartDate}
-                                            onChange={(e) => setCustomStartDate(e.target.value)}
-                                        />
-                                        <TextField
-                                            type="date"
-                                            label="Ngày kết thúc"
-                                            InputLabelProps={{ shrink: true }}
-                                            value={customEndDate}
-                                            onChange={(e) => setCustomEndDate(e.target.value)}
-                                        />
-                                    </Box>
-                                )}
-                                <Box sx={{ textAlign: "center", mb: 2 }}>
-                                    <Button
-                                        variant="contained"
-                                        onClick={() => setIsComparing(!isComparing)}
-                                    >
-                                        {isComparing ? "Ẩn so sánh" : "So sánh"}
-                                    </Button>
-                                </Box>
-                                {isComparing ? (
-                                    <Grid container spacing={2}>
-                                        <Grid item xs={12} md={6}>
-                                            <Typography variant="h6" align="center" gutterBottom>
-                                                Biểu đồ doanh thu theo {timeFrameMap[timeFrame]}
-                                            </Typography>
-                                            <Box sx={{ height: 400 }}>
-                                                <Bar data={chartData} options={barOptions} />
-                                            </Box>
-                                        </Grid>
-                                        <Grid item xs={12} md={6}>
-                                            <Typography variant="h6" align="center" gutterBottom>
-                                                Biểu đồ so sánh theo {timeFrameMap[timeFrame]}
-                                            </Typography>
-                                            <Box sx={{ height: 400 }}>
-                                                <Bar data={comparisonChartData} options={barOptions} />
-                                            </Box>
-                                        </Grid>
-                                    </Grid>
-                                ) : (
-                                    <Box sx={{ mb: 4, height: 400 }}>
-                                        <Bar data={chartData} options={barOptions} />
-                                    </Box>
-                                )}
-                            </Grid>
-                        </Grid>
-                    </Box>
-                )}
-            </Container>
+                {/* Box chứa Select và các trường date/month trên cùng một hàng */}
+                <Box
+                    sx={{
+                        mb: 4,
+                        display: "flex",
+                        gap: 2,
+                        alignItems: "center",
+                        flexWrap: "wrap", // Nếu màn hình nhỏ, các trường sẽ xuống hàng
+                    }}
+                >
+                    {/* Dropdown để chọn kiểu so sánh: Ngày hoặc Tháng */}
+                    <FormControl sx={{ minWidth: 150 }}>
+                        <InputLabel id="compare-range-label">So sánh theo</InputLabel>
+                        <Select
+                            labelId="compare-range-label"
+                            value={selectedRange}
+                            label="So sánh theo"
+                            onChange={(e) => setSelectedRange(e.target.value)}
+                        >
+                            <MenuItem value="day">Ngày</MenuItem>
+                            <MenuItem value="month">Tháng</MenuItem>
+                        </Select>
+                    </FormControl>
+
+                    {/* Nếu chọn "Ngày", hiển thị 2 trường chọn ngày */}
+                    {selectedRange === "day" && (
+                        <>
+                            <TextField
+                                label="Ngày mục tiêu"
+                                type="date"
+                                InputLabelProps={{ shrink: true }}
+                                value={selectedDay}
+                                onChange={(e) => setSelectedDay(e.target.value)}
+                            />
+                            <TextField
+                                label="Ngày so sánh"
+                                type="date"
+                                InputLabelProps={{ shrink: true }}
+                                value={comparisonDay}
+                                onChange={(e) => setComparisonDay(e.target.value)}
+                            />
+                        </>
+                    )}
+
+                    {/* Nếu chọn "Tháng", hiển thị 2 trường chọn tháng */}
+                    {selectedRange === "month" && (
+                        <>
+                            <TextField
+                                label="Tháng mục tiêu"
+                                type="month"
+                                InputLabelProps={{ shrink: true }}
+                                value={selectedMonth}
+                                onChange={(e) => setSelectedMonth(e.target.value)}
+                            />
+                            <TextField
+                                label="Tháng so sánh"
+                                type="month"
+                                InputLabelProps={{ shrink: true }}
+                                value={comparisonMonth}
+                                onChange={(e) => setComparisonMonth(e.target.value)}
+                            />
+                        </>
+                    )}
+                </Box>
+
+                {/* Biểu đồ so sánh doanh thu theo khoảng được chọn (chiều cao 300px) */}
+                <Box sx={{ height: 300 }}>
+                    <Bar data={chartData} options={chartOptions} />
+                </Box>
+            </Box>
         </>
     );
 };

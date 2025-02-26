@@ -15,6 +15,7 @@ function EmployeeManagementHeader() {
             localStorage.removeItem("role");
             console.log("Role sau khi xóa:", localStorage.getItem("role")); // Kiểm tra còn role không
             setCurrentAbility(defineAbilitiesFor(null));
+            localStorage.clear();
             navigate("/login");
     };
     const handleGoToEmployeeList = () => {
