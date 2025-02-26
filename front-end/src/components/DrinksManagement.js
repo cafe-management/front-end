@@ -24,7 +24,7 @@ import { getCloudinaryImageUrl } from "../service/CloudinaryService";
 import { getCategories } from "../service/CategoryService";
 import HeaderAdmin from "../component/admin/HeaderAdmin";
 import { useNavigate } from "react-router-dom";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 
 const DrinksManagement = () => {
     const [drinks, setDrinks] = useState([]);

@@ -28,7 +28,7 @@ import HeaderAdmin from "../component/admin/HeaderAdmin";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import { toast, ToastContainer } from "react-toastify";
+import { toast} from "react-toastify";
 import EmployeeDashboard from "./EmployeeDashboard";
 
 const NewsListComponent = () => {
