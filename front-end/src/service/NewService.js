@@ -86,12 +86,11 @@ export const updateNews = async (id, newsDetails) => {
 export const deleteNews = async (id) => {
     try {
         const role = localStorage.getItem("role");
-        if (role !== "admin") {
+        if (role !== "admin" && role!=="employ") {
             toast.error("⛔ Bạn không có quyền xóa bài viết!");
             return;
         }
         await axios.delete(`${API_URL}/${id}`);
-        toast.success("🗑️ Tin tức đã được xóa!");
     } catch (error) {
         toast.error("❌ Lỗi khi xóa tin tức!");
         throw error;
