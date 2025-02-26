@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {getAllNews, deleteNews, approveNews, getPendingNews, rejectNews} from "../service/NewService";
+import {getAllNews, deleteNews, approveNews, getPendingNews, rejectNews, updateNewsStatus} from "../service/NewService";
 import {
     Container,
     Typography,
@@ -20,7 +20,6 @@ import {
     CardMedia
 } from "@mui/material";
 
-import { Container, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogActions, DialogContent, DialogTitle, Box } from "@mui/material";
 import { toast, ToastContainer } from "react-toastify";
 import {Helmet} from "react-helmet-async";
 import HeaderAdmin from "../component/admin/HeaderAdmin";
