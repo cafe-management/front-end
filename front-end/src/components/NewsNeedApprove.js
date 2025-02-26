@@ -68,7 +68,6 @@ const PendingNewsList = () => {
             </Helmet>
             <HeaderAdmin />
             <Container maxWidth="lg" sx={{ mt: 4 }}>
-                <ToastContainer position="top-right" autoClose={3000} />
                 <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
                     Danh Sách Bài Viết Chờ Duyệt
                 </Typography>

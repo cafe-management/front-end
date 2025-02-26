@@ -165,7 +165,6 @@ const NewsListComponent = () => {
     return (
         <>
             {role === "admin" ? <HeaderAdmin /> : <EmployeeDashboard />}
-            <ToastContainer position="top-right" autoClose={3000} />
             <Helmet>
                 <title>Quản lý tin tức</title>
             </Helmet>
