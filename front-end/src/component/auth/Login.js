@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import { defineAbilitiesFor } from "../../ability";
-import {Box, Button, Container, Modal, Paper, TextField, Typography} from "@mui/material";
+import {Box, Button, CircularProgress, Container, Modal, Paper, TextField, Typography} from "@mui/material";
 import { Helmet } from "react-helmet-async";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
@@ -23,6 +23,7 @@ function Login() {
     const { setCurrentAbility } = useAbility();
     const [openModal, setOpenModal] = useState(false);
     const [emailOrUsername, setEmailOrUsername] = useState("");
+    const [loadingForgot, setLoadingForgot] = useState(false);
     useEffect(() => {
         setCurrentAbility(defineAbilitiesFor(null));
         const userRole = localStorage.getItem("role");
@@ -75,8 +76,10 @@ function Login() {
         toast.error("Vui lòng nhập email hoặc tên tài khoản");
         return;
     }
+        setLoadingForgot(true);
     try {
         const response = await forgotPassword(emailOrUsername);
+        setLoadingForgot(false);
         if (response.success) {
             toast.success("Yêu cầu đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra email!");
             localStorage.setItem("emailOrUsername", emailOrUsername);
@@ -86,6 +89,7 @@ function Login() {
             toast.error(response.message || "Gửi yêu cầu thất bại.");
         }
     } catch (error) {
+        setLoadingForgot(false);
         toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
     }
 };
@@ -132,7 +136,14 @@ function Login() {
                 <Box sx={{ width: 400, padding: 4, backgroundColor: "white", margin: "auto", marginTop: "10%", borderRadius: 2 }}>
                     <Typography variant="h6" gutterBottom>Quên mật khẩu</Typography>
                     <TextField label="Email hoặc tên tài khoản" fullWidth value={emailOrUsername} onChange={(e) => setEmailOrUsername(e.target.value)} sx={{ marginBottom: 2 }} />
-                    <Button variant="contained" fullWidth onClick={handleForgotPassword}>Gửi yêu cầu</Button>
+                    <Button
+                        variant="contained"
+                        fullWidth
+                        onClick={handleForgotPassword}
+                        disabled={loadingForgot} // Disable khi đang loading
+                    >
+                        {loadingForgot ? <CircularProgress size={24} sx={{ color: "#fff" }} /> : "Gửi yêu cầu"}
+                    </Button>
                 </Box>
             </Modal>
             <ToastContainer/>

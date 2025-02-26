@@ -1,7 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {getAllNews, deleteNews, approveNews, getPendingNews, rejectNews} from "../service/NewService";
-import { Container, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogActions, DialogContent, DialogTitle, Box } from "@mui/material";
+import {
+    Container,
+    Typography,
+    Button,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    Box,
+    CardMedia
+} from "@mui/material";
 import { toast, ToastContainer } from "react-toastify";
 import {Helmet} from "react-helmet-async";
 import HeaderAdmin from "../component/admin/HeaderAdmin";
@@ -90,6 +107,7 @@ const PendingNewsList = () => {
                         <TableHead>
                             <TableRow>
                                 <TableCell>Tiêu đề</TableCell>
+                                <TableCell>Hình ảnh</TableCell>
                                 <TableCell>Người đăng</TableCell>
                                 <TableCell>Ngày đăng</TableCell>
                                 <TableCell align="center">Hành động</TableCell>
@@ -98,6 +116,22 @@ const PendingNewsList = () => {
                         <TableBody>
                             {newsList.length > 0 ? newsList.map((news) => (
                                 <TableRow key={news.id}>
+                                    <TableCell align="center">
+                                        {news.images?.length > 0 ? (
+                                            <CardMedia
+                                                component="img"
+                                                image={news.images[0].img}
+                                                alt={news.title}
+                                                sx={{
+                                                    height: 80,
+                                                    objectFit: "cover",
+                                                    borderRadius: 1,
+                                                }}
+                                            />
+                                        ) : (
+                                            "Không có ảnh"
+                                        )}
+                                    </TableCell>
                                     <TableCell>{news.title}</TableCell>
                                     <TableCell>{news.createdBy}</TableCell>
                                     <TableCell>{new Date(news.dateNews).toLocaleString()}</TableCell>

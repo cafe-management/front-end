@@ -44,7 +44,8 @@ const NewsUpdateComponent = () => {
     // Kiểm tra quyền admin khi component load
     useEffect(() => {
         const userRole = localStorage.getItem("role");
-        if (userRole !== "admin") {
+        console.log("Role: ", userRole);
+        if (userRole !== "admin" && userRole !== "employ") {
             navigate("/login");
         }
     }, [navigate]);
@@ -130,8 +131,12 @@ const NewsUpdateComponent = () => {
                 images: combinedImages,
             };
 
-            await updateNews(id, newsDetails);
-            setMessage("Bài tin đã được cập nhật thành công!");
+            try {
+                await updateNews(id, newsDetails);
+                setMessage("Bài tin đã được cập nhật thành công!");
+            } catch (err) {
+                setError("Cập nhật thất bại: " + (err.response?.data || err.message));
+            }
             // Sau khi cập nhật, gọi lại API để lấy dữ liệu mới
             const updatedData = await getNewsById(id);
             setNews(updatedData);

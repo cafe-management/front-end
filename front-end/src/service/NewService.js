@@ -67,7 +67,7 @@ export const updateNews = async (id, newsDetails) => {
     try {
         const role = localStorage.getItem("role");
         const username = localStorage.getItem("username");
-        if (role !== "admin") {
+        if (role !== "admin" && role !== "employ") {
             toast.error("⛔ Bạn không có quyền cập nhật bài viết này!");
             return;
         }
@@ -75,6 +75,7 @@ export const updateNews = async (id, newsDetails) => {
             headers: getAuthHeaders(),
         });
         toast.success("✏️ Tin tức đã được cập nhật!");
+        console.log("Dữ liệu gửi lên:", response);
         return response.data;
     } catch (error) {
         toast.error("❌ Lỗi khi cập nhật tin tức!");
@@ -86,12 +87,10 @@ export const updateNews = async (id, newsDetails) => {
 export const deleteNews = async (id) => {
     try {
         const role = localStorage.getItem("role");
-        if (role !== "admin") {
-            toast.error("⛔ Bạn không có quyền xóa bài viết!");
+        if (role !== "admin" && role !== "employ") {
             return;
         }
         await axios.delete(`${API_URL}/${id}`);
-        toast.success("🗑️ Tin tức đã được xóa!");
     } catch (error) {
         toast.error("❌ Lỗi khi xóa tin tức!");
         throw error;
