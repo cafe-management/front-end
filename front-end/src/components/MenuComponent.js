@@ -15,6 +15,7 @@ import {
     Snackbar,
     CircularProgress,
     Chip,
+    Dialog,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
@@ -41,10 +42,7 @@ const MenuComponent = () => {
     const [table, setTable] = useState(null);
     const [activeCategory, setActiveCategory] = useState(null);
     const [categories, setCategories] = useState([]);
-    // Lưu danh sách đồ uống. Giả sử mỗi drink có thuộc tính new (true/false)
     const [drinks, setDrinks] = useState([]);
-
-    // Khởi tạo state từ sessionStorage nếu có, ngược lại sử dụng giá trị mặc định
     const [visibleCount, setVisibleCount] = useState(() => {
         const storedCount = sessionStorage.getItem("visibleCount");
         return storedCount ? JSON.parse(storedCount) : 4;
@@ -69,7 +67,11 @@ const MenuComponent = () => {
     });
     const [isLoading, setIsLoading] = useState(false);
 
-    // Ref cho phần tử sentinel dùng để trigger load thêm
+    // State cho modal hiển thị ảnh lớn và loading ảnh
+    const [openImageModal, setOpenImageModal] = useState(false);
+    const [selectedImage, setSelectedImage] = useState("");
+    const [imageLoading, setImageLoading] = useState(false);
+
     const sentinelRef = useRef(null);
     const stompClientRef = useRef(null);
 
@@ -91,27 +93,22 @@ const MenuComponent = () => {
         return token;
     }, []);
 
-    // Lưu cartItems vào sessionStorage mỗi khi state thay đổi
     useEffect(() => {
         sessionStorage.setItem("cartItems", JSON.stringify(cartItems));
     }, [cartItems]);
 
-    // Lưu visibleCount vào sessionStorage mỗi khi state thay đổi
     useEffect(() => {
         sessionStorage.setItem("visibleCount", JSON.stringify(visibleCount));
     }, [visibleCount]);
 
-    // Lưu showRatingIcon vào sessionStorage mỗi khi state thay đổi
     useEffect(() => {
         sessionStorage.setItem("showRatingIcon", JSON.stringify(showRatingIcon));
     }, [showRatingIcon]);
 
-    // Lưu orderPlaced vào sessionStorage mỗi khi state thay đổi
     useEffect(() => {
         sessionStorage.setItem("orderPlaced", JSON.stringify(orderPlaced));
     }, [orderPlaced]);
 
-    // UseEffect để thiết lập kết nối WebSocket
     useEffect(() => {
         stompClientRef.current = new Client({
             webSocketFactory: () => new SockJS(API_URL_SOCKET),
@@ -124,9 +121,7 @@ const MenuComponent = () => {
                 console.error("Additional details: " + frame.body);
             },
         });
-
         stompClientRef.current.activate();
-
         return () => {
             if (stompClientRef.current) {
                 stompClientRef.current.deactivate();
@@ -134,7 +129,6 @@ const MenuComponent = () => {
         };
     }, []);
 
-    // Lấy thông tin bàn ban đầu
     useEffect(() => {
         if (tableId) {
             getTableCoffeeById(tableId)
@@ -173,12 +167,10 @@ const MenuComponent = () => {
                     let drinksData = [];
                     if (activeCategory.nameCategory === "Tất Cả") {
                         drinksData = await getDrinks();
-                        // Nếu muốn xáo trộn danh sách (có thể loại trừ món mới) thì sắp xếp lại:
                         drinksData = drinksData.sort(() => Math.random() - 0.5);
                     } else {
                         drinksData = await getDrinksByCategory(activeCategory.id);
                     }
-                    // Sắp xếp sao cho món mới (new === true) được đưa lên đầu danh sách
                     drinksData.sort((a, b) => {
                         return (b.new === true ? 1 : 0) - (a.new === true ? 1 : 0);
                     });
@@ -210,7 +202,6 @@ const MenuComponent = () => {
         }
     };
 
-    // Hàm load thêm dữ liệu, hiển thị spinner trong quá trình load
     const handleLoadMore = useCallback(() => {
         setIsLoading(true);
         setTimeout(() => {
@@ -233,12 +224,10 @@ const MenuComponent = () => {
                 threshold: 1.0,
             }
         );
-
         const currentSentinel = sentinelRef.current;
         if (currentSentinel) {
             observer.observe(currentSentinel);
         }
-
         return () => {
             if (currentSentinel) {
                 observer.unobserve(currentSentinel);
@@ -253,10 +242,6 @@ const MenuComponent = () => {
         }).format(price);
     };
 
-    const shuffleArray = (array) => {
-        return array.sort(() => Math.random() - 0.5);
-    };
-
     const handleSubmitFeedback = async (feedbackData) => {
         try {
             const { name, email, phone, content, images } = feedbackData;
@@ -267,7 +252,6 @@ const MenuComponent = () => {
             });
             const codeFeedback = generateCodeFeedback();
             const dateFeedback = new Date().toISOString();
-
             const feedbackPayload = {
                 codeFeedback,
                 dateFeedback,
@@ -276,7 +260,6 @@ const MenuComponent = () => {
                 tableId: table ? table.id : null,
                 images: images.map((url) => ({ img: url })),
             };
-
             const newFeedback = await createFeedback(feedbackPayload);
             console.log("Feedback đã được tạo:", newFeedback);
             setSnackbar({
@@ -305,7 +288,6 @@ const MenuComponent = () => {
             return;
         }
         if (cartItems.length === 0) return;
-
         if (table && table.statusTable === 0) {
             try {
                 const sessionToken = getSessionToken();
@@ -317,7 +299,6 @@ const MenuComponent = () => {
                 return;
             }
         }
-
         const cart = {
             table: { id: tableId },
             items: cartItems.map((item) => ({
@@ -326,15 +307,14 @@ const MenuComponent = () => {
                 totalPrice: item.price * item.quantity,
             })),
         };
-
         console.log("Payload gửi đi:", cart);
         try {
             const response = await createCart(cart);
             console.log("Đơn hàng đã được tạo thành công:", response);
             setCartItems([]);
             setOpenCartModal(false);
-            setShowRatingIcon(true); // Hiển thị nút đánh giá khi đặt hàng thành công
-            setOrderPlaced(true); // Hiển thị nút thanh toán khi đặt hàng thành công
+            setShowRatingIcon(true);
+            setOrderPlaced(true);
             setSnackbar({
                 open: true,
                 message: "Bạn đã đặt món thành công",
@@ -365,7 +345,6 @@ const MenuComponent = () => {
             price: drink.price,
             name: drink.nameDrinks,
         };
-
         try {
             const response = await createCartItem(cartItem);
             console.log("Đã thêm sản phẩm vào giỏ hàng:", response);
@@ -432,16 +411,25 @@ const MenuComponent = () => {
 
     const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
     const totalCartPrice = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-
-    // Tạo một mảng đồ uống đã được sắp xếp (món mới lên đầu) sử dụng thuộc tính "new"
     const sortedDrinks = [...drinks].sort((a, b) => {
         return (b.new === true ? 1 : 0) - (a.new === true ? 1 : 0);
     });
 
+    // Hàm xử lý khi nhấp vào ảnh để hiển thị modal với ảnh lớn kèm loading
+    const handleImageClick = (drink) => {
+        const highResImageUrl = getCloudinaryImageUrl(drink.imgDrinks, {
+            width: 800,
+            height: 800,
+            crop: "fill",
+        });
+        setSelectedImage(highResImageUrl);
+        setImageLoading(true);
+        setOpenImageModal(true);
+    };
+
     return (
         <Box sx={{ backgroundColor: "#f3f4f6", minHeight: "100vh", fontFamily: "sans-serif" }}>
             <Header />
-            {/* Thêm khoảng cách dưới Header */}
             <Box sx={{ pt: { xs: 10, sm: 12 } }}>
                 <Box
                     sx={{
@@ -515,7 +503,6 @@ const MenuComponent = () => {
                                             <Card>
                                                 <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
                                                     <Box sx={{ position: "relative" }}>
-                                                        {/* Sử dụng Chip để hiển thị tag "Món mới" nếu drink.new === true */}
                                                         {drink.new && (
                                                             <Chip
                                                                 label="Món mới"
@@ -541,7 +528,9 @@ const MenuComponent = () => {
                                                                 height: "auto",
                                                                 display: "block",
                                                                 borderRadius: "4px",
+                                                                cursor: "pointer",
                                                             }}
+                                                            onClick={() => handleImageClick(drink)}
                                                         />
                                                         <IconButton
                                                             color="primary"
@@ -593,7 +582,6 @@ const MenuComponent = () => {
                 )}
             </Box>
 
-            {/* Nút giỏ hàng, đánh giá, thanh toán */}
             <Box
                 sx={{
                     position: "fixed",
@@ -621,7 +609,6 @@ const MenuComponent = () => {
                         </IconButton>
                     </Tooltip>
                 )}
-
                 <Tooltip title="Xem giỏ hàng">
                     <IconButton
                         onClick={() => setOpenCartModal(true)}
@@ -676,6 +663,40 @@ const MenuComponent = () => {
                 message={snackbar.message}
                 anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
             />
+
+            {/* Modal hiển thị ảnh lớn với loading */}
+            <Dialog
+                open={openImageModal}
+                onClose={() => setOpenImageModal(false)}
+                maxWidth="lg"
+                fullWidth
+            >
+                <Box sx={{ position: "relative", minHeight: "auto"}}>
+                    {imageLoading && (
+                        <Box
+                            sx={{
+                                position: "absolute",
+                                top: "50%",
+                                left: "50%",
+                                transform: "translate(-50%, -50%)",
+                                zIndex: 1,
+                            }}
+                        >
+                            <CircularProgress />
+                        </Box>
+                    )}
+                    <img
+                        src={selectedImage}
+                        alt="Ảnh chi tiết"
+                        onLoad={() => setImageLoading(false)}
+                        style={{
+                            width: "100%",
+                            height: "auto",
+                            display: imageLoading ? "none" : "block",
+                        }}
+                    />
+                </Box>
+            </Dialog>
         </Box>
     );
 };

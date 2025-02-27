@@ -336,19 +336,26 @@ const NewsListComponent = () => {
                     <Box
                         sx={{
                             p: 3,
-                            backgroundColor: "white",
-                            borderRadius: 2,
-                            maxWidth: 600,
+                            bgcolor: "white",
+                            borderRadius: 3,
+                            maxWidth: 500, // Chiều rộng modal
+                            minHeight: 400,
                             mx: "auto",
-                            mt: 10,
+                            mt: 2,
                             outline: "none",
+                            boxShadow: 5,
+                            display: "flex",
+                            flexDirection: "column",
                         }}
                     >
                         {selectedNews && (
                             <>
-                                <Typography variant="h5" sx={{ mb: 2 }}>
+                                {/* Tiêu đề tin tức */}
+                                <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold", textAlign: "center" }}>
                                     {selectedNews.title}
                                 </Typography>
+
+                                {/* Slider ảnh */}
                                 {selectedNews.images?.length > 0 && (
                                     <Slider {...sliderSettings}>
                                         {selectedNews.images.map((image, index) => (
@@ -359,7 +366,7 @@ const NewsListComponent = () => {
                                                     alt={selectedNews.title}
                                                     sx={{
                                                         width: "100%",
-                                                        height: 300,
+                                                        height: 250, // Giảm chiều cao ảnh
                                                         objectFit: "cover",
                                                         borderRadius: 2,
                                                     }}
@@ -368,16 +375,21 @@ const NewsListComponent = () => {
                                         ))}
                                     </Slider>
                                 )}
+
+                                {/* Nội dung tin tức */}
                                 <Box
                                     sx={{
-                                        maxHeight: 300,
-                                        overflow: "auto",
+                                        flex: 1,
+                                        overflowY: "auto",
                                         mt: 2,
                                         whiteSpace: "pre-line",
+                                        maxHeight: 250, // Giới hạn chiều cao nội dung
                                     }}
                                 >
-                                    <Typography>{selectedNews.content}</Typography>
+                                    <Typography variant="body2">{selectedNews.content}</Typography>
                                 </Box>
+
+                                {/* Nút đóng */}
                                 <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
                                     <Button variant="contained" onClick={handleCloseModal}>
                                         Đóng
