@@ -54,10 +54,8 @@ export const createNews = async (news) => {
         const response = await axios.post(API_URL, newsData,{
             headers: getAuthHeaders(),
         });
-        toast.success("✅ Tin tức đã được tạo thành công!");
         return response.data;
     } catch (error) {
-        toast.error("❌ Lỗi khi tạo tin tức!");
         throw error;
     }
 };
@@ -74,10 +72,8 @@ export const updateNews = async (id, newsDetails) => {
         const response = await axios.put(`${API_URL}/${id}?username=${username}&role=${role}`, newsDetails, {
             headers: getAuthHeaders(),
         });
-        toast.success("✏️ Tin tức đã được cập nhật!");
         return response.data;
     } catch (error) {
-        toast.error("❌ Lỗi khi cập nhật tin tức!");
         throw error;
     }
 };
@@ -92,7 +88,6 @@ export const deleteNews = async (id) => {
         }
         await axios.delete(`${API_URL}/${id}`);
     } catch (error) {
-        toast.error("❌ Lỗi khi xóa tin tức!");
         throw error;
     }
 };
