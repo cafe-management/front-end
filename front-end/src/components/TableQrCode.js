@@ -2,10 +2,11 @@ import React from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
 
 const TableQRCode = ({ table }) => {
-    const menuUrl = `http://10.10.8.75:3000/home?tableId=${table.id}`;
+    // Chỉ mã hóa giá trị table.id nếu cần, còn phần URL gốc giữ nguyên
+    const menuUrl = `http://10.10.8.75:3000/home?tableId=${encodeURIComponent(table.id)}`;
 
     return (
-        <div style={{textAlign: "center", marginTop: "20px"}}>
+        <div style={{ textAlign: "center", marginTop: "20px" }}>
             <h2>QR Code cho bàn {table.id}</h2>
             <QRCodeCanvas
                 value={menuUrl}

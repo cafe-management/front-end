@@ -4,11 +4,13 @@ function Footer() {
     const socialLinks = [
         { text: "Twitter", href: "https://twitter.com" },
         { text: "Facebook", href: "https://www.facebook.com/profile.php?id=61573004915840" },
-        { text: "Support", href: "/support" },
-        { text: "FAQ", href: "/faq" }
+        { text: "Hỗ trợ", href: "/support" },
+        { text: "Câu hỏi thường gặp", href: "/faq" }
     ];
+
     return (
-        <Box id="footer"
+        <Box
+            id="footer"
             component="footer"
             sx={{
                 bgcolor: "grey.900",
@@ -24,10 +26,10 @@ function Footer() {
                         <Grid container spacing={2}>
                             <Grid item xs={6}>
                                 <Typography variant="body1" sx={{ fontWeight: "bold", mb: 1 }}>
-                                    Company
+                                    Công ty
                                 </Typography>
                                 <Box>
-                                    {["About", "Careers", "Brand Center", "Blog"].map((text) => (
+                                    {["Giới thiệu", "Cơ hội nghề nghiệp", "Trung tâm thương hiệu", "Blog"].map((text) => (
                                         <Link key={text} href="#" underline="hover" color="inherit" display="block" sx={{ mb: 0.5 }}>
                                             {text}
                                         </Link>
@@ -36,7 +38,7 @@ function Footer() {
                             </Grid>
                             <Grid item xs={6}>
                                 <Typography variant="body1" sx={{ fontWeight: "bold", mb: 1 }}>
-                                    Help Center
+                                    Trung tâm hỗ trợ
                                 </Typography>
                                 <Box>
                                     {socialLinks.map(({ text, href }) => (
@@ -59,10 +61,10 @@ function Footer() {
                         <Grid container spacing={2}>
                             <Grid item xs={6}>
                                 <Typography variant="body1" sx={{ fontWeight: "bold", mb: 1 }}>
-                                    Legal
+                                    Pháp lý
                                 </Typography>
                                 <Box>
-                                    {["Privacy Policy", "Licensing", "Terms & Conditions", "Disclaimer"].map((text) => (
+                                    {["Chính sách bảo mật", "Giấy phép", "Điều khoản & Điều kiện", "Tuyên bố từ chối trách nhiệm"].map((text) => (
                                         <Link key={text} href="#" underline="hover" color="inherit" display="block" sx={{ mb: 0.5 }}>
                                             {text}
                                         </Link>
@@ -71,7 +73,7 @@ function Footer() {
                             </Grid>
                             <Grid item xs={6}>
                                 <Typography variant="body1" sx={{ fontWeight: "bold", mb: 1 }}>
-                                    Contact
+                                    Liên hệ
                                 </Typography>
                                 <Box>
                                     <Link href="mailto:danafinest@gmail.com" underline="hover" color="inherit" display="block" sx={{ mb: 0.5 }}>
@@ -88,7 +90,7 @@ function Footer() {
                 <Divider sx={{ bgcolor: "grey.700", my: 2 }} />
                 <Typography variant="body2" color="white" align="center"
                             sx={{ fontSize: "0.8rem", fontStyle: "italic" }}>
-                    © Bản quyền thuộc về {" "}
+                    © Bản quyền thuộc về{" "}
                     <Link
                         href="http://localhost:3000/home"
                         color="#E7B45A"
@@ -101,4 +103,5 @@ function Footer() {
         </Box>
     );
 }
+
 export default Footer;
