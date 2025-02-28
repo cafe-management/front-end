@@ -11,10 +11,11 @@ import {
     ImageListItem,
     CircularProgress,
     Typography,
-    IconButton
+    IconButton,
+    Rating,
 } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import DeleteIcon from '@mui/icons-material/Delete';
+import DeleteIcon from "@mui/icons-material/Delete";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 
@@ -82,7 +83,12 @@ const FeedbackModal = ({ open, handleClose, handleSubmitFeedback }) => {
 
     return (
         <>
-            <Dialog open={open} onClose={!isSubmitting ? handleClose : undefined} fullWidth maxWidth="sm">
+            <Dialog
+                open={open}
+                onClose={!isSubmitting ? handleClose : undefined}
+                fullWidth
+                maxWidth="sm"
+            >
                 <DialogTitle>Gửi Phản Hồi</DialogTitle>
                 <DialogContent>
                     <Formik
@@ -91,16 +97,23 @@ const FeedbackModal = ({ open, handleClose, handleSubmitFeedback }) => {
                             email: "",
                             phone: "",
                             content: "",
-                            images: []
+                            rating: 1, // đặt mặc định là 1 sao
+                            images: [],
                         }}
                         validationSchema={Yup.object({
                             name: Yup.string().required("Vui lòng nhập họ và tên"),
-                            email: Yup.string().email("Email không hợp lệ").required("Vui lòng nhập email"),
+                            email: Yup.string()
+                                .email("Email không hợp lệ")
+                                .required("Vui lòng nhập email"),
                             phone: Yup.string()
                                 .matches(/^[0-9]+$/, "Số điện thoại không hợp lệ")
                                 .required("Vui lòng nhập số điện thoại"),
                             content: Yup.string().required("Vui lòng nhập nội dung phản hồi"),
-                            images: Yup.array()
+                            rating: Yup.number()
+                                .min(1, "Vui lòng chọn từ 1 đến 5 sao")
+                                .max(5, "Vui lòng chọn từ 1 đến 5 sao")
+                                .required("Vui lòng đánh giá sản phẩm"),
+                            images: Yup.array(),
                         })}
                         onSubmit={async (values, { setSubmitting, setErrors, resetForm }) => {
                             setIsSubmitting(true);
@@ -129,7 +142,7 @@ const FeedbackModal = ({ open, handleClose, handleSubmitFeedback }) => {
                             }
                         }}
                     >
-                        {({ setFieldValue, errors, touched, isSubmitting }) => (
+                        {({ setFieldValue, errors, touched, isSubmitting, values }) => (
                             <Form noValidate autoComplete="off">
                                 <Box sx={{ mt: 2 }}>
                                     <Field
@@ -140,7 +153,13 @@ const FeedbackModal = ({ open, handleClose, handleSubmitFeedback }) => {
                                         fullWidth
                                         margin="normal"
                                         error={touched.name && Boolean(errors.name)}
-                                        helperText={<ErrorMessage name="name" component="span" style={{ color: "red" }} />}
+                                        helperText={
+                                            <ErrorMessage
+                                                name="name"
+                                                component="span"
+                                                style={{ color: "red" }}
+                                            />
+                                        }
                                     />
                                     <Field
                                         as={TextField}
@@ -150,7 +169,13 @@ const FeedbackModal = ({ open, handleClose, handleSubmitFeedback }) => {
                                         fullWidth
                                         margin="normal"
                                         error={touched.email && Boolean(errors.email)}
-                                        helperText={<ErrorMessage name="email" component="span" style={{ color: "red" }} />}
+                                        helperText={
+                                            <ErrorMessage
+                                                name="email"
+                                                component="span"
+                                                style={{ color: "red" }}
+                                            />
+                                        }
                                     />
                                     <Field
                                         as={TextField}
@@ -160,7 +185,13 @@ const FeedbackModal = ({ open, handleClose, handleSubmitFeedback }) => {
                                         fullWidth
                                         margin="normal"
                                         error={touched.phone && Boolean(errors.phone)}
-                                        helperText={<ErrorMessage name="phone" component="span" style={{ color: "red" }} />}
+                                        helperText={
+                                            <ErrorMessage
+                                                name="phone"
+                                                component="span"
+                                                style={{ color: "red" }}
+                                            />
+                                        }
                                     />
                                     <Field
                                         as={TextField}
@@ -172,8 +203,34 @@ const FeedbackModal = ({ open, handleClose, handleSubmitFeedback }) => {
                                         multiline
                                         rows={4}
                                         error={touched.content && Boolean(errors.content)}
-                                        helperText={<ErrorMessage name="content" component="span" style={{ color: "red" }} />}
+                                        helperText={
+                                            <ErrorMessage
+                                                name="content"
+                                                component="span"
+                                                style={{ color: "red" }}
+                                            />
+                                        }
                                     />
+
+                                    {/* Trường đánh giá sao */}
+                                    <Box sx={{ mt: 2, display: "flex", alignItems: "center" }}>
+                                        <Typography variant="subtitle1" sx={{ mr: 2 }}>
+                                            Đánh giá:
+                                        </Typography>
+                                        <Rating
+                                            value={Number(values.rating)}
+                                            onChange={(event, newValue) => {
+                                                console.log("New rating value:", newValue);
+                                                setFieldValue("rating", newValue);
+                                            }}
+                                        />
+                                    </Box>
+                                    <ErrorMessage
+                                        name="rating"
+                                        component="span"
+                                        style={{ color: "red" }}
+                                    />
+
                                     <Box sx={{ mt: 2, display: "flex", alignItems: "center", gap: 1 }}>
                                         <Button
                                             variant="outlined"
@@ -204,7 +261,7 @@ const FeedbackModal = ({ open, handleClose, handleSubmitFeedback }) => {
                                                             objectFit: "cover",
                                                             width: "100%",
                                                             height: "100%",
-                                                            cursor: "pointer"
+                                                            cursor: "pointer",
                                                         }}
                                                         onClick={() => handleOpenPreview(src)}
                                                     />
@@ -217,7 +274,7 @@ const FeedbackModal = ({ open, handleClose, handleSubmitFeedback }) => {
                                                             bgcolor: "rgba(255,255,255,0.8)",
                                                             "&:hover": { bgcolor: "rgba(255,255,255,1)" },
                                                             padding: "4px",
-                                                            borderRadius: "50%"
+                                                            borderRadius: "50%",
                                                         }}
                                                     >
                                                         <DeleteIcon color="error" fontSize="small" />
@@ -226,7 +283,11 @@ const FeedbackModal = ({ open, handleClose, handleSubmitFeedback }) => {
                                             ))}
                                         </ImageList>
                                     )}
-                                    <ErrorMessage name="images" component={Typography} sx={{ color: "red", mt: 1 }} />
+                                    <ErrorMessage
+                                        name="images"
+                                        component={Typography}
+                                        sx={{ color: "red", mt: 1 }}
+                                    />
                                 </Box>
                                 <DialogActions>
                                     <Button

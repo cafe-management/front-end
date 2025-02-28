@@ -244,7 +244,7 @@ const MenuComponent = () => {
 
     const handleSubmitFeedback = async (feedbackData) => {
         try {
-            const { name, email, phone, content, images } = feedbackData;
+            const { name, email, phone, content, images,rating } = feedbackData;
             const customer = await createCustomer({
                 email,
                 phoneCustomer: phone,
@@ -257,6 +257,7 @@ const MenuComponent = () => {
                 dateFeedback,
                 customer,
                 content,
+                rating,
                 tableId: table ? table.id : null,
                 images: images.map((url) => ({ img: url })),
             };

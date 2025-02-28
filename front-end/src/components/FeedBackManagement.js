@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { getFeedback, searchFeedbackByDate } from "../service/FeedBackService";
 import {
     Box,
@@ -14,8 +14,11 @@ import {
     IconButton,
     TextField,
     Pagination,
+    Rating,
+    Tooltip,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import FilterListIcon from "@mui/icons-material/FilterList";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import FeedbackDetailModal from "./FeedbackDetailModal";
 import dayjs from "dayjs";
@@ -27,14 +30,13 @@ const FeedBackManagement = () => {
     const [selectedFeedback, setSelectedFeedback] = useState(null);
     const [openModal, setOpenModal] = useState(false);
     const [searchDate, setSearchDate] = useState("");
+    const [ratingFilter, setRatingFilter] = useState(0);
     const [page, setPage] = useState(1);
     const pageSize = 5;
-    const totalPages = Math.ceil(allFeedbacks.length / pageSize);
 
     const loadFeedbacks = async () => {
         try {
             setLoading(true);
-            // API trả về một mảng feedback
             const data = await getFeedback();
             setAllFeedbacks(data.content);
         } catch (err) {
@@ -49,10 +51,20 @@ const FeedBackManagement = () => {
         loadFeedbacks();
     }, []);
 
-    // Xử lý phân trang: Lấy dữ liệu của trang hiện tại
+    useEffect(() => {
+        setPage(1);
+    }, [ratingFilter]);
+
+    // Lọc feedback theo rating nếu có chọn
+    const filteredFeedbacks =
+        ratingFilter > 0
+            ? allFeedbacks.filter((fb) => Number(fb.rating) === ratingFilter)
+            : allFeedbacks;
+
+    const totalPages = Math.ceil(filteredFeedbacks.length / pageSize);
     const indexOfLast = page * pageSize;
     const indexOfFirst = indexOfLast - pageSize;
-    const currentFeedbacks = allFeedbacks.slice(indexOfFirst, indexOfLast);
+    const currentFeedbacks = filteredFeedbacks.slice(indexOfFirst, indexOfLast);
 
     const handleDetail = (feedback) => {
         setSelectedFeedback(feedback);
@@ -69,7 +81,6 @@ const FeedBackManagement = () => {
         try {
             setLoading(true);
             const data = await searchFeedbackByDate(searchDate);
-            // Nếu dữ liệu trả về là { content: [...] }
             setAllFeedbacks(data.content);
             setPage(1);
         } catch (err) {
@@ -79,6 +90,7 @@ const FeedBackManagement = () => {
             setLoading(false);
         }
     };
+
     const handlePageChange = (event, value) => {
         setPage(value);
     };
@@ -105,35 +117,54 @@ const FeedBackManagement = () => {
                 Danh sách Feedbacks
             </Typography>
 
+            {/* Container chứa lọc rating bên trái và tìm kiếm ngày bên phải */}
             <Box
                 sx={{
                     display: "flex",
+                    justifyContent: "space-between",
                     alignItems: "center",
-                    justifyContent: "flex-end",
                     mb: 2,
                 }}
             >
-                <TextField
-                    label="Ngày"
-                    type="date"
-                    value={searchDate}
-                    onChange={(e) => setSearchDate(e.target.value)}
-                    InputLabelProps={{ shrink: true }}
-                    size="small"
-                />
-                <IconButton
-                    onClick={handleSearch}
-                    color="primary"
-                    aria-label="Tìm kiếm"
-                    sx={{
-                        backgroundColor: "#E7B45A",
-                        "&:hover": { backgroundColor: "#dba147" },
-                        ml: 1,
-                        p: 0.5,
-                    }}
-                >
-                    <SearchIcon fontSize="small" sx={{ color: "#fff" }} />
-                </IconButton>
+                {/* Phần lọc rating bên trái */}
+                <Box display="flex" alignItems="center" gap={1}>
+                    <Rating
+                        name="rating-filter"
+                        value={ratingFilter}
+                        onChange={(event, newValue) => setRatingFilter(newValue)}
+                    />
+                    <Tooltip title={ratingFilter > 0 ? "Bỏ lọc" : "Lọc theo Rating"}>
+                        <IconButton
+                            onClick={() => setRatingFilter(0)}
+                            size="small"
+                        >
+                            <FilterListIcon />
+                        </IconButton>
+                    </Tooltip>
+                </Box>
+                {/* Phần tìm kiếm theo ngày bên phải */}
+                <Box display="flex" alignItems="center" gap={2}>
+                    <TextField
+                        label="Ngày"
+                        type="date"
+                        value={searchDate}
+                        onChange={(e) => setSearchDate(e.target.value)}
+                        InputLabelProps={{ shrink: true }}
+                        size="small"
+                    />
+                    <IconButton
+                        onClick={handleSearch}
+                        color="primary"
+                        aria-label="Tìm kiếm"
+                        sx={{
+                            backgroundColor: "#E7B45A",
+                            "&:hover": { backgroundColor: "#dba147" },
+                            p: 0.5,
+                        }}
+                    >
+                        <SearchIcon fontSize="small" sx={{ color: "#fff" }} />
+                    </IconButton>
+                </Box>
             </Box>
 
             <TableContainer
@@ -157,7 +188,10 @@ const FeedBackManagement = () => {
                                 Khách hàng
                             </TableCell>
                             <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                                Số Điện Thoại
+                                SĐT
+                            </TableCell>
+                            <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                                Rating
                             </TableCell>
                             <TableCell align="center" sx={{ fontWeight: "bold" }}>
                                 Chi tiết
@@ -167,7 +201,7 @@ const FeedBackManagement = () => {
                     <TableBody>
                         {currentFeedbacks.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={6} align="center">
+                                <TableCell colSpan={7} align="center">
                                     Không có feedback trong bảng này
                                 </TableCell>
                             </TableRow>
@@ -183,7 +217,9 @@ const FeedBackManagement = () => {
                                     <TableCell align="center">
                                         {indexOfFirst + index + 1}
                                     </TableCell>
-                                    <TableCell align="center">{feedback.codeFeedback}</TableCell>
+                                    <TableCell align="center">
+                                        {feedback.codeFeedback}
+                                    </TableCell>
                                     <TableCell align="center">
                                         {dayjs(feedback.dateFeedback).format("DD/MM/YYYY HH:mm")}
                                     </TableCell>
@@ -196,6 +232,9 @@ const FeedBackManagement = () => {
                                         {feedback.customer && feedback.customer.phoneCustomer
                                             ? feedback.customer.phoneCustomer
                                             : "N/A"}
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <Rating value={feedback.rating} readOnly />
                                     </TableCell>
                                     <TableCell align="center">
                                         <IconButton
@@ -212,7 +251,6 @@ const FeedBackManagement = () => {
                 </Table>
             </TableContainer>
 
-            {/* Phân trang */}
             {totalPages > 1 && (
                 <Box display="flex" justifyContent="center" mt={2}>
                     <Pagination

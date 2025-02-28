@@ -11,7 +11,8 @@ import {
     Button,
     Typography,
     Fab,
-    Chip, IconButton,
+    Chip,
+    IconButton,
 } from "@mui/material";
 import { Facebook, Phone } from "@mui/icons-material";
 import Header from "./Header";
@@ -34,6 +35,7 @@ function CoffeeShop() {
     const navigate = useNavigate();
 
     const [feedbacks, setFeedbacks] = useState([]);
+    const [currentFeedbackIndex, setCurrentFeedbackIndex] = useState(0);
     const [topDrinks, setTopDrinks] = useState([]);
     const [visibleCount, setVisibleCount] = useState(4);
     const [showTotal, setShowTotal] = useState(false);
@@ -62,6 +64,16 @@ function CoffeeShop() {
         fetchFeedbacks();
         setShowTotal(true);
     }, []);
+
+    // Auto carousel cho feedback
+    useEffect(() => {
+        if (feedbacks.length > 0) {
+            const interval = setInterval(() => {
+                setCurrentFeedbackIndex((prevIndex) => (prevIndex + 1) % feedbacks.length);
+            }, 5000); // thay đổi feedback mỗi 5 giây
+            return () => clearInterval(interval);
+        }
+    }, [feedbacks]);
 
     // Định dạng giá
     const formatPrice = (price) => {
@@ -149,7 +161,7 @@ function CoffeeShop() {
                                                 <Card>
                                                     <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
                                                         <Box sx={{ position: "relative" }}>
-                                                            {/* Hiển thị nhãn "Best Seller" luôn luôn */}
+                                                            {/* Hiển thị nhãn "Best Seller" */}
                                                             <Chip
                                                                 label="Best Seller"
                                                                 color="secondary"
@@ -226,7 +238,7 @@ function CoffeeShop() {
                     </Container>
                 </Box>
 
-                {/* Phản hồi khách hàng */}
+                {/* Phản hồi khách hàng tự động */}
                 <Paper
                     elevation={3}
                     sx={{
@@ -253,29 +265,32 @@ function CoffeeShop() {
                     >
                         Khách Hàng Nói Gì
                     </Typography>
-                    <Grid container spacing={2} justifyContent="center">
-                        {feedbacks.slice(0, 2).map((fb, i) => (
-                            <Grid item xs={12} sm={5} key={i}>
-                                <Paper
-                                    elevation={2}
-                                    sx={{
-                                        p: 3,
-                                        textAlign: "center",
-                                        borderRadius: 2,
-                                        backgroundColor: "white",
-                                        color: "black",
-                                    }}
-                                >
-                                    <Typography variant="body1" fontStyle="italic">
-                                        "{fb.content}"
-                                    </Typography>
-                                    <Typography fontWeight="bold" mt={2}>
-                                        {fb.customer?.nameCustomer || "Khách hàng ẩn danh"}
-                                    </Typography>
-                                </Paper>
-                            </Grid>
-                        ))}
-                    </Grid>
+                    {feedbacks.length > 0 ? (
+                        <Paper
+                            elevation={2}
+                            sx={{
+                                p: 3,
+                                textAlign: "center",
+                                borderRadius: 2,
+                                backgroundColor: "white",
+                                color: "black",
+                                maxWidth: 600,
+                                margin: "0 auto",
+                            }}
+                        >
+                            <Typography variant="body1" fontStyle="italic">
+                                "{feedbacks[currentFeedbackIndex].content}"
+                            </Typography>
+                            <Typography fontWeight="bold" mt={2}>
+                                {feedbacks[currentFeedbackIndex].customer?.nameCustomer ||
+                                    "Khách hàng ẩn danh"}
+                            </Typography>
+                        </Paper>
+                    ) : (
+                        <Typography variant="body1" align="center">
+                            Chưa có phản hồi nào
+                        </Typography>
+                    )}
                 </Paper>
 
                 {/* FAB liên hệ */}
