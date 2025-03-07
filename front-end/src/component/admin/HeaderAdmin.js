@@ -32,6 +32,9 @@ function EmployeeManagementHeader() {
     const handleGotoDrink =()=>{
         navigate("/admin/menu");
     }
+    // const handleGotoOrder = ()=>{
+    //     navigate ("/order");
+    // }
     const handleProfileMenuOpen = (event) => {
         setAnchorEl(event.currentTarget);
     };
@@ -75,6 +78,7 @@ function EmployeeManagementHeader() {
     const isNewsListActive = location.pathname === "/news";
     const isChartActive = location.pathname === "/chart";
     const isDrinkActive = location.pathname === "/admin/menu";
+    const isOrder = location.pathname==="/order";
     return (
         <>
             <AppBar  position="fixed" sx={{ backgroundColor: "#333",width: "100%", boxShadow: "none" }}>
@@ -153,6 +157,24 @@ function EmployeeManagementHeader() {
                         >
                             Quản lý Đồ Uống
                         </Button>
+                        {/*<Button*/}
+                        {/*    color={isOrder ? "primary" : "inherit"} // Đổi màu nếu đang ở trang thêm nhân viên*/}
+                        {/*    sx={{*/}
+                        {/*        fontWeight: "bold",*/}
+                        {/*        padding: "8px 16px",*/}
+                        {/*        backgroundColor: isOrder ? "#E7B45A" : "transparent",*/}
+                        {/*        color: isOrder ? "#fff" : "white",*/}
+                        {/*        boxShadow: isOrder ? "0px 4px 10px rgba(231, 180, 90, 0.6)" : "none",*/}
+                        {/*        "&:hover": {*/}
+                        {/*            backgroundColor: "#E7B45A",*/}
+                        {/*            color: "#fff",*/}
+                        {/*            boxShadow: "0px 6px 12px rgba(231, 180, 90, 0.8)",*/}
+                        {/*        },*/}
+                        {/*    }}*/}
+                        {/*    onClick={handleGotoOrder()}*/}
+                        {/*>*/}
+                        {/*    Quản lý Hóa Đơn*/}
+                        {/*</Button>*/}
                         <IconButton onClick={handleProfileMenuOpen} sx={{ color: "white" }}>
                             <AccountCircle />
                         </IconButton>
