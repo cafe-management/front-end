@@ -67,7 +67,6 @@ function ResetPassword() {
                     <Typography variant="h5" gutterBottom sx={{ color: "#E7B45A", fontWeight: "bold" }}>
                         {isOtpVerified ? "Nhập mật khẩu mới" : "Xác thực OTP"}
                     </Typography>
-
                     {!isOtpVerified && (
                         <>
                             <TextField

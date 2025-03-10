@@ -24,6 +24,8 @@ const getAuthHeaders = () => {
         });
         return response.data;
     } catch (error) {
+        console.error("Lỗi API:", error.response ? error.response.data : error.message);
+        console.error(`Lỗi khi tải tin tức: ${error.message}`);
         toast.error("⚠️ Lỗi khi tải danh sách tin tức!");
         throw error;
     }
