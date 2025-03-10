@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { getAllNews } from "../service/NewService";
+import React, {useState, useEffect} from "react";
+import {useLocation} from "react-router-dom";
+import {getAllNews} from "../service/NewService";
 import {
     Container,
     Typography,
@@ -96,15 +96,15 @@ const NewsListMobi = () => {
 
     if (loading) {
         return (
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-                <CircularProgress />
+            <Box sx={{display: "flex", justifyContent: "center", mt: 4}}>
+                <CircularProgress/>
             </Box>
         );
     }
 
     if (error) {
         return (
-            <Container maxWidth="md" sx={{ mt: 4 }}>
+            <Container maxWidth="md" sx={{mt: 4}}>
                 <Alert severity="error">{error}</Alert>
             </Container>
         );
@@ -112,13 +112,13 @@ const NewsListMobi = () => {
 
     return (
         <>
-            <Header />
-            <Container maxWidth="lg" sx={{ mt: 4 }}>
-                <Typography variant="h4" sx={{ fontWeight: "bold", mb: 3, textAlign: "center", color: "#C4975C" }}>
+            <Header/>
+            <Container maxWidth="lg" sx={{mt: 4, mb: 5}}>
+                <Typography variant="h4" sx={{fontWeight: "bold", mb: 3, textAlign: "center", color: "#C4975C"}}>
                     TIN TỨC
                 </Typography>
                 {newsList.length === 0 ? (
-                    <Typography variant="h6" sx={{ textAlign: "center", color: "gray", mt: 4 }}>
+                    <Typography variant="h6" sx={{textAlign: "center", color: "gray", mt: 4}}>
                         Không có tin tức nào.
                     </Typography>
                 ) : (
@@ -148,19 +148,36 @@ const NewsListMobi = () => {
                                         <img
                                             src={news.images[0].img}
                                             alt={news.title}
-                                            style={{ width: "100%", height: "180px", objectFit: "cover", borderRadius: 8 }}
+                                            style={{
+                                                width: "100%",
+                                                height: "180px",
+                                                objectFit: "cover",
+                                                borderRadius: 8
+                                            }}
                                         />
                                     ) : (
-                                        <Box sx={{ width: "100%", height: "180px", backgroundColor: "#ccc", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                        <Box sx={{
+                                            width: "100%",
+                                            height: "180px",
+                                            backgroundColor: "#ccc",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center"
+                                        }}>
                                             Không có ảnh
                                         </Box>
                                     )}
-                                    <Box sx={{ mt: 2 }}>
-                                        <Typography variant="body2" sx={{ display: "flex", alignItems: "center", justifyContent: "center", color: "gray" }}>
-                                            <CalendarMonthIcon fontSize="small" sx={{ mr: 1, color: "#C4975C" }} />
+                                    <Box sx={{mt: 2}}>
+                                        <Typography variant="body2" sx={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            color: "gray"
+                                        }}>
+                                            <CalendarMonthIcon fontSize="small" sx={{mr: 1, color: "#C4975C"}}/>
                                             {new Date(news.dateNews).toLocaleDateString()}
                                         </Typography>
-                                        <Typography variant="h6" sx={{ fontWeight: "bold", mt: 1 }}>
+                                        <Typography variant="h6" sx={{fontWeight: "bold", mt: 1}}>
                                             {news.title || "Không có tiêu đề"}
                                         </Typography>
                                     </Box>
@@ -170,38 +187,52 @@ const NewsListMobi = () => {
                     </Grid>
                 )}
                 <Dialog open={Boolean(selectedNews)} onClose={() => setSelectedNews(null)} maxWidth="md" fullWidth>
-                    <DialogTitle sx={{ textAlign: "center", fontWeight: "bold", color: "#C4975C" }}>
+                    <DialogTitle sx={{textAlign: "center", fontWeight: "bold", color: "#C4975C"}}>
                         {selectedNews?.title}
                     </DialogTitle>
                     <DialogContent>
                         {selectedNews?.images?.length > 0 && (
-                            <Box sx={{ position: "relative", textAlign: "center" }}>
+                            <Box sx={{position: "relative", textAlign: "center"}}>
                                 <IconButton
-                                    sx={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", backgroundColor: "rgba(0,0,0,0.5)", color: "white" }}
+                                    sx={{
+                                        position: "absolute",
+                                        left: 10,
+                                        top: "50%",
+                                        transform: "translateY(-50%)",
+                                        backgroundColor: "rgba(0,0,0,0.5)",
+                                        color: "white"
+                                    }}
                                     onClick={handlePrevImage}
                                 >
-                                    <ArrowBackIosIcon />
+                                    <ArrowBackIosIcon/>
                                 </IconButton>
                                 <img
                                     src={selectedNews.images[currentImageIndex].img}
                                     alt="Tin tức"
-                                    style={{ width: "100%", height: "250px", objectFit: "cover", borderRadius: 8 }}
+                                    style={{width: "100%", height: "250px", objectFit: "cover", borderRadius: 8}}
                                 />
                                 <IconButton
-                                    sx={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", backgroundColor: "rgba(0,0,0,0.5)", color: "white" }}
+                                    sx={{
+                                        position: "absolute",
+                                        right: 10,
+                                        top: "50%",
+                                        transform: "translateY(-50%)",
+                                        backgroundColor: "rgba(0,0,0,0.5)",
+                                        color: "white"
+                                    }}
                                     onClick={handleNextImage}
                                 >
-                                    <ArrowForwardIosIcon />
+                                    <ArrowForwardIosIcon/>
                                 </IconButton>
                             </Box>
                         )}
-                        <Typography variant="body1" sx={{ mt: 2, whiteSpace: "pre-line" }}>
+                        <Typography variant="body1" sx={{mt: 2, whiteSpace: "pre-line"}}>
                             {selectedNews?.content || "Không có nội dung"}
                         </Typography>
                     </DialogContent>
                 </Dialog>
             </Container>
-            <Footer />
+            <Footer/>
         </>
     );
 };
