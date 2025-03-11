@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
     Modal,
     Box,
@@ -7,6 +7,7 @@ import {
     IconButton,
     Divider,
     Stack,
+    TextField, // Import TextField từ MUI
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
@@ -20,6 +21,16 @@ const CartModal = ({
                        totalCartPrice,
                        handlePayment,
                    }) => {
+    // State lưu trữ nội dung ghi chú khi đặt món
+    const [note, setNote] = useState("");
+
+    // Khi cartItems thay đổi, nếu giỏ hàng rỗng thì reset note
+    useEffect(() => {
+        if (cartItems.length === 0) {
+            setNote("");
+        }
+    }, [cartItems]);
+
     return (
         <Modal open={open} onClose={handleClose}>
             <Box
@@ -121,6 +132,19 @@ const CartModal = ({
                                 {formatPrice(totalCartPrice)}
                             </Typography>
                         </Box>
+
+                        {/* Trường nhập cho ghi chú khi đặt món */}
+                        <TextField
+                            fullWidth
+                            multiline
+                            rows={3}
+                            variant="outlined"
+                            placeholder="Thêm ghi chú cho đơn hàng"
+                            value={note}
+                            onChange={(e) => setNote(e.target.value)}
+                            sx={{ mb: 2 }}
+                        />
+
                         <Button
                             variant="contained"
                             fullWidth
@@ -132,7 +156,11 @@ const CartModal = ({
                                 borderRadius: 2,
                                 "&:hover": { bgcolor: "#d6a24e" },
                             }}
-                            onClick={handlePayment}
+                            // Truyền giá trị note vào hàm handlePayment khi đặt món, sau đó xoá note
+                            onClick={() => {
+                                handlePayment(note);
+                                setNote("");
+                            }}
                         >
                             Gọi Món
                         </Button>

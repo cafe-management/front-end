@@ -28,7 +28,6 @@ import AddDrinkComponent from "./components/AddDrinkComponent";
 import {ToastContainer} from "react-toastify";
 import PendingNewsList from "./components/NewsNeedApprove";
 import EditDrinkPage from "./components/EditDrinkPage";
-import OrderManagement from "./components/OrderManagement";
 import CategoryManagement from "./components/CategoryManagement";
 import EditCategoryPage from "./components/EditCategoryPage";
 function App() {
@@ -62,7 +61,6 @@ function App() {
                     <Route path="/chart" element={<IncomeManagement/>}/>
                     <Route path="/drink/create" element={<AddDrinkComponent/>} />
                     <Route path = "/drink/edit/:id" element={<EditDrinkPage/>} />
-                    <Route path="/order" element={<OrderManagement/>} />
                     <Route path="/category" element={<CategoryManagement />} />
                     <Route path="/category/create" element={<EditCategoryPage />} />
                     <Route path="/category/edit/:id" element={<EditCategoryPage />} />

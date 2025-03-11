@@ -304,7 +304,8 @@ const MenuComponent = () => {
         }
     };
 
-    const handleOrder = async () => {
+    // Hàm xử lý đặt món, bây giờ nhận tham số note từ CartModal
+    const handleOrder = async (note) => {
         if (table && table.statusTable === 2) {
             setSnackbar({
                 open: true,
@@ -332,6 +333,7 @@ const MenuComponent = () => {
                 return;
             }
         }
+        // Payload bao gồm trường note được nhận từ CartModal
         const cart = {
             table: { id: tableId },
             items: cartItems.map((item) => ({
@@ -339,6 +341,7 @@ const MenuComponent = () => {
                 quantity: item.quantity,
                 totalPrice: item.price * item.quantity,
             })),
+            note: note, // Ghi chú cho đơn hàng
         };
         console.log("Payload gửi đi:", cart);
         try {

@@ -21,13 +21,88 @@ import {
     Box,
 } from "@mui/material";
 import { getTableCoffee, updateTableCoffeeStatus } from "../service/TableCoffeeService";
-import { getCartByTableId } from "../service/CartService";
+import { getCartByTableId, updateCart } from "../service/CartService";
 import { createInvoice, assignInvoiceToCart } from "../service/InvoiceService";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import moment from 'moment';
+import moment from "moment";
 
+// Lấy thời gian hiện tại theo múi giờ +7
 const nowLocal = moment().utcOffset(7).format();
+
+// --- Component cho phép chỉnh sửa số lượng của từng món ---
+const EditableCartItemRow = ({ cart, item, refreshCarts, formatter }) => {
+    const [editing, setEditing] = useState(false);
+    const [quantity, setQuantity] = useState(item.quantity);
+
+    const handleSave = async () => {
+        const newQuantity = parseInt(quantity, 10);
+        if (newQuantity <= 0) {
+            toast.error("Số lượng phải lớn hơn 0");
+            return;
+        }
+        // Tạo đối tượng cart cập nhật lại số lượng và tổng tiền cho item tương ứng
+        const updatedCart = { ...cart };
+        updatedCart.items = updatedCart.items.map((it) => {
+            if (it.id === item.id) {
+                return {
+                    ...it,
+                    quantity: newQuantity,
+                    totalPrice: newQuantity * it.drink.price,
+                };
+            }
+            return it;
+        });
+        try {
+            await updateCart(cart.id, updatedCart);
+            toast.success("Cập nhật số lượng thành công");
+            setEditing(false);
+            refreshCarts();
+        } catch (error) {
+            console.error("Error updating cart item", error);
+            toast.error("Lỗi cập nhật số lượng");
+        }
+    };
+
+    return (
+        <>
+            {/* Ô số lượng */}
+            <TableCell>
+                {editing ? (
+                    <input
+                        type="number"
+                        value={quantity}
+                        onChange={(e) => setQuantity(e.target.value)}
+                        style={{ width: "60px" }}
+                    />
+                ) : (
+                    item.quantity
+                )}
+            </TableCell>
+            {/* Ô tổng tiền tính theo số lượng */}
+            <TableCell>{formatter.format(item.totalPrice)}</TableCell>
+            {/* Ô hành động */}
+            <TableCell>
+                {editing ? (
+                    <>
+                        <Button onClick={handleSave}>Save</Button>
+                        <Button
+                            onClick={() => {
+                                setEditing(false);
+                                setQuantity(item.quantity);
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                    </>
+                ) : (
+                    <Button onClick={() => setEditing(true)}>Edit</Button>
+                )}
+            </TableCell>
+        </>
+    );
+};
+
 const SaleManagement = () => {
     const [tables, setTables] = useState([]);
     const [error, setError] = useState(null);
@@ -58,25 +133,27 @@ const SaleManagement = () => {
         return () => clearInterval(interval);
     }, []);
 
-    useEffect(() => {
-        const fetchCart = async () => {
-            if (selectedTable) {
-                try {
-                    const cartsData = await getCartByTableId(selectedTable.id);
-                    const filteredCarts = cartsData.filter((cart) => cart.invoice === null);
-                    setCarts(filteredCarts);
-                } catch (err) {
-                    console.error("Lỗi khi lấy thông tin cart:", err);
-                    setCarts([]);
-                }
-            } else {
+    // Hàm làm mới danh sách cart của bàn được chọn
+    const refreshCarts = async () => {
+        if (selectedTable) {
+            try {
+                const cartsData = await getCartByTableId(selectedTable.id);
+                const filteredCarts = cartsData.filter((cart) => cart.invoice === null);
+                setCarts(filteredCarts);
+            } catch (err) {
+                console.error("Lỗi khi làm mới thông tin cart:", err);
                 setCarts([]);
             }
-        };
-        fetchCart();
+        } else {
+            setCarts([]);
+        }
+    };
+
+    useEffect(() => {
+        refreshCarts();
     }, [selectedTable]);
 
-    // Polling tự động cập nhật lại dữ liệu (đơn hàng và cập nhật thông tin bàn được chọn) khi có thay đổi
+    // Polling tự động cập nhật lại dữ liệu (đơn hàng và thông tin bàn được chọn)
     useEffect(() => {
         if (selectedTable) {
             const interval = setInterval(() => {
@@ -357,25 +434,55 @@ const SaleManagement = () => {
                                             <Table size="small">
                                                 <TableHead>
                                                     <TableRow>
-                                                        <TableCell sx={{ fontWeight: "bold" }}>Tên đồ uống</TableCell>
-                                                        <TableCell sx={{ fontWeight: "bold" }}>Giá</TableCell>
-                                                        <TableCell sx={{ fontWeight: "bold" }}>Số lượng</TableCell>
-                                                        <TableCell sx={{ fontWeight: "bold" }}>Tổng tiền</TableCell>
-                                                        <TableCell sx={{ fontWeight: "bold" }}>Số bàn</TableCell>
+                                                        <TableCell sx={{ fontWeight: "bold" }}>
+                                                            Tên đồ uống
+                                                        </TableCell>
+                                                        <TableCell sx={{ fontWeight: "bold" }}>
+                                                            Giá
+                                                        </TableCell>
+                                                        <TableCell sx={{ fontWeight: "bold" }}>
+                                                            Số lượng
+                                                        </TableCell>
+                                                        <TableCell sx={{ fontWeight: "bold" }}>
+                                                            Tổng tiền
+                                                        </TableCell>
+                                                        <TableCell sx={{ fontWeight: "bold" }}>
+                                                            Hành động
+                                                        </TableCell>
+                                                        <TableCell sx={{ fontWeight: "bold" }}>
+                                                            Số bàn
+                                                        </TableCell>
                                                     </TableRow>
                                                 </TableHead>
                                                 <TableBody>
                                                     {cart.items.map((item) => (
                                                         <TableRow key={item.id}>
-                                                            <TableCell>{item.drink.nameDrinks}</TableCell>
-                                                            <TableCell>{formatter.format(item.drink.price)}</TableCell>
-                                                            <TableCell>{item.quantity}</TableCell>
-                                                            <TableCell>{formatter.format(item.totalPrice)}</TableCell>
-                                                            <TableCell>{cart.table.numberTable}</TableCell>
+                                                            <TableCell>
+                                                                {item.drink.nameDrinks}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {formatter.format(item.drink.price)}
+                                                            </TableCell>
+                                                            {/* Sử dụng EditableCartItemRow để hiển thị và chỉnh sửa số lượng & tổng tiền */}
+                                                            <EditableCartItemRow
+                                                                cart={cart}
+                                                                item={item}
+                                                                refreshCarts={refreshCarts}
+                                                                formatter={formatter}
+                                                            />
+                                                            <TableCell>
+                                                                {cart.table.numberTable}
+                                                            </TableCell>
                                                         </TableRow>
                                                     ))}
                                                 </TableBody>
                                             </Table>
+                                            {/* Hiển thị ghi chú nếu có */}
+                                            {cart.note && (
+                                                <Typography variant="body2" sx={{ mt: 1, fontStyle: "italic" }}>
+                                                    Ghi chú: {cart.note}
+                                                </Typography>
+                                            )}
                                         </Box>
                                     ))
                                 ) : (
@@ -386,7 +493,12 @@ const SaleManagement = () => {
 
                                 {/* Hiển thị tổng tiền chung và nút "Tính tiền" */}
                                 {carts.length > 0 && (
-                                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 2 }}>
+                                    <Stack
+                                        direction="row"
+                                        justifyContent="space-between"
+                                        alignItems="center"
+                                        sx={{ mt: 2 }}
+                                    >
                                         <Typography variant="h6">
                                             Tổng tiền chung: {overallTotal.toLocaleString()} đ
                                         </Typography>
