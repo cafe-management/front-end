@@ -16,10 +16,14 @@ import {
     CircularProgress,
     Chip,
     Dialog,
+    Paper,
+    BottomNavigation,
+    BottomNavigationAction,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import RateReviewIcon from "@mui/icons-material/RateReview";
+import PaymentIcon from "@mui/icons-material/Payment";
 import { getCategories } from "../service/CategoryService";
 import { getDrinks, getDrinksByCategory } from "../service/DrinkService";
 import { getCloudinaryImageUrl } from "../service/CloudinaryService";
@@ -29,9 +33,7 @@ import { createCart } from "../service/CartService";
 import { createFeedback } from "../service/FeedBackService";
 import { createCustomer } from "../service/CustomerService";
 import FeedbackModal from "./FeedBackModal";
-import PaymentIcon from '@mui/icons-material/Payment';
-import Tooltip from "@mui/material/Tooltip";
-import { Client } from '@stomp/stompjs';
+import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { API_URL_SOCKET } from "../config/apiConfig";
 import Header from "../component/home/Header";
@@ -66,11 +68,15 @@ const MenuComponent = () => {
         message: "",
     });
     const [isLoading, setIsLoading] = useState(false);
-
     // State cho modal hiển thị ảnh lớn và loading ảnh
     const [openImageModal, setOpenImageModal] = useState(false);
     const [selectedImage, setSelectedImage] = useState("");
     const [imageLoading, setImageLoading] = useState(false);
+    // State cho Bottom Navigation
+    const [bottomNavValue, setBottomNavValue] = useState(0);
+    // State để disable nút thanh toán và đếm ngược (tính bằng giây)
+    const [paymentDisabled, setPaymentDisabled] = useState(false);
+    const [paymentCountdown, setPaymentCountdown] = useState(0);
 
     const sentinelRef = useRef(null);
     const stompClientRef = useRef(null);
@@ -117,7 +123,7 @@ const MenuComponent = () => {
                 console.log("Connected to WebSocket");
             },
             onStompError: (frame) => {
-                console.error("Broker reported error: " + frame.headers['message']);
+                console.error("Broker reported error: " + frame.headers["message"]);
                 console.error("Additional details: " + frame.body);
             },
         });
@@ -167,13 +173,19 @@ const MenuComponent = () => {
                     let drinksData = [];
                     if (activeCategory.nameCategory === "Tất Cả") {
                         drinksData = await getDrinks();
-                        drinksData = drinksData.sort(() => Math.random() - 0.5);
+                        if (!Array.isArray(drinksData)) {
+                            drinksData = [];
+                        } else {
+                            drinksData = drinksData.sort(() => Math.random() - 0.5);
+                        }
                     } else {
                         drinksData = await getDrinksByCategory(activeCategory.id);
+                        if (!Array.isArray(drinksData)) {
+                            drinksData = [];
+                        }
                     }
-                    drinksData.sort((a, b) => {
-                        return (b.new === true ? 1 : 0) - (a.new === true ? 1 : 0);
-                    });
+                    // Sắp xếp: đưa các sản phẩm mới lên đầu
+                    drinksData.sort((a, b) => (b.new === true ? 1 : 0) - (a.new === true ? 1 : 0));
                     setDrinks(drinksData);
                 } catch (error) {
                     console.error("Error fetching drinks:", error);
@@ -184,6 +196,13 @@ const MenuComponent = () => {
     }, [activeCategory]);
 
     const handlePaymentNotification = () => {
+        if (paymentDisabled) {
+            setSnackbar({
+                open: true,
+                message: "Vui lòng chờ cho đến khi thời gian đếm ngược kết thúc.",
+            });
+            return;
+        }
         if (stompClientRef.current && stompClientRef.current.connected) {
             const payload = `Bàn ${tableId} muốn tính tiền`;
             stompClientRef.current.publish({
@@ -194,6 +213,19 @@ const MenuComponent = () => {
                 open: true,
                 message: "Thông báo thanh toán đã được gửi đến nhân viên.",
             });
+            // Vô hiệu hóa nút thanh toán và bắt đầu đếm ngược 5 phút (300 giây)
+            setPaymentDisabled(true);
+            setPaymentCountdown(300);
+            const countdownInterval = setInterval(() => {
+                setPaymentCountdown((prev) => {
+                    if (prev <= 1) {
+                        clearInterval(countdownInterval);
+                        setPaymentDisabled(false);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
         } else {
             setSnackbar({
                 open: true,
@@ -244,7 +276,7 @@ const MenuComponent = () => {
 
     const handleSubmitFeedback = async (feedbackData) => {
         try {
-            const { name, email, phone, content, images,rating } = feedbackData;
+            const { name, email, phone, content, images, rating } = feedbackData;
             const customer = await createCustomer({
                 email,
                 phoneCustomer: phone,
@@ -272,7 +304,8 @@ const MenuComponent = () => {
         }
     };
 
-    const handleOrder = async () => {
+    // Hàm xử lý đặt món, bây giờ nhận tham số note từ CartModal
+    const handleOrder = async (note) => {
         if (table && table.statusTable === 2) {
             setSnackbar({
                 open: true,
@@ -300,6 +333,7 @@ const MenuComponent = () => {
                 return;
             }
         }
+        // Payload bao gồm trường note được nhận từ CartModal
         const cart = {
             table: { id: tableId },
             items: cartItems.map((item) => ({
@@ -307,6 +341,7 @@ const MenuComponent = () => {
                 quantity: item.quantity,
                 totalPrice: item.price * item.quantity,
             })),
+            note: note, // Ghi chú cho đơn hàng
         };
         console.log("Payload gửi đi:", cart);
         try {
@@ -428,6 +463,13 @@ const MenuComponent = () => {
         setOpenImageModal(true);
     };
 
+    // Hàm định dạng thời gian đếm ngược (mm:ss)
+    const formatCountdown = (seconds) => {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}:${s.toString().padStart(2, "0")}`;
+    };
+
     return (
         <Box sx={{ backgroundColor: "#f3f4f6", minHeight: "100vh", fontFamily: "sans-serif" }}>
             <Header />
@@ -495,7 +537,7 @@ const MenuComponent = () => {
                 </Box>
 
                 {activeCategory && (
-                    <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 6 } }}>
+                    <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 6 }, mb: "50px" }}>
                         {sortedDrinks.length > 0 ? (
                             <>
                                 <Grid container spacing={2}>
@@ -568,11 +610,7 @@ const MenuComponent = () => {
                                 </Grid>
                                 {visibleCount < sortedDrinks.length && (
                                     <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
-                                        {isLoading ? (
-                                            <CircularProgress />
-                                        ) : (
-                                            <div ref={sentinelRef} style={{ height: "20px" }} />
-                                        )}
+                                        {isLoading ? <CircularProgress /> : <div ref={sentinelRef} style={{ height: "20px" }} />}
                                     </Box>
                                 )}
                             </>
@@ -583,64 +621,44 @@ const MenuComponent = () => {
                 )}
             </Box>
 
-            <Box
-                sx={{
-                    position: "fixed",
-                    bottom: 16,
-                    right: 16,
-                    zIndex: 1000,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-end",
-                    gap: 1,
-                }}
-            >
-                {showRatingIcon && (
-                    <Tooltip title="Đánh giá món ăn">
-                        <IconButton
-                            onClick={() => setOpenFeedbackModal(true)}
-                            sx={{
-                                bgcolor: "#1976d2",
-                                color: "#fff",
-                                boxShadow: "0px 2px 4px rgba(0,0,0,0.2)",
-                                "&:hover": { bgcolor: "#115293" },
-                            }}
-                        >
-                            <RateReviewIcon fontSize="large" />
-                        </IconButton>
-                    </Tooltip>
-                )}
-                <Tooltip title="Xem giỏ hàng">
-                    <IconButton
-                        onClick={() => setOpenCartModal(true)}
-                        sx={{
-                            bgcolor: "#E7B45A",
-                            color: "white",
-                            boxShadow: "0px 2px 4px rgba(0,0,0,0.2)",
-                            "&:hover": { bgcolor: "#D9A144" },
-                        }}
-                    >
-                        <Badge badgeContent={totalCartCount} color="error">
-                            <ShoppingCartIcon fontSize="large" />
-                        </Badge>
-                    </IconButton>
-                </Tooltip>
-                {orderPlaced && (
-                    <Tooltip title="Thanh toán">
-                        <IconButton
-                            onClick={handlePaymentNotification}
-                            sx={{
-                                bgcolor: "#4caf50",
-                                color: "white",
-                                boxShadow: "0px 2px 4px rgba(0,0,0,0.2)",
-                                "&:hover": { bgcolor: "#388e3c" },
-                            }}
-                        >
-                            <PaymentIcon fontSize="large" />
-                        </IconButton>
-                    </Tooltip>
-                )}
-            </Box>
+            {/* Thanh Bottom Navigation thay thế cho Floating Action Buttons */}
+            <Paper sx={{ position: "fixed", bottom: 0, left: 0, right: 0 }} elevation={3}>
+                <BottomNavigation
+                    showLabels
+                    value={bottomNavValue}
+                    onChange={(event, newValue) => {
+                        setBottomNavValue(newValue);
+                        if (newValue === 0) {
+                            setOpenFeedbackModal(true);
+                        } else if (newValue === 1) {
+                            setOpenCartModal(true);
+                        } else if (newValue === 2) {
+                            handlePaymentNotification();
+                        }
+                    }}
+                >
+                    <BottomNavigationAction label="Đánh giá" icon={<RateReviewIcon />} />
+                    <BottomNavigationAction
+                        label="Giỏ hàng"
+                        icon={
+                            <Badge badgeContent={totalCartCount} color="error">
+                                <ShoppingCartIcon />
+                            </Badge>
+                        }
+                    />
+                    {orderPlaced && (
+                        <BottomNavigationAction
+                            label={
+                                paymentDisabled
+                                    ? `Thanh toán (${formatCountdown(paymentCountdown)})`
+                                    : "Thanh toán"
+                            }
+                            icon={<PaymentIcon />}
+                            disabled={paymentDisabled}
+                        />
+                    )}
+                </BottomNavigation>
+            </Paper>
 
             <CartModal
                 open={openCartModal}
@@ -666,13 +684,8 @@ const MenuComponent = () => {
             />
 
             {/* Modal hiển thị ảnh lớn với loading */}
-            <Dialog
-                open={openImageModal}
-                onClose={() => setOpenImageModal(false)}
-                maxWidth="lg"
-                fullWidth
-            >
-                <Box sx={{ position: "relative", minHeight: "auto"}}>
+            <Dialog open={openImageModal} onClose={() => setOpenImageModal(false)} maxWidth="lg" fullWidth>
+                <Box sx={{ position: "relative", minHeight: "auto" }}>
                     {imageLoading && (
                         <Box
                             sx={{

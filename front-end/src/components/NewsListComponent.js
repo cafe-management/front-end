@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAllNews, deleteNews } from "../service/NewService";
+import {getAllNews, deleteNews, getPendingNews} from "../service/NewService";
 import { connectWebSocketUser, disconnectWebSocket } from "../service/WebSocketService";
 import {
     Container,
@@ -21,8 +21,9 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
-    Modal,
+    Modal
 } from "@mui/material";
+import Badge from '@mui/material/Badge';
 import { Helmet } from "react-helmet-async";
 import HeaderAdmin from "../component/admin/HeaderAdmin";
 import Slider from "react-slick";
@@ -44,6 +45,8 @@ const NewsListComponent = () => {
     const navigate = useNavigate();
     const role = localStorage.getItem("role");
     const hasPendingNews = newsList.some(news => news.status === "PENDING");
+    const [pendingNewsCount, setPendingNewsCount] = useState(0);
+
     useEffect(() => {
         const role = localStorage.getItem("role");
 
@@ -58,6 +61,19 @@ const NewsListComponent = () => {
             disconnectWebSocket();
         };
     }, []);
+
+    useEffect(() => {
+        const fetchPendingNewsCount = async () => {
+            try {
+                const response = await getPendingNews();
+                setPendingNewsCount(response.length);
+            } catch (error) {
+                console.error("Lỗi khi tải số lượng bài viết chờ duyệt:", error);
+            }
+        };
+
+        fetchPendingNewsCount();
+    }, [newsList]);
 
 
     const fetchNews = async () => {
@@ -199,29 +215,30 @@ const NewsListComponent = () => {
                 <Grid container alignItems="center" justifyContent="flex-end" sx={{ my: 2 }}>
                     {role === "admin" && (
                         <Grid item>
-                            <Button
-                                variant="contained"
-                                color="warning"
-                                onClick={() => navigate("/pending-news")}
-                                sx={{ textTransform: "none" }}
-                                sx={{ mr: 100 }}
-                            >
-                                Bài Viết Chờ Duyệt
-                            </Button>
+                            <Badge badgeContent={pendingNewsCount} color="error" sx={{ mr: 2 }}>
+                                <Button
+                                    variant="contained"
+                                    color="warning"
+                                    onClick={() => navigate("/pending-news")}
+                                    sx={{ textTransform: "none" }}
+                                >
+                                    Bài Viết Chờ Duyệt
+                                </Button>
+                            </Badge>
                         </Grid>
                     )}
                     <Grid item>
-                    <Button
-                        variant="contained"
-                        onClick={() => navigate("/news/create")}
-                        sx={{
-                            backgroundColor: "#E7B45A",
-                            color: "black",
-                            "&:hover": { backgroundColor: "#D1A750" },
-                        }}
-                    >
-                        Thêm bài mới
-                    </Button>
+                        <Button
+                            variant="contained"
+                            onClick={() => navigate("/news/create")}
+                            sx={{
+                                backgroundColor: "#E7B45A",
+                                color: "black",
+                                "&:hover": { backgroundColor: "#D1A750" },
+                            }}
+                        >
+                            Thêm bài mới
+                        </Button>
                     </Grid>
                 </Grid>
                 <TableContainer component={Paper} sx={{ maxHeight: "600px", overflowY: "auto", mb: 2 }}>

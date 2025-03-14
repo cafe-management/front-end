@@ -136,10 +136,8 @@ export const updateNewsStatus = async (id, status) => {
         const response = await axios.put(`${API_URL}/${id}/status`, { status }, {
             headers: getAuthHeaders(),
         });
-        toast.success("✅ Cập nhật trạng thái thành công!");
         return response.data;
     } catch (error) {
-        toast.error("❌ Lỗi khi cập nhật trạng thái bài viết!");
         throw error;
     }
 };
